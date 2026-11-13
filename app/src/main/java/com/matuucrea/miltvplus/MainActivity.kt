@@ -315,7 +315,7 @@ class MainActivity:ComponentActivity(){
                                             val start = playable.indexOfFirst { it.id == item.id }
                                             if(start >= 0) launchChannelPlayer(context, playable, start, remoteCatalog=true, countryCode=selectedChannelCountry, category=channelCategoryFilter)
                                         }){Text("Ver en pantalla completa")}
-                                        if(item.actionUrl!=null && remoteCategory in setOf("radio_stations","catalog_items","sports_events","theater_events")) TextButton(onClick={vm.play(Channel(item.id,item.title,item.actionUrl,item.subtitle,item.artworkUrl))}){Text("Reproducir")}
+                                        if(item.actionUrl?.let(::isSafeHttpsUrl)==true && remoteCategory in setOf("radio_stations","catalog_items","sports_events","theater_events")) TextButton(onClick={vm.play(Channel(item.id,item.title,item.actionUrl!!,item.subtitle,item.artworkUrl))}){Text("Reproducir")}
                                         if(item.infoUrl!=null && remoteCategory in setOf("sports_events","theater_events","music_items","radio_stations","tv_channels")) TextButton(onClick={
                                             if(remoteCategory=="tv_channels") {
                                                 val watchable = remoteItems.filter { it.infoUrl != null && (selectedChannelCountry==null || it.countryCode==selectedChannelCountry) && (channelCategoryFilter==null || it.category==channelCategoryFilter) }
