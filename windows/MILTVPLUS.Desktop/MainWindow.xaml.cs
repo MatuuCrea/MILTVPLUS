@@ -373,10 +373,6 @@ public partial class MainWindow : Window
         return value.Contains("18") || new[] { "NC-17", "R18", "TV-MA", "MA", "AO", "ADULT", "ADULTS ONLY" }.Contains(value);
     }
 
-    private void PreviousAnyChannel_Click(object sender, RoutedEventArgs e) => ChangeChannel(-1);
-    private void NextAnyChannel_Click(object sender, RoutedEventArgs e) => ChangeChannel(1);
-    private void StopAny_Click(object sender, RoutedEventArgs e) => Stop_Click(sender, e);
-    private void Watch_Click(object sender, RoutedEventArgs e) => Play_Click(sender, e);
 
     private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
     {
