@@ -3,6 +3,11 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
 }
+val appVersionName = providers.gradleProperty("appVersionName").orElse("22.34.9").get()
+val appVersionParts = appVersionName.split(".").map { it.toIntOrNull() ?: error("appVersionName debe ser numérico, por ejemplo 22.34.10") }
+require(appVersionParts.size in 2..3) { "appVersionName debe tener dos o tres componentes numéricos" }
+val appVersionCode = appVersionParts[0] * 100000 + (appVersionParts.getOrElse(1) { 0 }) * 100 + appVersionParts.getOrElse(2) { 0 }
+
 android {
     namespace = "com.matuucrea.miltvplus"
     compileSdk = 35
@@ -10,8 +15,8 @@ android {
         applicationId = "com.matuucrea.miltvplus"
         minSdk = 23
         targetSdk = 35
-        versionCode = 2203409
-        versionName = "22.34.9"
+        versionCode = appVersionCode
+        versionName = appVersionName
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "SUPABASE_URL", "\"https://rbnuxapfsnaabrzuxvdy.supabase.co\"")
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"sb_publishable_tmBU-IB7P0db0w7RG9TMEw_GD754hb7\"")
