@@ -138,7 +138,12 @@ async function checkChannel(channel: Channel): Promise<CheckResult> {
 
     const youtubeLiveRoute = channel.playback_type === "youtube_live" || isYoutubeLivePage(channel.official_watch_url);
     if (youtubeLiveRoute) {
-      const liveEvidence = /"isLiveNow"\\s*:\\s*true|"isLive"\\s*:\\s*true/i.test(sample);
+      const normalizedSample = sample.replaceAll(String.fromCharCode(92) + '"', '"');
+      const liveEvidence =
+        normalizedSample.includes('"isLiveNow":true') ||
+        normalizedSample.includes('"isLiveNow": true') ||
+        normalizedSample.includes('"isLive":true') ||
+        normalizedSample.includes('"isLive": true');
       if (!liveEvidence) {
         return { status: "pending_review", detail: "La página oficial de YouTube responde, pero no confirma una emisión en directo en este momento." };
       }
