@@ -327,7 +327,6 @@ fun AdultAccessScreen(
                             val rating = it.ageRating?.trim()?.uppercase().orEmpty()
                             rating.contains("18") || rating in setOf("NC-17","R18","TV-MA","MA","AO","ADULT","ADULTS ONLY")
                         }
-                        if (adultItems.none { it.id == unavailableCategory }) unavailableCategory = null
                         message = null
                     }
                     .onFailure { message = "No se pudo actualizar el catálogo +18. Se conserva el contenido anterior si estaba disponible: ${it.message}" }
