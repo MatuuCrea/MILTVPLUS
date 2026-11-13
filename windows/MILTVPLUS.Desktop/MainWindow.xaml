@@ -147,6 +147,41 @@
      <Button Content="◎&#x0a;Países&#x0a;Elegí tu región" Tag="Países" Click="QuickNavigation_Click" Background="#064B65" Margin="3" Padding="8"/>
     </UniformGrid>
    </StackPanel>
+   <StackPanel x:Name="AdultPanel" Grid.Row="1" Margin="0,0,0,14" Visibility="Collapsed">
+    <Border CornerRadius="17" Padding="16" Height="118" BorderBrush="#9E1C63" BorderThickness="1" Margin="0,0,0,8">
+     <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#570B36"/><GradientStop Color="#21051E" Offset=".6"/><GradientStop Color="#090611" Offset="1"/></LinearGradientBrush></Border.Background>
+     <Grid>
+      <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+      <Border Width="76" Height="76" CornerRadius="38" Background="#35102B" BorderBrush="#FF4D9D" BorderThickness="2" VerticalAlignment="Center">
+       <TextBlock Text="18+" Foreground="White" FontSize="27" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+      </Border>
+      <StackPanel Grid.Column="1" Margin="16,0" VerticalAlignment="Center">
+       <TextBlock Text="♛  CONTENIDO ADULTO" Foreground="#FFC247" FontSize="10" FontWeight="Bold"/>
+       <TextBlock Text="Experiencia privada +18" Foreground="White" FontSize="24" FontWeight="Black"/>
+       <TextBlock Text="Solo publicaciones clasificadas y verificadas · Acceso protegido por PIN" Foreground="#FFD8E9" FontSize="11"/>
+      </StackPanel>
+      <TextBlock Grid.Column="2" Text="♡" Foreground="#FF4D9D" FontSize="42" VerticalAlignment="Center"/>
+     </Grid>
+    </Border>
+    <UniformGrid Columns="6" Margin="0,0,0,7">
+     <Button Content="💋&#x0a;Romance" Tag="Romance" Click="AdultCategory_Click" Background="#6A1454" Margin="2"/>
+     <Button Content="🔥&#x0a;Eróticos" Tag="Eróticos" Click="AdultCategory_Click" Background="#65152F" Margin="2"/>
+     <Button Content="💞&#x0a;Parejas" Tag="Parejas" Click="AdultCategory_Click" Background="#511044" Margin="2"/>
+     <Button Content="⭐&#x0a;Hot" Tag="Hot" Click="AdultCategory_Click" Background="#5C183C" Margin="2"/>
+     <Button Content="💎&#x0a;Premium" Tag="Premium" Click="AdultCategory_Click" Background="#102E70" Margin="2"/>
+     <Button Content="🔞&#x0a;Solo Adultos" Tag="Solo Adultos" Click="AdultCategory_Click" Background="#68152A" Margin="2"/>
+    </UniformGrid>
+    <DockPanel Margin="2,3,2,5">
+     <TextBlock Text="▶  Recomendados para vos" Foreground="White" FontSize="16" FontWeight="Bold"/>
+     <TextBlock Text="Basados en el catálogo real publicado" Foreground="#FF9CCB" FontSize="10" HorizontalAlignment="Right"/>
+    </DockPanel>
+    <UniformGrid Columns="4">
+     <TextBlock Text="🛡  Contenido seguro" Foreground="#FFD8E9" FontSize="9" Margin="5"/>
+     <TextBlock Text="🔒  Acceso exclusivo +18" Foreground="#FFD8E9" FontSize="9" Margin="5"/>
+     <TextBlock Text="♛  Calidad según la fuente" Foreground="#FFD8E9" FontSize="9" Margin="5"/>
+     <TextBlock Text="♡  Experiencia privada" Foreground="#FFD8E9" FontSize="9" Margin="5"/>
+    </UniformGrid>
+   </StackPanel>
    <DockPanel Grid.Row="2" Margin="0,0,0,12">
     <StackPanel DockPanel.Dock="Left">
      <TextBlock x:Name="PageTitle" Text="Tu entretenimiento, en un solo lugar" FontSize="21" FontWeight="Bold"/>
