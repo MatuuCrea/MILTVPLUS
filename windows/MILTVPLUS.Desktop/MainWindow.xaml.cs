@@ -38,6 +38,7 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _catalogRefreshTimer = new() { Interval = TimeSpan.FromMinutes(1) };
     private readonly DispatcherTimer _clockTimer = new() { Interval = TimeSpan.FromSeconds(1) };
     private bool _adultUnlocked;
+    private string? _contentCategoryFilter;
     private string AdultDataDirectory => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MILTVPLUS");
 
     public MainWindow()
@@ -89,6 +90,10 @@ public partial class MainWindow : Window
                 loaded = adultSection && _adultUnlocked
                     ? loaded.Where(x => IsAdultRating(x.AgeRating)).ToList()
                     : loaded.Where(x => !IsAdultRating(x.AgeRating)).ToList();
+                if (_contentCategoryFilter == "kids")
+                    loaded = loaded.Where(x => (x.Genre ?? "").Contains("infantil", StringComparison.OrdinalIgnoreCase) || (x.Genre ?? "").Contains("kids", StringComparison.OrdinalIgnoreCase)).ToList();
+                else if (_contentCategoryFilter == "documentary")
+                    loaded = loaded.Where(x => (x.Genre ?? "").Contains("documental", StringComparison.OrdinalIgnoreCase) || (x.Genre ?? "").Contains("documentary", StringComparison.OrdinalIgnoreCase)).ToList();
             }
             entries = loaded;
             UpdateFilterOptions();
@@ -434,6 +439,7 @@ public partial class MainWindow : Window
         if (!IsLoaded || Sections.SelectedItem is not ListBoxItem item) return;
         var section = item.Tag?.ToString() ?? item.Content?.ToString();
         _localPlaylistLoaded = false;
+        _contentCategoryFilter = section == "Infantil" ? "kids" : section == "Documentales" ? "documentary" : null;
         HomePanel.Visibility = section == "Inicio" ? Visibility.Visible : Visibility.Collapsed;
         var isAdult = section == "Adultos 18+";
         AdultGatePanel.Visibility = isAdult && !_adultUnlocked ? Visibility.Visible : Visibility.Collapsed;
@@ -452,8 +458,8 @@ public partial class MainWindow : Window
             "Inicio" or "TV en vivo" or "Países" => ("tv_channels", "id,title,description,country_code,created_at,category,language_code,access_model,logo_url,official_watch_url,stream_url,playback_type,is_free_to_air,source_status,last_checked_at,last_check_detail", "sort_order.asc,title.asc", null),
             "Películas" => ("catalog_items", "id,title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url", "created_at.desc", "movie"),
             "Series" => ("catalog_items", "id,title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url", "created_at.desc", "series"),
-            "Infantil" => ("catalog_items", "id,title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url", "created_at.desc", "kids"),
-            "Documentales" => ("catalog_items", "id,title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url", "created_at.desc", "documentary"),
+            "Infantil" => ("catalog_items", "id,title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url", "created_at.desc", null),
+            "Documentales" => ("catalog_items", "id,title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url", "created_at.desc", null),
             "Adultos 18+" => ("catalog_items", "id,title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url", "created_at.desc", null),
             "Deportes" => ("sports_events", "id,title,description,country_code,starts_at,competition,sport,poster_url,official_info_url", "starts_at.asc", null),
             "Música" => ("music_items", "id,title,creator,country_code,created_at,item_type,album,genre,release_year,external_url,artwork_url", "created_at.desc", null),
