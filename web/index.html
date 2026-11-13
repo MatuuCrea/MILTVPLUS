@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#07132d"><meta name="description" content="MILTVPLUS: entretenimiento organizado en un solo lugar.">
+  <link rel="manifest" href="./manifest.webmanifest"><link rel="stylesheet" href="./styles.css">
+  <title>MILTVPLUS · Tu mundo en una sola app</title>
+</head>
+<body>
+<header class="top"><a class="brand" href="#">MILTV<span>PLUS</span></a><div id="account-state">Catálogo público</div><button id="account-open" class="outline">Cuenta</button></header>
+<main>
+  <section class="hero"><p class="eyebrow">TU MUNDO EN UNA SOLA APP</p><h1>Entretenimiento, <span>más organizado.</span></h1><p>TV en vivo, películas, series, deportes, radios, música y espectáculos en una sola experiencia.</p><button id="explore">Explorar catálogo</button></section>
+  <nav id="sections" aria-label="Secciones"></nav>
+  <section class="toolbar"><input id="search" type="search" placeholder="Buscar título, canal, evento o artista"><select id="country" aria-label="País"></select><button id="refresh" class="outline">Actualizar</button></section>
+  <section id="status" role="status" aria-live="polite">Conectando con el catálogo...</section>
+  <section id="catalog" class="grid"></section>
+  <section id="account-panel" class="panel hidden">
+    <h2>Cuenta MILTVPLUS</h2><input id="email" type="email" autocomplete="email" placeholder="Correo electrónico">
+    <input id="password" type="password" autocomplete="current-password" placeholder="Contraseña (8 caracteres mínimo)">
+    <div class="actions"><button id="sign-in">Iniciar sesión</button><button id="sign-up" class="outline">Crear cuenta</button><button id="recover" class="outline">Recuperar</button><button id="sign-out" class="outline hidden">Cerrar sesión</button></div>
+    <p id="auth-message" role="status"></p>
+  </section>
+  <section id="sources-panel" class="panel hidden">
+    <h2>Fuentes sincronizadas</h2><input id="source-name" placeholder="Nombre de la lista"><input id="source-url" type="url" placeholder="URL M3U/M3U8 HTTPS"><button id="source-add">Guardar fuente</button><p id="source-message" class="muted"></p><div id="source-list" class="grid"></div>
+    <p class="muted">Las fuentes nuevas quedan deshabilitadas hasta que se verifique su autorización.</p>
+  </section>
+  <section class="panel">
+    <h2>Preferencias y protección</h2>
+    <div class="actions"><select id="theme"><option value="dark">Tema oscuro</option><option value="light">Tema claro</option><option value="system">Tema del sistema</option></select><select id="language"><option value="es">Español</option><option value="en">English</option><option value="pt">Português</option></select><label><input id="subtitles" type="checkbox" checked> Preferir subtítulos</label><label><input id="notifications" type="checkbox" checked> Preferencia de notificaciones</label><label><input id="autoplay" type="checkbox"> Reproducción automática en Android</label><select id="audio-language"><option value="original">Audio original</option><option value="es">Audio español</option><option value="en">Audio inglés</option><option value="pt">Audio portugués</option></select><select id="accent"><option value="electric-blue">Azul eléctrico</option><option value="violet">Violeta</option><option value="emerald">Verde</option></select><button id="adult">Acceso +18</button><a class="outline link-button" href="https://open.spotify.com/" target="_blank" rel="noopener noreferrer">Abrir Spotify</a></div>
+    <p class="muted">La preferencia de notificaciones se guarda, pero los avisos push requieren un servicio de eventos aún no desplegado. Spotify abre el servicio oficial. No se declara una integración OAuth ni reproducción interna sin credenciales y aprobación de Spotify. La disponibilidad audiovisual depende de licencias y región.</p>
+  </section>
+</main>
+<footer>MILTVPLUS · Las emisiones sólo se habilitan cuando la fuente y los derechos están verificados.</footer>
+<script src="./app.js" defer></script>
+</body></html>

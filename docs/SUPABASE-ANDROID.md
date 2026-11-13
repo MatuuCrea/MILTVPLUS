@@ -1,35 +1,41 @@
-# Conexión Android ↔ Supabase
+# Integración Android/Web ↔ Supabase
 
-La aplicación consulta Supabase REST en modo de solo lectura para los catálogos públicos publicados. El acceso queda limitado por las políticas RLS de cada tabla y por el filtro `is_published=eq.true`.
+Proyecto: `rbnuxapfsnaabrzuxvdy` · API URL `https://rbnuxapfsnaabrzuxvdy.supabase.co`.
 
-- URL del proyecto: `https://rbnuxapfsnaabrzuxvdy.supabase.co`
-- La clave incluida en `BuildConfig` es una clave **publishable** (pública), no una clave `service_role`.
-- No se incluye contraseña PostgreSQL ni secreto de servidor en el APK.
-- Tablas consultables: `catalog_items`, `radio_stations`, `sports_events`, `music_items`, `theater_events`, `epg_programs`.
-- La consulta usa HTTPS, límites de tiempo y una lista permitida de tablas.
-- Las tablas vacías siguen mostrando estados vacíos: no se fabrican canales, eventos ni enlaces de reproducción.
+## Cliente y autenticación
 
-Esta primera integración no implementa todavía inicio de sesión, escrituras autenticadas, sincronización de favoritos ni alta remota de fuentes. Esas operaciones requieren Auth y políticas específicas por usuario; no se deben habilitar con permisos anónimos.
+- Clientes usan sólo la clave publishable; no hay `service_role` ni secreto de servidor en APK/Web.
+- Android implementa Supabase Auth REST: signup, password grant, refresh, logout, recuperación, actualización y callback.
+- Access/refresh tokens Android se cifran con AES-GCM y Android Keystore. La renovación se serializa para evitar rotación simultánea.
+- Callback móvil: `miltvplus://auth/callback`.
+- Acción manual pendiente: agregar esa URL en Supabase Dashboard → Authentication → URL Configuration → Redirect URLs.
+- El trigger de perfil/preferencias vive en `app_private.handle_new_miltvplus_user`, dentro de esquema no expuesto.
+- Web conserva tokens en sessionStorage y no cachea respuestas privadas con el service worker.
 
-## Auditoría de backend (13 de noviembre de 2026)
+## Sincronización
 
-La conexión del proyecto fue verificada contra Supabase:
+- `user_favorites`: lectura, inserción idempotente y eliminación con JWT; sólo UUID de `catalog_items`.
+- `user_preferences`: upsert por `user_id` con tema, país, idioma, subtítulos, notificaciones, autoplay, acento e idioma de audio.
+- `media_sources`: alta, listado y eliminación por propietario. El rol authenticated tiene SELECT/INSERT/DELETE, no UPDATE. Un trigger fuerza `is_enabled=false` y `is_verified=false` al insertar; sólo el administrador puede aprobar y activar. Android descarga la lista únicamente si ambos flags son true.
+- `age_access_consents`: declaración +18 por cuenta. El PIN no se sube; se deriva localmente con PBKDF2 y sal.
+- RLS vincula cada fila privada a `auth.uid()`.
 
-- Proyecto activo: `MILTVPLUS` (`rbnuxapfsnaabrzuxvdy`), región `us-east-1`, PostgreSQL 17.
-- Las 11 tablas públicas existentes tienen RLS habilitado.
-- Las migraciones registradas son `miltvplus_initial_catalog`, `miltvplus_extended_catalog` y `tighten_miltvplus_public_table_grants`.
-- Las tablas consultadas no contienen registros: no hay canales, eventos, películas, radios ni programación publicada todavía.
-- No hay Edge Functions desplegadas.
-- El asesor de seguridad de Supabase no informó hallazgos en la comprobación realizada.
-- Se comprobó que el rol `anon` conserva únicamente `SELECT` sobre las seis tablas de catálogo público. Se revocaron sus permisos sobre perfiles, favoritos, fuentes y datos privados.
-- El rol `authenticated` tiene permisos mínimos por tabla y las políticas RLS restringen cada registro al propietario autenticado.
+## Metadatos editoriales y derechos
 
-La migración de endurecimiento está versionada en `supabase/migrations/20261113150502_tighten_miltvplus_public_table_grants.sql` y ya fue aplicada al proyecto. Los avisos de índices no utilizados son informativos: las tablas están vacías y no justifican borrar índices antes de que exista tráfico real.
+`catalog_items` admite live/movie/series/episode, slug, géneros, año, duración, clasificación, idiomas, poster/backdrop/logo, serie/temporada/episodio, proveedor, región de licencia, disponibilidad, destacados y popularidad.
 
-## Lo que sigue bloqueando la sincronización real
+Radio, deportes, música, teatro y EPG incluyen metadatos descriptivos y procedencia/derechos. Para publicar se exige `rights_verified`, titular, referencia, región y fecha de inicio. Un trigger privado impide publicar antes del inicio o después del vencimiento. No hay auto-publicación.
 
-1. El cliente Android todavía no implementa Supabase Auth: no hay registro/login, renovación segura de sesión ni cierre de sesión.
-2. Los favoritos sólo se guardan localmente. La tabla `user_favorites` ya tiene RLS por `user_id`, pero falta el cliente autenticado.
-3. Las preferencias y fuentes también necesitan cliente autenticado y pruebas de aislamiento entre usuarios.
-4. El catálogo necesita datos reales, metadatos completos y autorización territorial verificable. No se insertaron datos ficticios.
-5. El proyecto Android debe volver a pasar JVM tests y `assembleDebug` para el SHA actual; la consulta de estados disponible no devolvió checks para los últimos commits, por lo que no se declara compilación aprobada.
+## Auditoría y estado
+
+- Las 11 tablas originales tienen RLS habilitado.
+- `anon` conserva SELECT sólo sobre las seis tablas de catálogo público.
+- Perfiles, favoritos, fuentes, preferencias y consentimientos son sólo para usuarios autenticados y sus políticas restringen al propietario.
+- Asesor de seguridad: sin lints en la última comprobación.
+- El asesor de rendimiento sólo informa índices aún no utilizados; las tablas siguen vacías, por lo que no se eliminan índices preventivamente.
+- Migraciones registradas: inicial, catálogo extendido, grants públicos mínimos, experiencia de producto, bootstrap de preferencias, ventana de derechos y protección de aprobación de fuentes.
+- El catálogo sigue vacío: no hay canales, películas, series, eventos, radios, música, teatro ni EPG publicados.
+
+## Límites
+
+La clave publishable identifica el proyecto, pero RLS y grants determinan el acceso. Nunca insertar contenido sin procedencia y derechos verificables. Una fuente nueva queda deshabilitada hasta revisión administrativa.

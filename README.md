@@ -1,63 +1,70 @@
 # MILTVPLUS V22.34.9
 
-Aplicación Android nativa en Kotlin, Jetpack Compose y Media3, con orientación a móviles y Android TV / Google TV.
+Aplicación de entretenimiento para Android móvil, Android TV y TV Box Android, con un cliente Web/PWA separado. Kotlin, Jetpack Compose, Media3 y Supabase.
 
-## Funciones implementadas en el repositorio
+## Funciones desarrolladas
 
-- Navegación Inicio, TV local, Fuentes, Favoritos y Ajustes.
-- Importación de listas M3U/M3U8 locales mediante el selector de documentos de Android.
-- Parser M3U con validación de cabecera, extracción de nombre/grupo/logo HTTPS, rechazo de HTTP, esquemas locales y URLs con credenciales; elimina entradas duplicadas.
-- Persistencia local de listas y favoritos mediante SharedPreferences.
-- Reproducción Media3/ExoPlayer para fuentes HTTPS y soporte de HLS mediante la dependencia correspondiente.
-- Consulta REST de solo lectura a Supabase para filas publicadas de catálogo, radios, deportes, música, teatro y EPG; envía la clave publishable en los encabezados `apikey` y `Authorization`.
-- Estados de carga, error y catálogo vacío; no se generan canales ni enlaces de prueba falsos.
-- GitHub Actions ejecuta pruebas JVM, `:app:assembleDebug` y publica el APK como artefacto.
+### Android
+- Inicio con accesos a TV en vivo, películas, series, deportes, radios, música, teatro, EPG, +18, países, fuentes, cuenta y ajustes.
+- Reproducción Media3/HLS para URLs HTTPS de proveedores autorizados.
+- Importación M3U/M3U8 local con límite de 5 MB y validación HTTPS.
+- Catálogo remoto con filtros por país y territorios de licencia, tipo de contenido, imágenes y enlaces oficiales.
+- EPG agrupada por identificador estable, ordenada por horario local y marcada cuando el programa está en vivo.
+- Cuenta Supabase Auth: registro, login, recuperación, actualización de contraseña, cierre, renovación y callback de email.
+- Sesión cifrada AES-GCM con clave Android Keystore.
+- Favoritos en nube para UUID de `catalog_items`; favoritos M3U locales siguen locales.
+- Preferencias locales y sincronizadas: tema, acento, país, idioma, audio preferido, subtítulos, preferencia de avisos y autoplay.
+- Fuentes remotas por cuenta: alta, listado, eliminación y descarga M3U sólo después de aprobación administrativa; el backend fuerza las nuevas fuentes a deshabilitadas.
+- Control +18 con declaración, PIN PBKDF2 con sal, bloqueo temporal tras cinco intentos incorrectos y catálogo filtrado por clasificación.
+- Launcher Android TV con categoría Leanback y banner gráfico provisional; D-pad y foco requieren QA en dispositivos reales.
 
-## Uso
+### Web / PWA
+El cliente independiente está en [web/](web/). Incluye navegación de catálogo, búsqueda, filtro regional, Auth, favoritos, preferencias, fuentes, control +18 local y service worker que cachea sólo archivos estáticos. No cachea respuestas privadas de API.
 
-Abrir **Fuentes** y seleccionar una lista M3U/M3U8 propia, pública o licenciada. M3U/M3U8 es un formato técnico, no una autorización para retransmitir contenido.
+## Supabase
 
-El catálogo remoto sólo mostrará elementos que estén cargados y publicados en Supabase. No hay proveedores ni contenido autorizado cargado por defecto.
+Proyecto: `rbnuxapfsnaabrzuxvdy`.
 
-## Construcción
+- Los clientes usan exclusivamente la clave publishable. Nunca incluir `service_role`, secret keys ni contraseñas de base de datos.
+- Las tablas privadas usan RLS y políticas por propietario.
+- El rol de usuario puede enviar y eliminar fuentes propias, pero no puede aprobarlas ni habilitarlas; un trigger obliga flags de verificación a false al insertar.
+- Las tablas editoriales sólo permiten publicar con derechos verificados, titular, referencia, región y ventana de vigencia activa.
+- El trigger de perfil/preferencias vive en el esquema no expuesto `app_private`.
+- El catálogo sigue vacío en la última comprobación: no hay canales, películas, series, radios, eventos, música, teatro ni EPG publicados.
+- No se cargaron URLs ni metadatos ficticios.
 
-Requisitos: JDK 17, Android SDK 35 y Gradle 8.9. Desde la raíz:
+### Configuración necesaria para confirmar emails y recuperación Android
+
+En Supabase Dashboard → Authentication → URL Configuration → Redirect URLs, agregar:
+
+```
+miltvplus://auth/callback
+```
+
+El cliente Android ya declara ese deep link. Sin esta URL permitida, los enlaces de confirmación/recuperación pueden no volver a la app.
+
+## Límites pendientes
+- La preferencia de notificaciones se guarda y sincroniza; el servicio que envía avisos push/reminders todavía no está desplegado.
+- Spotify abre el servicio oficial; OAuth y reproducción integrada requieren una aplicación Spotify aprobada.
+- La declaración +18 y el PIN son barreras de producto, no verificación legal certificada de identidad/edad.
+- Tizen y webOS requieren clientes independientes y todavía no están desarrollados.
+- Web/PWA requiere hosting HTTPS, iconos de marca y QA de navegadores.
+- Falta incorporar el logo oficial original.
+- Firma release, privacidad y publicación en tiendas siguen pendientes.
+
+## Construcción Android
+
+Requisitos: JDK 17, Android SDK 35, Gradle 8.9.
 
 ```bash
 gradle :app:testDebugUnitTest
 gradle :app:assembleDebug
 ```
 
-El APK de depuración se genera en `app/build/outputs/apk/debug/app-debug.apk`. El artefacto de Actions se considera disponible sólo cuando el job confirma correctamente el paso `upload-artifact`.
+APK debug: `app/build/outputs/apk/debug/app-debug.apk`. Sólo considerar válido el artefacto cuando GitHub Actions confirme el mismo SHA, los tests, el ensamblado y la subida del APK.
 
-## Backend Supabase
-
-Proyecto: `rbnuxapfsnaabrzuxvdy`.
-
-La aplicación tiene un cliente REST Android de sólo lectura que consulta las tablas publicadas `catalog_items`, `radio_stations`, `sports_events`, `music_items`, `theater_events` y `epg_programs`. La clave configurada en BuildConfig es una clave publishable pública; no se incluye una clave service_role ni una contraseña de base de datos.
-
-Las tablas tienen Row Level Security (RLS). Las políticas públicas limitan la lectura a filas publicadas. Las tablas de fuentes y datos de usuario están restringidas por identidad autenticada. Las tablas de catálogo estaban vacías en la última verificación, por lo que el catálogo puede aparecer vacío hasta que se cargue contenido con derechos y se publique.
-
-La integración actual no incluye inicio de sesión, escrituras autenticadas, sincronización de favoritos con la nube ni alta remota de fuentes. Esas funciones requieren Supabase Auth y políticas específicas por usuario antes de habilitar operaciones de escritura.
-
-Más detalles: [docs/SUPABASE-ANDROID.md](docs/SUPABASE-ANDROID.md).
-
-## Estado y pendientes conocidos
-
-La matriz detallada de módulos, contratos de metadatos, bloqueos externos y criterios de aceptación está en [docs/IMPLEMENTATION-MATRIX.md](docs/IMPLEMENTATION-MATRIX.md).
-
-Implementado y comprobado por CI: pruebas JVM, compilación Debug y publicación del artefacto APK en la ejecución indicada por GitHub Actions.
-
-Todavía pendiente de desarrollo y validación:
-- Inicio de sesión y flujos de cuenta con Supabase Auth.
-- Sincronización remota de favoritos, preferencias y fuentes por usuario.
-- Consumo EPG por canal y horario; actualmente la sección consulta filas pero no construye una grilla de programación.
-- Vistas de detalle VOD con metadatos, navegación de temporadas/episodios y proveedores autorizados.
-- Catálogos reales, acuerdos/licencias y validación editorial de cada URL.
-- Controles parentales y consentimiento de edad completos.
-- Navegación D-pad/remote, pruebas de accesibilidad y QA físico en Android TV/Google TV y distintos móviles.
-- Aplicaciones específicas para Tizen, webOS y Web; no están incluidas en este APK Android.
-
-## Marca
-
-El único logo oficial debe ser el archivo de marca aprobado por el propietario. No se reemplaza por iconos genéricos. El recurso binario original todavía debe incorporarse al repositorio.
+## Documentación
+- [Matriz de implementación](docs/IMPLEMENTATION-MATRIX.md)
+- [Especificación funcional](docs/PRODUCT-SPEC.md)
+- [Integración y auditoría Supabase](docs/SUPABASE-ANDROID.md)
+- [Cliente Web/PWA](web/README.md)
