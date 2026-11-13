@@ -2,6 +2,13 @@ package com.matuucrea.miltvplus.ui
 
 import android.content.Context
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -294,6 +301,8 @@ fun AdultAccessScreen(
     var adultItems by remember { mutableStateOf<List<RemoteCatalogEntry>>(emptyList()) }
     var loading by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
+    var selectedAdultCategory by remember { mutableStateOf("Todos") }
+    val adultCategories = listOf("Todos", "Romance", "Eróticos", "Parejas", "Hot", "Premium", "Solo Adultos")
 
     LaunchedEffect(ageConfirmed, isSignedIn) {
         if (ageConfirmed && isSignedIn) {
@@ -317,10 +326,49 @@ fun AdultAccessScreen(
     }
 
     Column(
-        Modifier.fillMaxWidth().padding(18.dp).verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        Modifier.fillMaxWidth()
+            .background(Brush.verticalGradient(listOf(Color(0xFF210619), Color(0xFF09030D), Color(0xFF05030A))))
+            .padding(16.dp).verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        Text("Contenido para mayores de 18", style = MaterialTheme.typography.headlineSmall)
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF370B2D))
+        ) {
+            Row(
+                Modifier.fillMaxWidth().background(Brush.horizontalGradient(listOf(Color(0xFF4A0B38), Color(0xFF16051E))))
+                    .padding(18.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(Modifier.size(76.dp).background(Color(0xFF180512), RoundedCornerShape(40.dp)), contentAlignment = Alignment.Center) {
+                    Text("18+", color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.Black)
+                }
+                Spacer(Modifier.width(14.dp))
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                    Text("Contenido Adulto", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Black)
+                    Text("Romance, historias para adultos y contenido clasificado +18", color = Color(0xFFFFD8E9), style = MaterialTheme.typography.bodySmall)
+                    Text("ACCESO PRIVADO · MAYORES DE 18", color = Color(0xFFFF79B7), fontSize = 9.sp, fontWeight = FontWeight.ExtraBold)
+                }
+                Icon(Icons.Default.Favorite, null, tint = Color(0xFFFF4D9D), modifier = Modifier.size(28.dp))
+            }
+        }
+        Text("Explorá por categoría", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
+        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+            adultCategories.forEach { category ->
+                FilterChip(
+                    selected = selectedAdultCategory == category,
+                    onClick = { selectedAdultCategory = category },
+                    label = { Text(category) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = Color(0xFFB30B64),
+                        selectedLabelColor = Color.White,
+                        labelColor = Color(0xFFFFD8E9)
+                    )
+                )
+            }
+        }
+        Text("Solo contenido publicado y clasificado por edad. No se muestran canales de televisión ni enlaces inventados.", color = Color(0xFFFFD8E9), style = MaterialTheme.typography.bodySmall)
         Text("El acceso requiere declaración de mayoría de edad y un PIN parental de seis dígitos. La confirmación no reemplaza los controles legales de edad exigibles en cada país.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         when {
             !ageConfirmed -> {
@@ -351,9 +399,19 @@ fun AdultAccessScreen(
                     Text("Sección desbloqueada · Catálogo clasificado +18", modifier = Modifier.padding(start = 8.dp))
                 }
                 if (loading) CircularProgressIndicator()
-                else if (adultItems.isEmpty()) Text("No hay títulos +18 publicados para esta región. No se muestran títulos ficticios.")
-                else LazyColumn(Modifier.heightIn(max = 420.dp)) {
-                    items(adultItems, key = { it.id }) { item ->
+                else {
+                    val categorizedItems = when (selectedAdultCategory) {
+                        "Todos", "Solo Adultos" -> adultItems
+                        else -> adultItems.filter { it.category.contains(selectedAdultCategory, ignoreCase = true) || it.title.contains(selectedAdultCategory, ignoreCase = true) }
+                    }
+                    if (categorizedItems.isEmpty()) {
+                        Text(
+                            if (adultItems.isEmpty()) "Todavía no hay títulos +18 publicados y verificados para esta región."
+                            else "No hay títulos publicados dentro de «$selectedAdultCategory». Elegí otra categoría para ver el catálogo disponible.",
+                            color = Color(0xFFFFD8E9)
+                        )
+                    } else LazyColumn(Modifier.heightIn(max = 420.dp)) {
+                    items(categorizedItems, key = { it.id }) { item ->
                         Card(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
                             Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Column(Modifier.weight(1f)) {
@@ -365,8 +423,12 @@ fun AdultAccessScreen(
                             }
                         }
                     }
+                    }
+                    OutlinedButton(
+                        onClick = { unlocked = false },
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFF9CCB))
+                    ) { Icon(Icons.Default.Lock, null); Spacer(Modifier.width(6.dp)); Text("Bloquear ahora") }
                 }
-                OutlinedButton(onClick = { unlocked = false }) { Text("Bloquear ahora") }
             }
         }
         message?.let { Text(it, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall) }
