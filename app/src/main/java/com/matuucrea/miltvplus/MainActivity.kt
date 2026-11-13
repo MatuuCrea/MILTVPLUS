@@ -315,7 +315,7 @@ class MainActivity:ComponentActivity(){
                                 }
                             }
                         } else {
-                            LazyColumn(contentPadding=PaddingValues(14.dp)){items(publicItems.filter { (query.isBlank() || it.title.contains(query,true) || it.subtitle.contains(query,true) || it.category.contains(query,true)) && (remoteKindFilter==null || it.kind==remoteKindFilter) && (remoteCategory!="tv_channels" || ((channelCategoryFilter==null || it.category==channelCategoryFilter) && (selectedChannelCountry==null || it.countryCode==selectedChannelCountry))) },key={it.id}){item->
+                            LazyColumn(contentPadding=PaddingValues(14.dp)){items(publicItems.filter { (query.isBlank() || it.title.contains(query,true) || it.subtitle.contains(query,true) || it.category.contains(query,true)) && (when(remoteKindFilter) { "kids" -> it.category.contains("infantil",true) || it.category.contains("kids",true) || it.subtitle.contains("infantil",true); "documentary" -> it.category.contains("documental",true) || it.category.contains("documentary",true) || it.subtitle.contains("documental",true); else -> remoteKindFilter==null || it.kind==remoteKindFilter }) && (remoteCategory!="tv_channels" || ((channelCategoryFilter==null || it.category==channelCategoryFilter) && (selectedChannelCountry==null || it.countryCode==selectedChannelCountry))) },key={it.id}){item->
                                 Card(Modifier.fillMaxWidth().padding(vertical=5.dp),colors=CardDefaults.cardColors(containerColor=panel)){
                                     Row(Modifier.padding(14.dp),verticalAlignment=Alignment.CenterVertically){
                                         if(item.artworkUrl!=null) AsyncImage(
