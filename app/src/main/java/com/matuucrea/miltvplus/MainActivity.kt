@@ -55,6 +55,7 @@ import com.matuucrea.miltvplus.data.M3uParser
 import com.matuucrea.miltvplus.data.RemoteCatalogEntry
 import com.matuucrea.miltvplus.data.SupabaseCatalogRepository
 import com.matuucrea.miltvplus.player.PlayerViewModel
+import com.matuucrea.miltvplus.update.AppUpdateRepository
 
 private val bg: Color
     @Composable get() = MaterialTheme.colorScheme.background
@@ -91,6 +92,12 @@ class MainActivity:ComponentActivity(){
         val callback = authCallback ?: (context as? MainActivity)?.intent?.data
         authSession = if (callback != null) runCatching { authRepository.acceptCallback(callback) }.getOrNull() ?: authRepository.restoreSession()
             else authRepository.restoreSession()
+        runCatching { AppUpdateRepository.checkForUpdate().getOrThrow() }.onSuccess { release ->
+            context.getSharedPreferences("miltvplus_preferences", 0).edit()
+                .putString("pending_update_version", release?.versionName)
+                .putString("pending_update_url", release?.releaseUrl)
+                .apply()
+        }
     }
     LaunchedEffect(authSession?.userId) {
         if (authSession == null) {
