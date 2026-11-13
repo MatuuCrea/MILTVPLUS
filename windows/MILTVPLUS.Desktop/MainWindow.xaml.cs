@@ -377,6 +377,7 @@ public partial class MainWindow : Window
         [JsonPropertyName("last_checked_at")] public DateTimeOffset? LastCheckedAt { get; set; }
         [JsonPropertyName("last_check_detail")] public string? LastCheckDetail { get; set; }
         private string? LastCheckSummary => LastCheckDetail is { Length: > 150 } ? LastCheckDetail[..150] : LastCheckDetail;
+        private string? LiveStatusLabel => LastCheckDetail?.StartsWith("YouTube confirma", StringComparison.OrdinalIgnoreCase) == true ? "EN VIVO verificado" : null;
         [JsonPropertyName("access_model")] public string? AccessModel { get; set; }
         private string? AccessModelLabel => AccessModel switch
         {
@@ -387,6 +388,6 @@ public partial class MainWindow : Window
             "geo_restricted" => "Con restricción geográfica",
             _ => null
         };
-        public string Metadata => string.Join(" · ", new[] { Category ?? Kind ?? ItemType ?? Sport, Genre ?? Competition ?? Creator, CountryCode, LanguageCode, AccessModelLabel, PlaybackType, SourceStatus, LastCheckSummary, LastCheckedAt?.ToLocalTime().ToString("g"), ReleaseYear?.ToString(), AgeRating, StartsAt?.ToLocalTime().ToString("g") }.Where(x => !string.IsNullOrWhiteSpace(x)));
+        public string Metadata => string.Join(" · ", new[] { Category ?? Kind ?? ItemType ?? Sport, Genre ?? Competition ?? Creator, CountryCode, LanguageCode, AccessModelLabel, PlaybackType, LiveStatusLabel, SourceStatus, LastCheckSummary, LastCheckedAt?.ToLocalTime().ToString("g"), ReleaseYear?.ToString(), AgeRating, StartsAt?.ToLocalTime().ToString("g") }.Where(x => !string.IsNullOrWhiteSpace(x)));
     }
 }
