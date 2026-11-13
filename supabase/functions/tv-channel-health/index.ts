@@ -34,8 +34,8 @@ function isYoutubeLivePage(value: string | null): boolean {
   if (!value) return false;
   try {
     const url = new URL(value);
-    return url.hostname === "youtube.com" || url.hostname === "www.youtube.com"
-      ? /\/(?:@[^/]+|channel\/[^/]+|c\/[^/]+)\/live\/?$/i.test(url.pathname)
+    return (url.hostname === "youtube.com" || url.hostname === "www.youtube.com")
+      ? /^\/(?:@[^/]+|channel\/[^/]+|c\/[^/]+|[A-Za-z0-9_-]+)\/live\/?$/i.test(url.pathname)
       : false;
   } catch {
     return false;
