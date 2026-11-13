@@ -47,6 +47,7 @@ import com.matuucrea.miltvplus.ui.AdultAccessScreen
 import com.matuucrea.miltvplus.ui.RemoteSourcesScreen
 import com.matuucrea.miltvplus.ui.PremiumNavigationHeader
 import com.matuucrea.miltvplus.ui.PremiumHomeDashboard
+import com.matuucrea.miltvplus.ui.PremiumAdultWorkspace
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import android.content.Intent
@@ -329,7 +330,29 @@ class MainActivity:ComponentActivity(){
             }
             "Fuentes"->{Title("Fuentes","Importación local y listas sincronizadas");Card(Modifier.fillMaxWidth().padding(16.dp),colors=CardDefaults.cardColors(containerColor=panel)){Column(Modifier.padding(20.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){Icon(Icons.Default.PlaylistAdd,null,tint=cyan);Text("Agregar lista M3U / M3U8",color=MaterialTheme.colorScheme.onSurface,fontSize=18.sp,fontWeight=FontWeight.Bold);Text("Seleccioná un archivo del dispositivo. Usá solo listas propias, públicas o licenciadas.",color=MaterialTheme.colorScheme.onSurfaceVariant);Button(onClick={picker.launch(arrayOf("audio/x-mpegurl","application/vnd.apple.mpegurl","text/plain","*/*"))}){Icon(Icons.Default.FolderOpen,null);Text("Seleccionar archivo")}}};errorMessage?.let{Text(it,Modifier.padding(18.dp),color=orange)};RemoteSourcesScreen(userRepository,authSession!=null,countryCode){ imported -> vm.setChannels(imported); tab="TV" }}
             "Cuenta"->{Title("Cuenta","Acceso y sincronización entre dispositivos");AccountScreen(authRepository,userRepository){authSession=it}}
-            "Adultos"->{Title("Acceso protegido","Control parental local y confirmación de edad");AdultAccessScreen(userRepository,authSession!=null,countryCode){item->item.actionUrl?.let{vm.play(Channel(item.id,item.title,it,item.subtitle,item.artworkUrl))}}}
+            "Adultos"->{
+                PremiumAdultWorkspace(
+                    onNavigate = { destination ->
+                        when(destination) {
+                            "Inicio" -> { remoteCategory="tv_channels"; tab="Inicio" }
+                            "TV en Vivo" -> { remoteCategory="tv_channels"; remoteKindFilter=null; tab="Catálogo" }
+                            "Películas" -> { remoteCategory="catalog_items"; remoteKindFilter="movie"; tab="Catálogo" }
+                            "Series" -> { remoteCategory="catalog_items"; remoteKindFilter="series"; tab="Catálogo" }
+                            "Deportes" -> { remoteCategory="sports_events"; tab="Catálogo" }
+                            "Infantil" -> { remoteCategory="catalog_items"; remoteKindFilter="kids"; tab="Catálogo" }
+                            "Documentales" -> { remoteCategory="catalog_items"; remoteKindFilter="documentary"; tab="Catálogo" }
+                            "Música" -> tab="Música"
+                            "Favoritos" -> tab="Favoritos"
+                            "Configuración" -> tab="Ajustes"
+                        }
+                    },
+                    content = {
+                        AdultAccessScreen(userRepository,authSession!=null,countryCode) { item ->
+                            item.actionUrl?.let { vm.play(Channel(item.id,item.title,it,item.subtitle,item.artworkUrl)) }
+                        }
+                    }
+                )
+            }
             "Países"->{CountryPickerScreen { country ->
                 countryCode=country.code
                 val prefs=context.getSharedPreferences("miltvplus_preferences",0)
