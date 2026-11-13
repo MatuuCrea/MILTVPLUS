@@ -6,6 +6,8 @@ on:
       - 'tests/test_tv_channel_availability.py'
       - 'data/catalog/argentina-channel-inventory.json'
       - 'data/catalog/international-channel-inventory.json'
+      - 'docs/GLOBAL-TV-CATALOG.md'
+      - 'docs/PLAYBACK-AND-SCALING.md'
       - '.github/workflows/tv-channel-availability.yml'
   workflow_dispatch:
   schedule:
@@ -23,7 +25,6 @@ jobs:
       - name: Test status classification
         run: python -m unittest discover -s tests -p 'test_tv_channel_availability.py' -v
   check-official-pages:
-    if: github.event_name != 'pull_request'
     needs: test
     runs-on: ubuntu-latest
     steps:
