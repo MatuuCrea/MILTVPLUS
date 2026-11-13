@@ -65,7 +65,7 @@ class SupabaseCatalogRepository {
         val schedule = listOfNotNull(startsAt, endsAt).joinToString(" – ")
         val subtitle = (subtitleParts + listOfNotNull(schedule)).distinct().joinToString(" · ")
         val artwork = listOf("poster_url", "logo_url", "artwork_url", "image_url")
-            .firstNotNullOfOrNull { key -> row.optString(key).takeIf { it.startsWith("https://", true) } }
+            .firstNotNullOfOrNull { key -> row.optString(key).takeIf(::isSafeHttpsUrl) }
         val action = listOf("stream_url", "authorized_stream_url")
             .firstNotNullOfOrNull { key -> row.optString(key).takeIf { it.startsWith("https://", true) } }
         return RemoteCatalogEntry(
