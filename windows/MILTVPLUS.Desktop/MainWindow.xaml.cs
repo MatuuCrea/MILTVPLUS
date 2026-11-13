@@ -323,17 +323,22 @@ public partial class MainWindow : Window
         {
             Directory.CreateDirectory(AdultDataDirectory);
             File.WriteAllText(Path.Combine(AdultDataDirectory, "adult-age-confirmed"), DateTimeOffset.UtcNow.ToString("O"));
-            var pinPath = Path.Combine(AdultDataDirectory, "adult-pin.sha256");
-            var hash = SHA256.HashData(Encoding.UTF8.GetBytes(pin));
+            var pinPath = Path.Combine(AdultDataDirectory, "adult-pin.pbkdf2");
             if (!File.Exists(pinPath))
             {
-                File.WriteAllText(pinPath, Convert.ToHexString(hash));
+                var salt = RandomNumberGenerator.GetBytes(16);
+                var derived = Rfc2898DeriveBytes.Pbkdf2(pin, salt, 150_000, HashAlgorithmName.SHA256, 32);
+                File.WriteAllText(pinPath, Convert.ToHexString(salt) + ":" + Convert.ToHexString(derived));
                 AdultGateStatus.Text = "PIN parental creado. Sección desbloqueada.";
             }
             else
             {
-                var saved = Convert.FromHexString((await File.ReadAllTextAsync(pinPath)).Trim());
-                if (!CryptographicOperations.FixedTimeEquals(saved, hash))
+                var stored = (await File.ReadAllTextAsync(pinPath)).Trim().Split(':');
+                if (stored.Length != 2) throw new InvalidDataException("El archivo de PIN parental no es válido.");
+                var salt = Convert.FromHexString(stored[0]);
+                var saved = Convert.FromHexString(stored[1]);
+                var derived = Rfc2898DeriveBytes.Pbkdf2(pin, salt, 150_000, HashAlgorithmName.SHA256, 32);
+                if (!CryptographicOperations.FixedTimeEquals(saved, derived))
                 {
                     AdultGateStatus.Text = "PIN incorrecto. La sección permanece bloqueada.";
                     AdultPinBox.Clear();
