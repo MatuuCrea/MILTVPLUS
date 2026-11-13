@@ -115,3 +115,6 @@ create policy "age consent owner manages consent" on public.age_access_consents 
 create index if not exists epg_channel_time_idx on public.epg_programs(channel_external_id, starts_at);
 create index if not exists radio_country_genre_idx on public.radio_stations(country_code, genre) where is_published;
 create index if not exists sports_starts_at_idx on public.sports_events(starts_at) where is_published;
+
+create index if not exists epg_source_id_idx on public.epg_programs(source_id);
+create index if not exists media_sources_owner_id_idx on public.media_sources(owner_id);
