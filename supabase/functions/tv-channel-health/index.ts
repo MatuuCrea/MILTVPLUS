@@ -83,8 +83,12 @@ async function fetchYoutubeLogo(channelUrl: string | null): Promise<{ url: strin
   if (!isYoutubeLivePage(channelUrl)) return null;
   try {
     const source = new URL(channelUrl!);
-    source.pathname = source.pathname.replace(/\\/live\\/?$/i, "");
-    const sourceUrl = source.toString().replace(/\\/$/, "");
+    let path = source.pathname;
+    if (path.toLowerCase().endsWith("/live/")) path = path.slice(0, -6);
+    else if (path.toLowerCase().endsWith("/live")) path = path.slice(0, -5);
+    source.pathname = path;
+    let sourceUrl = source.toString();
+    if (sourceUrl.endsWith("/")) sourceUrl = sourceUrl.slice(0, -1);
     const response = await fetch(sourceUrl, {
       method: "GET",
       redirect: "follow",
@@ -112,7 +116,10 @@ async function fetchYoutubeLogo(channelUrl: string | null): Promise<{ url: strin
     if (valueEnd < 0) return null;
     const logoUrl = tag.slice(valueStart, valueEnd);
     const logo = new URL(logoUrl);
-    if (logo.protocol !== "https:" || !/(^|\\.)yt3\\.(googleusercontent|ggpht)\\.com$/i.test(logo.hostname)) return null;
+    const allowedHost = logo.hostname === "yt3.googleusercontent.com" ||
+      logo.hostname.endsWith(".googleusercontent.com") ||
+      logo.hostname.endsWith(".ggpht.com");
+    if (logo.protocol !== "https:" || !allowedHost) return null;
     return { url: logo.toString(), sourceUrl };
   } catch {
     return null;
