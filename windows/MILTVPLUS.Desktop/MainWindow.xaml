@@ -21,7 +21,7 @@
    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="2*"/><RowDefinition Height="3*"/></Grid.RowDefinitions>
    <DockPanel Grid.Row="0" Margin="0,0,0,18">
     <StackPanel DockPanel.Dock="Left"><TextBlock x:Name="PageTitle" Text="Tu entretenimiento, en un solo lugar" FontSize="28" FontWeight="Bold"/><TextBlock Text="Aplicación de escritorio nativa para Windows" Foreground="#AAB6CE" Margin="0,5,0,0"/></StackPanel>
-    <Button DockPanel.Dock="Right" Content="Actualizar" Click="Refresh_Click" Padding="18,10" Background="#087BFF" Foreground="White" BorderThickness="0"/>
+    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"><Button Content="Importar M3U/M3U8" Click="ImportM3u_Click" Padding="14,10" Margin="0,0,8,0" Background="#26365D" Foreground="White" BorderThickness="0"/><Button Content="Actualizar" Click="Refresh_Click" Padding="18,10" Background="#087BFF" Foreground="White" BorderThickness="0"/></StackPanel>
    </DockPanel>
    <DockPanel Grid.Row="1" Margin="0,0,0,14">
     <TextBox x:Name="SearchBox" Width="300" Height="38" VerticalContentAlignment="Center" Background="#101E3D" Foreground="White" BorderBrush="#26365D" TextChanged="SearchBox_TextChanged"/>
@@ -34,7 +34,7 @@
    <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto"><ItemsControl x:Name="Catalog"><ItemsControl.ItemTemplate><DataTemplate>
     <Border Background="#101E3D" BorderBrush="#26365D" BorderThickness="1" CornerRadius="14" Padding="16" Margin="0,0,0,10">
      <DockPanel LastChildFill="True">
-      <Button DockPanel.Dock="Right" Content="Reproducir" Click="Play_Click" Padding="14,8" Margin="12,0,0,0" Background="#087BFF" Foreground="White" BorderThickness="0" IsEnabled="{Binding StreamUrl, Converter={x:Static BooleanBoxes.TrueBox}}"/>
+      <Button DockPanel.Dock="Right" Content="Reproducir" Click="Play_Click" Padding="14,8" Margin="12,0,0,0" Background="#087BFF" Foreground="White" BorderThickness="0"/>
       <StackPanel><TextBlock Text="{Binding Title}" FontSize="18" FontWeight="Bold"/><TextBlock Text="{Binding Description}" Foreground="#AAB6CE" TextWrapping="Wrap" Margin="0,7,0,0"/><TextBlock Text="{Binding Metadata}" Foreground="#00D9F5" Margin="0,8,0,0"/></StackPanel>
      </DockPanel>
     </Border>
