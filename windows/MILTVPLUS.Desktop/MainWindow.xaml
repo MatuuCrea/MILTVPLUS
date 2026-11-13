@@ -33,7 +33,7 @@
    <Border x:Name="VideoContainer" Grid.Row="2" Background="#020817" BorderBrush="#26365D" BorderThickness="1" CornerRadius="14" Padding="4" Margin="0,0,0,14">
     <Grid>
      <vlc:VideoView x:Name="VideoSurface" Visibility="Visible"/>
-     <wv2:WebView2 x:Name="OfficialWebView" Visibility="Collapsed" DefaultBackgroundColor="#020817"/>
+     <wv2:WebView2 x:Name="OfficialWebView" Visibility="Collapsed"/>
     </Grid>
    </Border>
    <ScrollViewer x:Name="CatalogScroll" Grid.Row="3" VerticalScrollBarVisibility="Auto"><ItemsControl x:Name="Catalog"><ItemsControl.ItemTemplate><DataTemplate>
