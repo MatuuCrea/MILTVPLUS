@@ -66,7 +66,8 @@ fun PremiumNavigationHeader(activeTab: String, onNavigate: (String) -> Unit) {
         }
         BoxWithConstraints(Modifier.fillMaxWidth()) {
             val compact = maxWidth < 760.dp
-            val visible = if (compact) destinations.take(4) else destinations
+            // Reserve room for the Más control on narrow phones so it is reachable without horizontal scrolling.
+            val visible = if (compact) destinations.take(3) else destinations
             Row(
                 Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 9.dp, vertical = 2.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
