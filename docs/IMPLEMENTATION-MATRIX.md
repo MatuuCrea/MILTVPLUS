@@ -15,7 +15,7 @@ La arquitectura de producto es nativa: Android y Windows. No existe cliente Web/
 | Series | Modelo de series/temporadas/episodios | Pantalla dedicada y contenido real |
 | EPG | Consulta ordenada y agrupada por canal | Grilla temporal y datos de varios días |
 | Deportes/radio/música/teatro | Modelos y navegación Android | Datos y fuentes autorizadas; Spotify sigue siendo enlace externo |
-| Windows | Cliente WPF nativo .NET 8, navegación, búsqueda y lectura de catálogo publicado; workflow x64 + instalador | Reproductor, Auth, favoritos, fuentes M3U, +18, preferencias, icono de instalador, pruebas |
+| Windows | Cliente WPF nativo .NET 8, navegación, búsqueda, catálogo publicado, reproductor LibVLC/HLS, importación local M3U/M3U8 HTTPS de hasta 5 MB; workflow x64 + instalador | Auth, favoritos, +18, preferencias, EPG/series completas, pruebas físicas y validación de codecs/proveedores |
 | Web/PWA | Retirada del repositorio | No es un producto ni se publicará |
 | Tizen / webOS | No implementado | Clientes nativos separados si se decide ampliar plataformas |
 | Marca | Logotipo incorporado a launcher Android y banner TV | Icono Windows .ico/.exe e instalador |
