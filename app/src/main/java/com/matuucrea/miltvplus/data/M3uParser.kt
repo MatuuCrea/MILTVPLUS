@@ -3,6 +3,10 @@ package com.matuucrea.miltvplus.data
 import java.net.URI
 import java.security.MessageDigest
 
+/**
+ * Parses standard extended M3U playlists.
+ * Only HTTPS stream and artwork URLs are retained because playback is HTTPS-only.
+ */
 object M3uParser {
     private val attr = Regex("([A-Za-z0-9_-]+)=\\\"([^\\\"]*)\\\"")
 
@@ -25,13 +29,12 @@ object M3uParser {
                         .ifBlank { attributes["tvg-name"].orEmpty() }
                         .ifBlank { "Canal sin nombre" }
                     group = attributes["group-title"].orEmpty()
-                    logo = attributes["tvg-logo"]?.takeIf { it.startsWith("https://") }
+                    logo = attributes["tvg-logo"]?.takeIf { isHttpsUrl(it) }
                 }
                 line.isNotBlank() && !line.startsWith("#") -> {
-                    val scheme = runCatching { URI(line).scheme?.lowercase() }.getOrNull()
-                    if (scheme in setOf("http", "https") && name.isNotBlank()) {
+                    if (isHttpsUrl(line) && name.isNotBlank()) {
                         val digest = MessageDigest.getInstance("SHA-256")
-                            .digest("$name|$line".toByteArray())
+                            .digest("$name|$line".toByteArray(Charsets.UTF_8))
                         val id = digest.take(12).joinToString("") { "%02x".format(it) }
                         channels += Channel(id, name, line, group, logo)
                     }
@@ -43,4 +46,12 @@ object M3uParser {
         }
         return channels.distinctBy { it.id }
     }
+
+    private fun isHttpsUrl(value: String): Boolean =
+        runCatching {
+            val uri = URI(value)
+            uri.scheme.equals("https", ignoreCase = true) &&
+                !uri.host.isNullOrBlank() &&
+                uri.userInfo == null
+        }.getOrDefault(false)
 }
