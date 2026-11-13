@@ -17,7 +17,7 @@ PrivilegesRequired=lowest
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
-SetupIconFile=..\\MILTVPLUS.Desktop\\miltvplus.ico
+SetupIconFile=..\MILTVPLUS.Desktop\miltvplus.ico
 UninstallDisplayIcon={app}\{#AppExe}
 [Files]
 Source: "..\publish\*"; DestDir: "{app}"; Flags: recursesubdirs ignoreversion
