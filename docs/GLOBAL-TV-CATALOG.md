@@ -8,19 +8,17 @@ El directorio se organiza por país ISO 3166-1 alpha-2 y categoría. Cada fila r
 
 ## Reglas obligatorias para publicar una señal
 
-Una señal sólo puede publicarse si tiene simultáneamente:
+Hay dos modalidades distintas de publicación:
 
-1. Titular de derechos y referencia documental de la autorización de distribución para MILTVPLUS.
-2. Territorios expresos y período de vigencia activo.
-3. Logotipo real del canal en HTTPS y URL de procedencia del logotipo.
-4. Página oficial de visualización HTTPS.
-5. Comprobación de fuente reciente con estado `online`.
-6. Si se declara reproducción HLS/DASH, URL HTTPS directa comprobada y compatible con el reproductor.
-7. Categoría, país, idioma y tipo de reproducción correctamente identificados.
+**A. Directorio con apertura web oficial (`official_web`).** Requiere nombre, país, categoría, URL HTTPS de la página oficial y comprobación reciente con estado `online`. MILTVPLUS sólo abre el sitio del titular; no descarga, extrae, inserta ni retransmite su señal. El logotipo es opcional y sólo se añade cuando se tiene una URL de imagen y procedencia verificables.
+
+**B. Reproducción integrada (`hls`, `dash`, `youtube_live`).** Requiere titular y referencia documental de autorización de distribución para MILTVPLUS, territorios expresos, vigencia activa, URL HTTPS directa comprobada y compatibilidad con el reproductor. La base bloquea su publicación si falta cualquiera de esas pruebas.
+
+Ambas modalidades requieren categoría, país, idioma y tipo de reproducción correctamente identificados.
 
 Que una señal sea gratuita, pública, esté disponible en YouTube o sea de aire no concede automáticamente permiso para retransmitirla, extraer su stream o redistribuirla dentro de otra aplicación. Cuando no exista una URL directa licenciada, el botón abre la página oficial del titular; no se intenta extraer ni replicar la señal.
 
-La base de datos bloquea la publicación de filas sin derechos vigentes, logotipo, página oficial y estado online. Los clientes sólo leen filas publicadas y no pueden aprobar fuentes.
+La base de datos distingue ambos casos: los enlaces `official_web` sólo se publican si la página oficial está comprobada y no contienen `stream_url`; las señales integradas exigen derechos documentados y vigentes. Los clientes sólo leen filas publicadas y no pueden aprobar fuentes.
 
 ## Argentina: catálogo prioritario
 
@@ -57,7 +55,9 @@ La misma taxonomía soporta todos los países y territorios con código ISO de d
 - Migración: `supabase/migrations/20261113170000_global_tv_channels.sql`.
 - Android: el catálogo global incluye la tabla `tv_channels`, usa el país seleccionado y muestra el logotipo; si no existe stream directo, ofrece abrir la página oficial.
 - Windows: sección `Canales por país`, logotipo, metadatos y apertura del sitio oficial como fallback.
-- El catálogo empieza vacío deliberadamente: todavía no se cargaron expedientes de autorización, logos y endpoints comprobados. No se debe declarar C5N, Crónica TV ni otros canales como reproducibles hasta incorporar y validar sus registros.
+- Supabase contiene dos registros iniciales de Argentina: C5N publicado como enlace a su página oficial (no como stream integrado) y Crónica TV en revisión porque el chequeo automatizado de su página oficial devolvió HTTP 403. Ninguno está declarado como reproducción integrada.
+- Android ordena por prioridad y filtra por país y categoría; Windows incluye metadatos de categoría/idioma/estado en búsqueda. Los filtros de país/categoría de Windows se completan en esta rama.
+- Migración adicional: `supabase/migrations/20261113193000_official_web_directory_links.sql`.
 
 ## Fuera de alcance de esta fase
 
