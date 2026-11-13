@@ -52,12 +52,15 @@ La misma taxonomía soporta todos los países y territorios con código ISO de d
 
 ## Estado de la implementación
 
-- Migración: `supabase/migrations/20261113170000_global_tv_channels.sql`.
-- Android: el catálogo global incluye la tabla `tv_channels`, usa el país seleccionado y muestra el logotipo; si no existe stream directo, ofrece abrir la página oficial.
-- Windows: sección `Canales por país`, logotipo, metadatos y apertura del sitio oficial como fallback.
-- Supabase contiene 27 registros: 25 publicados como enlaces oficiales web y 2 en revisión. Argentina: C5N, Canal 26 y Senado TV publicados; Crónica TV y Diputados TV en revisión. Internacional: Al Jazeera English, TRT World, TV Migrante, Canal 14, Canal Once, TV UNAM, Canal 22, TV de Puebla, SMRTV, Televisión Mexiquense, France 24, DW, La 1, La 2, 24 Horas, Teledeporte, Clan, ABC News Australia, TV Brasil, TV Chile, Sky News (GB) y el directorio Live TV de Prasar Bharati (IN). Son enlaces a las plataformas oficiales, no streams integrados. No hay derechos de redistribución marcados como verificados.
-- Android ordena por prioridad, filtra por país y categoría y muestra el modelo de acceso; Windows ofrece filtros dinámicos por país/categoría y muestra el modelo de acceso.
-- Migración adicional: `supabase/migrations/20261113193000_official_web_directory_links.sql`.
+- Migración base: `supabase/migrations/20261113170000_global_tv_channels.sql`; endurecimiento de páginas oficiales, salud y publicación en migraciones posteriores.
+- Android: catálogo por país/categoría, reproductor Media3 para HLS/DASH directos y visor WebView inmersivo para páginas oficiales/YouTube Live. Las páginas YouTube Live no se envían a Media3 como si fueran manifiestos.
+- Windows: LibVLC para HLS/DASH directos y WebView2 integrado para páginas oficiales/YouTube Live; pantalla completa automática y navegación anterior/siguiente entre fichas reproducibles.
+- Supabase contiene 37 fichas en 12 países: 35 publicadas y 2 pendientes. Distribución publicada: AR 9, AU 1, BR 1, CL 1, DE 1, ES 5, FR 2, GB 1, IN 2, MX 10, QA 1, TR 1.
+- 12 de las fichas publicadas mostraron un marcador de emisión en directo actual en el reproductor/página oficial de YouTube durante el último chequeo: Argentina (A24, América TV, C5N, Canal 26, Crónica TV, Televisión Pública y TN), Australia (ABC News Australia), Francia (France 24 English y France 24 Español) e India (DD India y DD News).
+- Las otras 23 fichas publicadas son páginas oficiales de señal accesibles. Su respuesta HTTP no demuestra por sí sola que el player interno esté emitiendo en ese instante; el detalle del chequeo lo indica y el emisor conserva control de disponibilidad, geobloqueo y DRM.
+- Las 2 fichas pendientes son Diputados TV y el portal de Prasar Bharati, que no se cuenta como canal individual.
+- No hay URLs HLS/DASH directas integradas, no hay logotipos cargados y no se ha marcado ningún derecho de redistribución como verificado. Los 12 casos YouTube usan el reproductor oficial del titular, no una retransmisión nativa de MILTVPLUS.
+- Android y Windows consultan el catálogo global y filtran localmente por país/categoría. La lectura pública sólo devuelve filas publicadas con `source_status='online'`.
 
 ## Monitor de disponibilidad
 
@@ -65,7 +68,7 @@ La misma taxonomía soporta todos los países y territorios con código ISO de d
 - `.github/workflows/tv-channel-availability.yml` ejecuta pruebas de clasificación en cada PR y programa comprobaciones reales cada seis horas una vez integrado en la rama por defecto. También admite ejecución manual.
 - Cada ejecución genera un informe JSON como artefacto de GitHub Actions y un resumen por canal.
 - HTTP 403/429 se clasifica como `blocked` (el robot fue rechazado o limitado), no como señal caída. Un estado HTTP 2xx/3xx sólo confirma que la página web responde; no demuestra que el stream esté al aire, que funcione en todos los países ni que exista licencia para retransmitir.
-- El monitor no actualiza automáticamente Supabase: esa sincronización queda pendiente de habilitar un mecanismo servidor seguro para escribir estados, sin exponer claves privilegiadas en los clientes.
+- Supabase Cron ejecuta `tv-channel-health` cada cinco minutos; el Edge Function procesa hasta 100 fichas por ejecución, comprueba páginas/manifiestos y actualiza `source_status`, `last_checked_at` y `last_check_detail`. Las páginas YouTube `/live` sólo se publican automáticamente si el HTML contiene un marcador de emisión actual; el resto de candidatos permanece en revisión. La política RLS oculta fuentes offline/bloqueadas y permite que reaparezcan al recuperarse.
 
 ## Fuera de alcance de esta fase
 
