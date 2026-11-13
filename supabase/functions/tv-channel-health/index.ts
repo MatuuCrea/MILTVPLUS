@@ -145,7 +145,7 @@ function extractOfficialFavicon(sample: string, pageUrl: string): { url: string;
       const valueEnd = tag.indexOf('"', valueStart);
       if (valueEnd < 0) continue;
       const icon = new URL(tag.slice(valueStart, valueEnd), pageUrl);
-      if (icon.protocol === "https:" && icon.hostname === base.hostname) {
+      if (icon.protocol === "https:" && !!icon.hostname && !icon.username && !icon.password) {
         return { url: icon.toString(), sourceUrl: pageUrl };
       }
     }
