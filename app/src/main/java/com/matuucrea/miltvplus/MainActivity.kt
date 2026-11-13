@@ -301,7 +301,13 @@ class MainActivity:ComponentActivity(){
                                             if(start >= 0) launchChannelPlayer(context, playable, start, remoteCatalog=true, countryCode=selectedChannelCountry, category=channelCategoryFilter)
                                         }){Text("Ver en pantalla completa")}
                                         if(item.actionUrl!=null && remoteCategory in setOf("radio_stations","catalog_items","sports_events","theater_events")) TextButton(onClick={vm.play(Channel(item.id,item.title,item.actionUrl,item.subtitle,item.artworkUrl))}){Text("Reproducir")}
-                                        if(item.infoUrl!=null && remoteCategory in setOf("sports_events","theater_events","music_items","radio_stations","tv_channels")) TextButton(onClick={runCatching { context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(item.infoUrl))) }.onFailure { remoteError="No se pudo abrir el enlace oficial." }}){Text(if(remoteCategory=="tv_channels") "Ver canal oficial" else "Información")}
+                                        if(item.infoUrl!=null && remoteCategory in setOf("sports_events","theater_events","music_items","radio_stations","tv_channels")) TextButton(onClick={
+                                            if(remoteCategory=="tv_channels") {
+                                                val watchable = remoteItems.filter { it.infoUrl != null && (selectedChannelCountry==null || it.countryCode==selectedChannelCountry) && (channelCategoryFilter==null || it.category==channelCategoryFilter) }
+                                                val start = watchable.indexOfFirst { it.id==item.id }
+                                                if(start>=0) launchOfficialWatch(context,watchable,start)
+                                            } else runCatching { context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(item.infoUrl))) }.onFailure { remoteError="No se pudo abrir el enlace oficial." }
+                                        }){Text(if(remoteCategory=="tv_channels") "Ver señal oficial" else "Información")}
                                     }
                                 }
                             }}
@@ -382,5 +388,21 @@ private fun launchChannelPlayer(context: android.content.Context, channels: List
             .putExtra(com.matuucrea.miltvplus.player.ChannelPlayerActivity.EXTRA_REMOTE_CATALOG,remoteCatalog)
             .putExtra(com.matuucrea.miltvplus.player.ChannelPlayerActivity.EXTRA_COUNTRY_CODE,countryCode ?: "")
             .putExtra(com.matuucrea.miltvplus.player.ChannelPlayerActivity.EXTRA_CATEGORY,category ?: "")
+    )
+}
+
+private fun launchOfficialWatch(context: android.content.Context, entries: List<RemoteCatalogEntry>, startIndex: Int) {
+    val watchable = entries.filter { it.infoUrl?.startsWith("https://", true) == true }
+    if (watchable.isEmpty()) return
+    val selected = entries.getOrNull(startIndex)
+    val index = watchable.indexOfFirst { selected != null && it.id == selected.id }.coerceAtLeast(0)
+    val payload = org.json.JSONArray()
+    watchable.forEach { entry ->
+        payload.put(org.json.JSONObject().put("id",entry.id).put("name",entry.title).put("url",entry.infoUrl))
+    }
+    context.startActivity(
+        Intent(context, com.matuucrea.miltvplus.player.OfficialWatchActivity::class.java)
+            .putExtra(com.matuucrea.miltvplus.player.OfficialWatchActivity.EXTRA_CHANNELS,payload.toString())
+            .putExtra(com.matuucrea.miltvplus.player.OfficialWatchActivity.EXTRA_START_INDEX,index)
     )
 }
