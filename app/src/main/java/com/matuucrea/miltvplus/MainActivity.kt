@@ -182,6 +182,7 @@ class MainActivity:ComponentActivity(){
         Row(Modifier.fillMaxWidth().padding(20.dp),verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text("MILTVPLUS",color=Color.White,fontSize=25.sp,fontWeight=FontWeight.Black,letterSpacing=1.5.sp);Text("ENTRETENIMIENTO • V22.34.9",color=cyan,fontSize=10.sp)};Row(verticalAlignment=Alignment.CenterVertically) {
             Text(if(authSession==null) "● LOCAL" else "● CUENTA",color=cyan,fontSize=10.sp)
             updateNotice?.let { version -> TextButton(onClick={tab="Ajustes"}) { Text("ACTUALIZAR $version",color=orange,fontSize=10.sp) } }
+            TextButton(onClick={tab="Adultos"}, colors=ButtonDefaults.textButtonColors(contentColor=Color(0xFFFF5C9C))) { Text("18+", fontWeight=FontWeight.Black) }
             IconButton(onClick={tab="Cuenta"}) { Icon(Icons.Default.AccountCircle,"Cuenta",tint=cyan) }
         }}
         when(tab){
