@@ -221,6 +221,28 @@
       "official_watch_url": "https://tvnplay.cl/show/tv-chile-senal-en-vivo",
       "directory_status": "published_official_web",
       "integrated_stream_status": "not_authorized_or_not_documented"
+    },
+    {
+      "slug": "sky-news-uk",
+      "name": "Sky News",
+      "country_code": "GB",
+      "language_code": "en",
+      "category": "news",
+      "official_watch_url": "https://news.sky.com/watch-live",
+      "directory_status": "published_official_web",
+      "access_model": "free_web",
+      "integrated_stream_status": "not_authorized_or_not_documented"
+    },
+    {
+      "slug": "prasar-bharati-live-tv",
+      "name": "Prasar Bharati · Live TV",
+      "country_code": "IN",
+      "language_code": "en",
+      "category": "public",
+      "official_watch_url": "https://prasarbharati.gov.in/en/live-tv/",
+      "directory_status": "published_official_web_directory",
+      "access_model": "free_web",
+      "integrated_stream_status": "not_authorized_or_not_documented"
     }
   ],
   "last_reviewed": "2026-11-13"
