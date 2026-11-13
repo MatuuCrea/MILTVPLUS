@@ -186,7 +186,7 @@ class MainActivity:ComponentActivity(){
         when(tab){
             "Inicio"->{
                 val countryItems=remoteItems.filter { it.countryCode==countryCode }
-                val featured=countryItems.firstOrNull() ?: remoteItems.firstOrNull()
+                val featured=countryItems.firstOrNull()
                 Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(18.dp)) {
                     Card(Modifier.fillMaxWidth().padding(horizontal=14.dp),shape=RoundedCornerShape(24.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF17171C))) {
                         Box(Modifier.fillMaxWidth().height(238.dp)) {
