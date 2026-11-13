@@ -216,7 +216,7 @@ class MainActivity:ComponentActivity(){
             }
         }
         Column(Modifier.weight(1f).fillMaxHeight().background(Brush.verticalGradient(listOf(Color(0xFF08080A),Color(0xFF0B0B0E),Color(0xFF08080A))))) {
-            PremiumAppTopBar(tab,onSearch={value -> query=value; if(value.isNotBlank() && tab=="Inicio") tab="Catálogo"},onSettings={tab="Ajustes"})
+            PremiumAppTopBar(tab,onSearch={value -> query=value; if(value.isNotBlank() && tab=="Inicio") tab="Catálogo"},onSettings={tab="Ajustes"},onAccount={tab="Cuenta"})
 
         updateNotice?.let { version -> TextButton(onClick={tab="Ajustes"}) { Text("ACTUALIZACIÓN DISPONIBLE · $version",color=orange,fontSize=10.sp) } }
         when(tab){
