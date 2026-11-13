@@ -136,12 +136,13 @@ async function checkChannel(channel: Channel): Promise<CheckResult> {
       return { status: "online", detail: "Manifiesto MPEG-DASH dinámico accesible; falta QA de reproducción continua en dispositivos." };
     }
 
-    if (channel.playback_type === "youtube_live") {
-      const liveEvidence = /"isLiveNow"\s*:\s*true|"isLive"\s*:\s*true|"isLiveContent"\s*:\s*true/i.test(sample);
+    const youtubeLiveRoute = channel.playback_type === "youtube_live" || isYoutubeLivePage(channel.official_watch_url);
+    if (youtubeLiveRoute) {
+      const liveEvidence = /"isLiveNow"\\s*:\\s*true|"isLive"\\s*:\\s*true/i.test(sample);
       if (!liveEvidence) {
-        return { status: "pending_review", detail: "La página de YouTube responde, pero no se pudo confirmar que haya una emisión en directo ahora." };
+        return { status: "pending_review", detail: "La página oficial de YouTube responde, pero no confirma una emisión en directo en este momento." };
       }
-      return { status: "online", detail: "La página oficial expone un marcador de emisión en directo; el reproductor de YouTube conserva sus restricciones." };
+      return { status: "online", detail: "YouTube confirma una emisión en directo ahora; se usa el reproductor oficial y sus restricciones." };
     }
 
     return {
