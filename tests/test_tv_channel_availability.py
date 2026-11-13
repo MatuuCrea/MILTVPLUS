@@ -23,6 +23,15 @@ class AvailabilityClassificationTests(unittest.TestCase):
     def test_unknown_status_needs_review(self):
         self.assertEqual(MONITOR.classify(404)[0], "pending_review")
 
+    def test_insecure_stream_urls_are_blocked_without_network_access(self):
+        result = MONITOR.check_url("http://example.com/live.m3u8", stream_type="hls")
+        self.assertEqual(result["status"], "blocked")
+        self.assertIsNone(result["http_status"])
+
+    def test_credentials_in_stream_url_are_blocked(self):
+        result = MONITOR.check_url("https://user:password@example.com/live.m3u8", stream_type="hls")
+        self.assertEqual(result["status"], "blocked")
+
 
 if __name__ == "__main__":
     unittest.main()
