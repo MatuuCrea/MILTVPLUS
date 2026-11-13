@@ -30,6 +30,7 @@ public partial class MainWindow : Window
     private UpdateRelease? _availableUpdate;
     private bool _updatingFilters;
     private bool _isFullscreen;
+    private bool _localPlaylistLoaded;
     private CatalogEntry? _currentEntry;
     private readonly DispatcherTimer _catalogRefreshTimer = new() { Interval = TimeSpan.FromMinutes(1) };
 
@@ -44,7 +45,7 @@ public partial class MainWindow : Window
         Client.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "application/json");
         Loaded += async (_, _) => { await LoadCatalog(); await CheckForUpdates(silent: true); };
         Closed += (_, _) => { _catalogRefreshTimer.Stop(); DisposePlayer(); };
-        _catalogRefreshTimer.Tick += async (_, _) => { if (table == "tv_channels" && !_isFullscreen) await LoadCatalog(); };
+        _catalogRefreshTimer.Tick += async (_, _) => { if (table == "tv_channels" && !_localPlaylistLoaded) await LoadCatalog(); };
         _catalogRefreshTimer.Start();
         VideoSurface.MouseLeftButtonDown += (_, e) => { if (e.ClickCount == 2) ToggleFullscreen(); };
     }
@@ -296,6 +297,7 @@ public partial class MainWindow : Window
             }
 
             entries = imported;
+            _localPlaylistLoaded = true;
             UpdateFilterOptions();
             PageTitle.Text = "Lista local importada";
             StatusText.Text = imported.Count == 0
@@ -329,6 +331,7 @@ public partial class MainWindow : Window
     {
         if (!IsLoaded || Sections.SelectedItem is not ListBoxItem item) return;
         var section = item.Content?.ToString();
+        _localPlaylistLoaded = false;
         (table, select, order, kind) = section switch
         {
             "Canales por país" => ("tv_channels", "title,description,country_code,created_at,category,language_code,access_model,logo_url,official_watch_url,stream_url,playback_type,is_free_to_air,source_status", "sort_order.asc,title.asc", null),
