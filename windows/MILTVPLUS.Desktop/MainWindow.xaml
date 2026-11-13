@@ -184,6 +184,19 @@
      </ItemsControl.ItemTemplate>
     </ItemsControl>
    </ScrollViewer>
+   <Border x:Name="AdultGatePanel" Grid.Row="3" Grid.RowSpan="2" Panel.ZIndex="5" Visibility="Collapsed"
+           Background="#160611" BorderBrush="#8F175A" BorderThickness="1" CornerRadius="18" Padding="28" Margin="0,0,0,12">
+    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="420">
+     <TextBlock Text="18+" Foreground="#FF5DAA" FontSize="42" FontWeight="Black" HorizontalAlignment="Center"/>
+     <TextBlock Text="Contenido Adulto" Foreground="White" FontSize="28" FontWeight="Bold" HorizontalAlignment="Center"/>
+     <TextBlock Text="Acceso privado · Solo mayores de 18 años" Foreground="#FFD8E9" FontSize="12" HorizontalAlignment="Center" Margin="0,8,0,18"/>
+     <CheckBox x:Name="AdultAgeConfirm" Content="Confirmo que tengo 18 años o más" Foreground="White" Margin="0,0,0,12"/>
+     <PasswordBox x:Name="AdultPinBox" MaxLength="6" Height="38" Background="#21101F" Foreground="White" BorderBrush="#A52A69" ToolTip="PIN parental de seis dígitos"/>
+     <Button Content="Confirmar y desbloquear" Click="AdultUnlock_Click" Background="#D91D78" Margin="0,12,0,0"/>
+     <TextBlock x:Name="AdultGateStatus" Foreground="#FFD8E9" TextWrapping="Wrap" TextAlignment="Center" Margin="0,12,0,0"/>
+     <TextBlock Text="El catálogo muestra únicamente publicaciones clasificadas +18. El acceso se protege con confirmación de edad y PIN local." Foreground="#B8AFC6" FontSize="10" TextWrapping="Wrap" TextAlignment="Center" Margin="0,16,0,0"/>
+    </StackPanel>
+   </Border>
   </Grid>
  </Grid>
 </Window>
