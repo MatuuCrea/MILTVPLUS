@@ -138,6 +138,7 @@ fun PremiumHomeDashboard(
     channelCount: Int,
     featuredTitle: String?,
     loading: Boolean,
+    errorMessage: String?,
     onNavigate: (String) -> Unit
 ) {
     val shortcuts = listOf(
@@ -164,6 +165,28 @@ fun PremiumHomeDashboard(
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     HeroPanel(Modifier.fillMaxWidth(), onNavigate)
                     CountryPanel(Modifier.fillMaxWidth(), countryName, countryFlag, channelCount, loading, onNavigate)
+                }
+            }
+        }
+
+        errorMessage?.let { message ->
+            Card(
+                Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF3A1720))
+            ) {
+                Row(
+                    Modifier.padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Default.Warning, null, tint = Color(0xFFFFB4AB))
+                    Spacer(Modifier.width(9.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text("No se pudo actualizar el catálogo", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text(message, color = Color(0xFFFFDAD6), fontSize = 11.sp)
+                    }
+                    TextButton(onClick = { onNavigate("TV en Vivo") }) {
+                        Text("Reintentar", color = PremiumCyan)
+                    }
                 }
             }
         }
@@ -258,7 +281,7 @@ private fun CountryPanel(modifier: Modifier, countryName: String, countryFlag: S
                 Text(countryFlag, fontSize = 26.sp)
                 Column(Modifier.weight(1f).padding(start = 9.dp)) {
                     Text(countryName, color = Color.White, fontWeight = FontWeight.Bold)
-                    Text(if (loading) "Actualizando catálogo…" else "$channelCount enlaces HTTPS publicados", color = PremiumCyan, fontSize = 10.sp)
+                    Text(if (loading) "Actualizando catálogo…" else "$channelCount URLs HTTPS configuradas", color = PremiumCyan, fontSize = 10.sp)
                 }
                 Icon(Icons.Default.CheckCircle, null, tint = PremiumBlue)
             }
@@ -298,7 +321,7 @@ private fun LivePreview(modifier: Modifier, country: String, count: Int, feature
                 Spacer(Modifier.width(7.dp))
                 Text("TV en Vivo", color = Color.White, fontWeight = FontWeight.ExtraBold)
                 Spacer(Modifier.weight(1f))
-                Text("$count enlaces HTTPS", color = PremiumCyan, fontSize = 10.sp)
+                Text("$count URLs HTTPS", color = PremiumCyan, fontSize = 10.sp)
             }
             Text(country.uppercase(), color = PremiumCyan, fontSize = 10.sp, fontWeight = FontWeight.Bold)
             Text(featured ?: if (loading) "Conectando al catálogo…" else "Señales públicas y autorizadas", color = Color.LightGray, fontSize = 12.sp)
