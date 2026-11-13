@@ -42,7 +42,7 @@ class OfficialWatchActivity : Activity() {
     }
     private lateinit var root: LinearLayout
     private lateinit var webView: WebView
-    private lateinit var title: TextView
+    private lateinit var channelTitle: TextView
     private lateinit var controls: LinearLayout
     private lateinit var previous: Button
     private lateinit var next: Button
@@ -63,7 +63,7 @@ class OfficialWatchActivity : Activity() {
         if (channels.isEmpty()) { finish(); return }
         index = intent.getIntExtra(EXTRA_START_INDEX, 0).coerceIn(0, channels.lastIndex)
         root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setBackgroundColor(android.graphics.Color.BLACK) }
-        title = TextView(this).apply { setTextColor(android.graphics.Color.WHITE); textSize = 16f; setPadding(16, 10, 16, 10) }
+        channelTitle = TextView(this).apply { setTextColor(android.graphics.Color.WHITE); textSize = 16f; setPadding(16, 10, 16, 10) }
         webView = WebView(this).apply {
             setBackgroundColor(android.graphics.Color.BLACK)
             settings.javaScriptEnabled = true
@@ -82,7 +82,7 @@ class OfficialWatchActivity : Activity() {
                     customView = view
                     customViewCallback = callback
                     webView.visibility = View.GONE
-                    title.visibility = View.GONE
+                    channelTitle.visibility = View.GONE
                     controls.visibility = View.GONE
                     root.addView(view, 0, LinearLayout.LayoutParams(-1, 0, 1f))
                     hideSystemBars()
@@ -99,7 +99,7 @@ class OfficialWatchActivity : Activity() {
         controls.addView(next, LinearLayout.LayoutParams(0, -2, 1f))
         controls.addView(external, LinearLayout.LayoutParams(0, -2, 1f))
         controls.addView(close, LinearLayout.LayoutParams(0, -2, 1f))
-        root.addView(title, LinearLayout.LayoutParams(-1, -2))
+        root.addView(channelTitle, LinearLayout.LayoutParams(-1, -2))
         root.addView(webView, LinearLayout.LayoutParams(-1, 0, 1f))
         root.addView(controls, LinearLayout.LayoutParams(-1, -2))
         setContentView(root)
@@ -133,7 +133,7 @@ class OfficialWatchActivity : Activity() {
                     channels.clear()
                     channels.addAll(newRows)
                     index = newIndex
-                    title.text = channels.getOrNull(index)?.optString("name") ?: "Canal oficial"
+                    channelTitle.text = channels.getOrNull(index)?.optString("name") ?: "Canal oficial"
                     if (oldUrls != newUrls) loadChannel(index)
                 }
             }
