@@ -72,7 +72,7 @@ public partial class MainWindow : Window
     {
         var term = SearchBox.Text.Trim();
         Catalog.ItemsSource = entries.Where(x => string.IsNullOrEmpty(term) ||
-            (x.Title + " " + x.Description + " " + x.Genre + " " + x.Creator + " " + x.CountryCode)
+            (x.Title + " " + x.Description + " " + x.Genre + " " + x.Creator + " " + x.CountryCode + " " + x.Category + " " + x.LanguageCode + " " + x.SourceStatus)
             .Contains(term, StringComparison.OrdinalIgnoreCase)).ToList();
     }
 
