@@ -44,6 +44,8 @@ Más detalles: [docs/SUPABASE-ANDROID.md](docs/SUPABASE-ANDROID.md).
 
 ## Estado y pendientes conocidos
 
+La matriz detallada de módulos, contratos de metadatos, bloqueos externos y criterios de aceptación está en [docs/IMPLEMENTATION-MATRIX.md](docs/IMPLEMENTATION-MATRIX.md).
+
 Implementado y comprobado por CI: pruebas JVM, compilación Debug y publicación del artefacto APK en la ejecución indicada por GitHub Actions.
 
 Todavía pendiente de desarrollo y validación:
