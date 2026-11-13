@@ -186,6 +186,9 @@ class MainActivity:ComponentActivity(){
                 "Deportes" -> { remoteCategory="sports_events"; remoteKindFilter=null; tab="Catálogo" }
                 "Infantil" -> { remoteCategory="catalog_items"; remoteKindFilter="kids"; tab="Catálogo" }
                 "Apps" -> { remoteKindFilter=null; tab="Apps" }
+                "Fuentes" -> { remoteKindFilter=null; tab="Fuentes" }
+                "Música" -> { remoteKindFilter=null; tab="Música" }
+                "Cuenta" -> { remoteKindFilter=null; tab="Cuenta" }
                 "Países" -> { remoteKindFilter=null; tab="Países" }
                 "EPG" -> { remoteCategory="epg_programs"; remoteKindFilter=null; tab="Catálogo" }
                 "Adultos 18+" -> tab="Adultos"
