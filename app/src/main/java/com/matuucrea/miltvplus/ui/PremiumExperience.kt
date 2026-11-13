@@ -326,3 +326,106 @@ private fun SettingsPreview(modifier: Modifier, onNavigate: (String) -> Unit) {
         }
     }
 }
+
+
+/**
+ * Adult area navigation modeled on the supplied MILTVPLUS reference:
+ * a compact expandable rail on phones and a persistent sidebar on wide screens.
+ */
+@Composable
+fun PremiumAdultWorkspace(
+    onNavigate: (String) -> Unit,
+    content: @Composable () -> Unit
+) {
+    BoxWithConstraints(
+        Modifier.fillMaxSize().background(Color(0xFF05030A))
+    ) {
+        val wide = maxWidth >= 760.dp
+        var expanded by remember(wide) { mutableStateOf(wide) }
+        val destinations = listOf(
+            "Inicio" to Icons.Default.Home,
+            "TV en Vivo" to Icons.Default.LiveTv,
+            "Películas" to Icons.Default.Movie,
+            "Series" to Icons.Default.VideoLibrary,
+            "Deportes" to Icons.Default.EmojiEvents,
+            "Infantil" to Icons.Default.ChildCare,
+            "Documentales" to Icons.Default.MenuBook,
+            "Música" to Icons.Default.MusicNote,
+            "Adultos 18+" to Icons.Default.Favorite,
+            "Favoritos" to Icons.Default.Star,
+            "Configuración" to Icons.Default.Settings
+        )
+        Row(Modifier.fillMaxSize()) {
+            Column(
+                Modifier
+                    .width(if (expanded) 196.dp else 58.dp)
+                    .fillMaxHeight()
+                    .background(Color(0xFF09050E))
+                    .padding(horizontal = 7.dp, vertical = 9.dp),
+                verticalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                Row(
+                    Modifier.fillMaxWidth().clickable { expanded = !expanded }.padding(vertical = 9.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = if (expanded) Arrangement.Start else Arrangement.Center
+                ) {
+                    Icon(
+                        if (expanded) Icons.Default.MenuOpen else Icons.Default.Menu,
+                        contentDescription = "Expandir o contraer navegación",
+                        tint = PremiumPink
+                    )
+                    if (expanded) {
+                        Spacer(Modifier.width(10.dp))
+                        Text("MILTVPLUS", color = Color.White, fontWeight = FontWeight.Black, fontSize = 15.sp)
+                    }
+                }
+                destinations.forEach { (label, icon) ->
+                    val selected = label == "Adultos 18+"
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(11.dp))
+                            .background(
+                                if (selected) Brush.horizontalGradient(
+                                    listOf(Color(0xFF8B0750), Color(0xFF3D092E))
+                                ) else Brush.horizontalGradient(listOf(Color.Transparent, Color.Transparent))
+                            )
+                            .clickable { onNavigate(label) }
+                            .padding(horizontal = if (expanded) 10.dp else 0.dp, vertical = 11.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = if (expanded) Arrangement.Start else Arrangement.Center
+                    ) {
+                        Icon(icon, contentDescription = label, tint = if (selected) Color(0xFFFF69B4) else Color(0xFFD9D5E2))
+                        if (expanded) {
+                            Spacer(Modifier.width(11.dp))
+                            Text(label, color = Color.White, fontSize = 12.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium)
+                        }
+                    }
+                }
+                Spacer(Modifier.weight(1f))
+                if (expanded) {
+                    Column(
+                        Modifier.fillMaxWidth()
+                            .clip(RoundedCornerShape(13.dp))
+                            .background(Brush.verticalGradient(listOf(Color(0xFF39200A), Color(0xFF170D1B))))
+                            .padding(11.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+                        Icon(Icons.Default.WorkspacePremium, null, tint = PremiumGold, modifier = Modifier.size(25.dp))
+                        Text("MILTVPLUS", color = Color.White, fontWeight = FontWeight.Black, fontSize = 12.sp)
+                        Text("Experiencia Premium", color = PremiumGold, fontSize = 10.sp)
+                    }
+                } else {
+                    Icon(Icons.Default.WorkspacePremium, null, tint = PremiumGold)
+                }
+            }
+            Box(
+                Modifier.weight(1f).fillMaxHeight()
+                    .background(Brush.verticalGradient(listOf(Color(0xFF100511), Color(0xFF05030A))))
+            ) {
+                content()
+            }
+        }
+    }
+}
