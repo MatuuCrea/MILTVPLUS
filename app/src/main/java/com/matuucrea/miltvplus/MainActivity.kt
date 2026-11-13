@@ -190,6 +190,8 @@ class MainActivity:ComponentActivity(){
                 "Fuentes" -> { remoteKindFilter=null; tab="Fuentes" }
                 "Música" -> { remoteKindFilter=null; tab="Música" }
                 "Cuenta" -> { remoteKindFilter=null; tab="Cuenta" }
+                "Radios" -> { remoteCategory="radio_stations"; remoteKindFilter=null; tab="Catálogo" }
+                "Teatro" -> { remoteCategory="theater_events"; remoteKindFilter=null; tab="Catálogo" }
                 "Países" -> { remoteKindFilter=null; tab="Países" }
                 "Guía EPG" -> { remoteCategory="epg_programs"; remoteKindFilter=null; tab="Catálogo" }
                 "EPG" -> { remoteCategory="epg_programs"; remoteKindFilter=null; tab="Catálogo" }
