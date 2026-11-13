@@ -8,7 +8,8 @@ Cliente nativo Kotlin, Jetpack Compose y Android Media3.
 - Navegación para TV en vivo, películas, series, deportes, radios, música, teatro, EPG, cuenta y ajustes.
 - Reproducción Media3 HLS/MPEG-DASH de fuentes HTTPS autorizadas, con pantalla completa horizontal, selección adaptativa de variantes, reconexión limitada y cambio de canal.
 - Reproducción de páginas oficiales en un WebView inmersivo cuando el canal no tiene una URL HLS/DASH autorizada; el reproductor del emisor mantiene sus propias restricciones y controles.
-- Actualización del directorio cada 60 segundos durante navegación y reproducción remota.
+- Actualización del directorio cada 60 segundos durante navegación y reproducción remota; la cola Windows se sincroniza automáticamente con las fichas nuevas.
+- Monitor Supabase automático cada 5 minutos: comprueba hasta 100 canales por ejecución, guarda estado y detalle, y oculta por RLS las fuentes caídas/bloqueadas hasta que se recuperen.
 - Importación M3U/M3U8 local con límite de 5 MB y validación HTTPS.
 - Catálogo Supabase, favoritos, preferencias, Auth y sesión cifrada con Android Keystore.
 - Directorio global de TV por país/categoría (`tv_channels`), con campos para logotipos y procedencia, páginas oficiales, filtros de países y fallback al sitio del canal cuando no existe un stream directo autorizado. Los logotipos aprobados todavía no están cargados.
@@ -39,14 +40,14 @@ El workflow de releases exige un APK Android firmado con keystore protegido. Deb
 
 Proyecto Supabase: `rbnuxapfsnaabrzuxvdy`. Los clientes sólo usan la clave publishable. Nunca colocar service_role, secret keys ni contraseñas en el cliente.
 
-La tabla `tv_channels` contiene 27 registros de 12 países: 25 enlaces a páginas oficiales publicados y 2 registros argentinos en revisión (Crónica TV y Diputados TV). No hay URLs HLS/DASH directas integradas todavía y no se marcó ningún derecho de redistribución como verificado. Los canales publicados abren las plataformas oficiales dentro del visor inmersivo Android o del visor WebView2 de Windows; el visor puede depender de las restricciones, geobloqueos, DRM y políticas del emisor. No se agregan streams ficticios. Cada señal integrada requiere titular, referencia de derechos, territorios, vigencia y una prueba de reproducción. La autorización del propietario de esta aplicación para desarrollar el software no sustituye las licencias de los titulares de cada emisión.
+La tabla `tv_channels` contiene 27 registros de 12 países: 25 enlaces a páginas oficiales publicados y 2 registros argentinos en revisión (Crónica TV y Diputados TV). No hay URLs HLS/DASH directas integradas todavía, no hay logos cargados y no se marcó ningún derecho de redistribución como verificado. El monitor `tv-channel-health` se ejecuta cada 5 minutos y actualiza disponibilidad de páginas/manifiestos; una página oficial accesible no prueba que su reproductor esté emitiendo vídeo en directo. Los canales publicados abren las plataformas oficiales dentro del visor inmersivo Android o del visor WebView2 de Windows; el visor puede depender de las restricciones, geobloqueos, DRM y políticas del emisor. No se agregan streams ficticios. Cada señal integrada requiere titular, referencia de derechos, territorios, vigencia y una prueba de reproducción. La autorización del propietario de esta aplicación para desarrollar el software no sustituye las licencias de los titulares de cada emisión.
 
 ## Pendientes externos y de producto
 
 - Incorporar logotipos auténticos aprobados y verificar su procedencia para cada canal.
 - Obtener endpoints HLS/DASH autorizados para habilitar reproducción integrada nativa; hoy el directorio tiene páginas oficiales y el conteo de streams integrados es cero.
 - Completar la revisión de Crónica TV y Diputados TV.
-- Incorporar fuentes y metadatos de proveedores con autorización verificable.
+- Incorporar endpoints HLS/DASH realmente en directo y metadatos de proveedores con autorización verificable; el monitor actual no sustituye pruebas de reproducción en dispositivo.
 - Agregar en Supabase Auth Redirect URLs: `miltvplus://auth/callback`.
 - Preparar firma Android release con un keystore aportado de forma segura por el propietario.
 - Probar APK en móviles y Android TV físicos (incluido D-pad).
