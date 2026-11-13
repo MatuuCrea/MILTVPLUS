@@ -205,7 +205,8 @@ class MainActivity:ComponentActivity(){
                     countryFlag=countryFlag(countryCode),
                     channelCount=playableCountryItems.size,
                     featuredTitle=featured?.title,
-                    loading=remoteLoading
+                    loading=remoteLoading,
+                    errorMessage=remoteError
                 ) { destination ->
                     when(destination) {
                         "TV en Vivo" -> { remoteCategory="tv_channels"; remoteKindFilter=null; tab="Catálogo" }
