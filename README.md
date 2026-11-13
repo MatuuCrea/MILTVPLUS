@@ -21,7 +21,7 @@ APK: `app/build/outputs/apk/debug/app-debug.apk`. La APK debug se firma con la c
 
 ## Windows
 
-Cliente de escritorio nativo WPF/.NET 8 en `windows/MILTVPLUS.Desktop`. No utiliza navegador ni WebView. Incluye navegación de secciones, búsqueda y consulta del catálogo publicado de Supabase.
+Cliente de escritorio nativo WPF/.NET 8 en `windows/MILTVPLUS.Desktop`. No utiliza navegador ni WebView. Incluye navegación de secciones, búsqueda, consulta por tabla con proyecciones compatibles con el esquema real de Supabase y generación automática del icono Windows desde el logotipo de marca para el ejecutable y el instalador.
 
 El workflow `.github/workflows/windows.yml` publica la aplicación x64 autocontenida y construye un instalador `MILTVPLUS-Setup-x64.exe` con Inno Setup. Esta primera base Windows todavía no iguala todas las funciones del cliente Android; reproducción, cuenta completa, protección +18, importación M3U y QA están pendientes de implementación.
 
