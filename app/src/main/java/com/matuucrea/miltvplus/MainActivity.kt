@@ -9,6 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -228,7 +229,7 @@ class MainActivity:ComponentActivity(){
                     }
                     Row(Modifier.fillMaxWidth().padding(horizontal=14.dp),horizontalArrangement=Arrangement.spacedBy(9.dp)) {
                         listOf("Directo","Favoritos","Guía TV").forEach { label ->
-                            Card(Modifier.weight(1f),onClick={if(label=="Favoritos")tab="Favoritos" else {remoteCategory=if(label=="Guía TV")"epg_programs" else "tv_channels";tab="Catálogo"}},colors=CardDefaults.cardColors(containerColor=Color(0xFF1B1B21)),shape=RoundedCornerShape(16.dp)) {
+                            Card(onClick={if(label=="Favoritos")tab="Favoritos" else {remoteCategory=if(label=="Guía TV")"epg_programs" else "tv_channels";tab="Catálogo"}},modifier=Modifier.weight(1f),colors=CardDefaults.cardColors(containerColor=Color(0xFF1B1B21)),shape=RoundedCornerShape(16.dp)) {
                                 Column(Modifier.padding(13.dp),verticalArrangement=Arrangement.spacedBy(7.dp)) {
                                     Icon(when(label){"Directo"->Icons.Default.LiveTv;"Favoritos"->Icons.Default.Favorite;else->Icons.Default.CalendarMonth},null,tint=Color(0xFFFF4059),modifier=Modifier.size(24.dp))
                                     Text(label,color=Color.White,fontWeight=FontWeight.Bold)
@@ -245,7 +246,7 @@ class MainActivity:ComponentActivity(){
                     else if(countryItems.isEmpty()) Text("No hay canales publicados para este país todavía.",Modifier.padding(horizontal=16.dp),color=Color.LightGray,fontSize=13.sp)
                     else LazyRow(contentPadding=PaddingValues(horizontal=14.dp),horizontalArrangement=Arrangement.spacedBy(11.dp)) {
                         items(countryItems.take(30),key={it.id}) { item ->
-                            Card(Modifier.width(205.dp).height(154.dp),onClick={
+                            Card(onClick={
                                 val playable=countryItems.filter { it.actionUrl!=null }.map { Channel(it.id,it.title,it.actionUrl!!,it.countryCode ?: "",it.artworkUrl) }
                                 val idx=playable.indexOfFirst { it.id==item.id }
                                 if(idx>=0) launchChannelPlayer(context,playable,idx,remoteCatalog=true,countryCode=countryCode)
@@ -254,7 +255,7 @@ class MainActivity:ComponentActivity(){
                                     val oi=official.indexOfFirst { it.id==item.id }
                                     if(oi>=0) launchOfficialWatch(context,official,oi,countryCode,null)
                                 }
-                            },colors=CardDefaults.cardColors(containerColor=Color(0xFF1C1C22)),shape=RoundedCornerShape(17.dp)) {
+                            },modifier=Modifier.width(205.dp).height(154.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF1C1C22)),shape=RoundedCornerShape(17.dp)) {
                                 Column(Modifier.fillMaxSize().padding(12.dp),verticalArrangement=Arrangement.spacedBy(7.dp)) {
                                     Row(verticalAlignment=Alignment.CenterVertically) {
                                         if(item.artworkUrl!=null) AsyncImage(model=item.artworkUrl,contentDescription=null,modifier=Modifier.size(38.dp),contentScale=ContentScale.Fit)
@@ -265,7 +266,7 @@ class MainActivity:ComponentActivity(){
                                     Row(verticalAlignment=Alignment.CenterVertically) {
                                         Box(Modifier.size(7.dp).background(if(item.actionUrl!=null) Color(0xFF26C281) else Color(0xFFFFB74D),RoundedCornerShape(50)))
                                         Spacer(Modifier.width(6.dp))
-                                        Text(if(item.actionUrl!=null) "Stream directo disponible" else "Reproductor oficial",color=if(item.actionUrl!=null) Color(0xFF54D69B) else Color(0xFFFFC66D),fontSize=10.sp,fontWeight=FontWeight.SemiBold)
+                                        Text(if(item.actionUrl!=null) "URL directa configurada" else "Reproductor oficial",color=if(item.actionUrl!=null) Color(0xFF54D69B) else Color(0xFFFFC66D),fontSize=10.sp,fontWeight=FontWeight.SemiBold)
                                     }
                                 }
                             }
