@@ -1,4 +1,5 @@
 using System.Net.Http;
+using System.Reflection;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -23,6 +24,7 @@ public partial class MainWindow : Window
     private string select = "title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url";
     private string order = "created_at.desc";
     private string? kind;
+    private UpdateRelease? _availableUpdate;
 
     public MainWindow()
     {
@@ -33,7 +35,7 @@ public partial class MainWindow : Window
         VideoSurface.MediaPlayer = _mediaPlayer;
         Client.DefaultRequestHeaders.TryAddWithoutValidation("apikey", PublicKey);
         Client.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "application/json");
-        Loaded += async (_, _) => await LoadCatalog();
+        Loaded += async (_, _) => { await LoadCatalog(); await CheckForUpdates(silent: true); };
         Closed += (_, _) => DisposePlayer();
     }
 
@@ -74,6 +76,39 @@ public partial class MainWindow : Window
     }
 
     private async void Refresh_Click(object sender, RoutedEventArgs e) => await LoadCatalog();
+
+    private async void CheckUpdates_Click(object sender, RoutedEventArgs e) => await CheckForUpdates(silent: false);
+
+    private async Task CheckForUpdates(bool silent)
+    {
+        try
+        {
+            var current = Assembly.GetExecutingAssembly().GetName().Version ?? new Version(22, 34, 9);
+            _availableUpdate = await UpdateService.CheckAsync(current);
+            if (_availableUpdate is null)
+            {
+                if (!silent) MessageBox.Show(this, "MILTVPLUS ya está en la última versión oficial publicada.", "Actualizaciones", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            StatusText.Text = $"Nueva versión {_availableUpdate.Version} disponible.";
+            if (silent) return;
+            var answer = MessageBox.Show(this,
+                $"Hay una nueva versión de MILTVPLUS ({_availableUpdate.Version}).\n\nSe descargará el instalador oficial y se verificará su SHA-256 antes de ejecutarlo. ¿Continuar?",
+                "Actualización disponible", MessageBoxButton.YesNo, MessageBoxImage.Information);
+            if (answer != MessageBoxResult.Yes) return;
+
+            StatusText.Text = "Descargando y verificando instalador oficial…";
+            var installer = await UpdateService.DownloadAndVerifyAsync(_availableUpdate);
+            UpdateService.LaunchInstaller(installer);
+            Application.Current.Shutdown();
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = "No se pudo actualizar: " + ex.Message;
+            if (!silent) MessageBox.Show(this, ex.Message, "Error de actualización", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e) { if (IsLoaded) ApplySearch(); }
 
     private void Play_Click(object sender, RoutedEventArgs e)
