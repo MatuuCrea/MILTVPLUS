@@ -6,6 +6,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Threading;
 using Microsoft.Win32;
 using LibVLCSharp.Shared;
 
@@ -27,6 +29,9 @@ public partial class MainWindow : Window
     private string? kind;
     private UpdateRelease? _availableUpdate;
     private bool _updatingFilters;
+    private bool _isFullscreen;
+    private CatalogEntry? _currentEntry;
+    private readonly DispatcherTimer _catalogRefreshTimer = new() { Interval = TimeSpan.FromMinutes(1) };
 
     public MainWindow()
     {
@@ -38,7 +43,10 @@ public partial class MainWindow : Window
         Client.DefaultRequestHeaders.TryAddWithoutValidation("apikey", PublicKey);
         Client.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "application/json");
         Loaded += async (_, _) => { await LoadCatalog(); await CheckForUpdates(silent: true); };
-        Closed += (_, _) => DisposePlayer();
+        Closed += (_, _) => { _catalogRefreshTimer.Stop(); DisposePlayer(); };
+        _catalogRefreshTimer.Tick += async (_, _) => { if (table == "tv_channels" && !_isFullscreen) await LoadCatalog(); };
+        _catalogRefreshTimer.Start();
+        VideoSurface.MouseLeftButtonDown += (_, e) => { if (e.ClickCount == 2) ToggleFullscreen(); };
     }
 
     private async Task LoadCatalog()
@@ -46,16 +54,25 @@ public partial class MainWindow : Window
         StatusText.Text = "Consultando publicaciones autorizadas…";
         try
         {
-            var query = $"?select={Uri.EscapeDataString(select)}&is_published=eq.true&order={Uri.EscapeDataString(order)}&limit=100";
-            if (kind is not null) query += "&kind=eq." + Uri.EscapeDataString(kind);
-            using var response = await Client.GetAsync(Api + table + query);
-            if (!response.IsSuccessStatusCode)
+            var loaded = new List<CatalogEntry>();
+            const int pageSize = 500;
+            const int maxRows = 10000;
+            for (var offset = 0; offset < maxRows; offset += pageSize)
             {
-                var detail = await response.Content.ReadAsStringAsync();
-                throw new HttpRequestException($"Supabase {(int)response.StatusCode}: {detail}");
+                var query = $"?select={Uri.EscapeDataString(select)}&is_published=eq.true&order={Uri.EscapeDataString(order)}&limit={pageSize}&offset={offset}";
+                if (kind is not null) query += "&kind=eq." + Uri.EscapeDataString(kind);
+                using var response = await Client.GetAsync(Api + table + query);
+                if (!response.IsSuccessStatusCode)
+                {
+                    var detail = await response.Content.ReadAsStringAsync();
+                    throw new HttpRequestException($"Supabase {(int)response.StatusCode}: {detail}");
+                }
+                await using var stream = await response.Content.ReadAsStreamAsync();
+                var page = await JsonSerializer.DeserializeAsync<List<CatalogEntry>>(stream, JsonOptions) ?? [];
+                loaded.AddRange(page);
+                if (page.Count < pageSize) break;
             }
-            await using var stream = await response.Content.ReadAsStreamAsync();
-            entries = await JsonSerializer.DeserializeAsync<List<CatalogEntry>>(stream, JsonOptions) ?? [];
+            entries = loaded;
             UpdateFilterOptions();
             StatusText.Text = entries.Count == 0
                 ? "Todavía no hay contenido autorizado publicado en esta sección."
@@ -145,14 +162,14 @@ public partial class MainWindow : Window
 
     private void Play_Click(object sender, RoutedEventArgs e)
     {
-        if ((sender as FrameworkElement)?.DataContext is not CatalogEntry item)
-            return;
+        if ((sender as FrameworkElement)?.DataContext is CatalogEntry item) PlayEntry(item);
+    }
 
-        if (!Uri.TryCreate(item.StreamUrl, UriKind.Absolute, out var uri) ||
-            uri.Scheme != Uri.UriSchemeHttps)
+    private void PlayEntry(CatalogEntry item)
+    {
+        if (!Uri.TryCreate(item.StreamUrl, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps)
         {
-            if (Uri.TryCreate(item.OfficialWatchUrl, UriKind.Absolute, out var officialUri) &&
-                officialUri.Scheme == Uri.UriSchemeHttps)
+            if (Uri.TryCreate(item.OfficialWatchUrl, UriKind.Absolute, out var officialUri) && officialUri.Scheme == Uri.UriSchemeHttps)
             {
                 try
                 {
@@ -168,16 +185,79 @@ public partial class MainWindow : Window
 
         try
         {
+            _currentEntry = item;
             _currentMedia?.Dispose();
             _currentMedia = new Media(_libVlc, uri);
-            if (!_mediaPlayer.Play(_currentMedia))
-                throw new InvalidOperationException("El reproductor no pudo iniciar el flujo.");
+            if (!_mediaPlayer.Play(_currentMedia)) throw new InvalidOperationException("El reproductor no pudo iniciar el flujo.");
             StatusText.Text = "Reproduciendo: " + item.Title;
         }
-        catch (Exception ex)
+        catch (Exception ex) { StatusText.Text = "Error de reproducción: " + ex.Message; }
+    }
+
+    private List<CatalogEntry> CurrentPlayableEntries()
+    {
+        if (Catalog.ItemsSource is IEnumerable<CatalogEntry> visible)
         {
-            StatusText.Text = "Error de reproducción: " + ex.Message;
+            var filtered = visible.Where(x => Uri.TryCreate(x.StreamUrl, UriKind.Absolute, out var u) && u.Scheme == Uri.UriSchemeHttps).ToList();
+            if (filtered.Count > 0) return filtered;
         }
+        return entries.Where(x => Uri.TryCreate(x.StreamUrl, UriKind.Absolute, out var u) && u.Scheme == Uri.UriSchemeHttps).ToList();
+    }
+
+    private void PreviousChannel_Click(object sender, RoutedEventArgs e) => ChangeChannel(-1);
+    private void NextChannel_Click(object sender, RoutedEventArgs e) => ChangeChannel(1);
+
+    private void ChangeChannel(int delta)
+    {
+        var playable = CurrentPlayableEntries();
+        if (playable.Count == 0) { StatusText.Text = "No hay señales integradas disponibles para cambiar de canal."; return; }
+        var current = _currentEntry is null ? -1 : playable.FindIndex(x => ReferenceEquals(x, _currentEntry) || x.Title == _currentEntry.Title);
+        var next = current < 0 ? 0 : (current + delta + playable.Count) % playable.Count;
+        PlayEntry(playable[next]);
+    }
+
+    private void ToggleFullscreen_Click(object sender, RoutedEventArgs e) => ToggleFullscreen();
+
+    private void ToggleFullscreen()
+    {
+        if (!_isFullscreen)
+        {
+            _isFullscreen = true;
+            WindowStyle = WindowStyle.None;
+            ResizeMode = ResizeMode.NoResize;
+            WindowState = WindowState.Maximized;
+            MainContentGrid.Margin = new Thickness(0);
+            CatalogScroll.Visibility = Visibility.Collapsed;
+            VideoContainer.BorderThickness = new Thickness(0);
+            VideoContainer.CornerRadius = new CornerRadius(0);
+            VideoContainer.Padding = new Thickness(0);
+            VideoContainer.Margin = new Thickness(0);
+            Grid.SetRow(VideoContainer, 0);
+            Grid.SetRowSpan(VideoContainer, 4);
+        }
+        else
+        {
+            _isFullscreen = false;
+            Grid.SetRow(VideoContainer, 2);
+            Grid.SetRowSpan(VideoContainer, 1);
+            CatalogScroll.Visibility = Visibility.Visible;
+            MainContentGrid.Margin = new Thickness(28);
+            VideoContainer.BorderThickness = new Thickness(1);
+            VideoContainer.CornerRadius = new CornerRadius(14);
+            VideoContainer.Padding = new Thickness(4);
+            VideoContainer.Margin = new Thickness(0, 0, 0, 14);
+            WindowStyle = WindowStyle.SingleBorderWindow;
+            ResizeMode = ResizeMode.CanResize;
+            WindowState = WindowState.Normal;
+        }
+    }
+
+    private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.F11) { ToggleFullscreen(); e.Handled = true; }
+        else if (e.Key == Key.Escape && _isFullscreen) { ToggleFullscreen(); e.Handled = true; }
+        else if (e.Key == Key.Right && Keyboard.Modifiers == ModifierKeys.Control) { ChangeChannel(1); e.Handled = true; }
+        else if (e.Key == Key.Left && Keyboard.Modifiers == ModifierKeys.Control) { ChangeChannel(-1); e.Handled = true; }
     }
 
     private async void ImportM3u_Click(object sender, RoutedEventArgs e)
@@ -233,6 +313,7 @@ public partial class MainWindow : Window
         _mediaPlayer.Stop();
         _currentMedia?.Dispose();
         _currentMedia = null;
+        _currentEntry = null;
         StatusText.Text = "Reproducción detenida.";
     }
 
