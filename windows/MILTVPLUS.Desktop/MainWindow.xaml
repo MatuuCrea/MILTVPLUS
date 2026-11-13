@@ -8,7 +8,7 @@
      <TextBlock Text="ENTRETENIMIENTO" FontSize="10" Foreground="#AAB6CE" Margin="0,0,0,24"/>
      <ListBox x:Name="Sections" Background="Transparent" BorderThickness="0" Foreground="White" SelectionChanged="Sections_SelectionChanged">
       <ListBoxItem Content="Inicio" IsSelected="True" Padding="10"/>
-      <ListBoxItem Content="TV en vivo" Padding="10"/><ListBoxItem Content="Películas" Padding="10"/>
+      <ListBoxItem Content="Canales por país" Padding="10"/><ListBoxItem Content="TV en vivo" Padding="10"/><ListBoxItem Content="Películas" Padding="10"/>
       <ListBoxItem Content="Series" Padding="10"/><ListBoxItem Content="Deportes" Padding="10"/>
       <ListBoxItem Content="Radios" Padding="10"/><ListBoxItem Content="Música" Padding="10"/>
       <ListBoxItem Content="Teatro" Padding="10"/><ListBoxItem Content="Guía EPG" Padding="10"/>
