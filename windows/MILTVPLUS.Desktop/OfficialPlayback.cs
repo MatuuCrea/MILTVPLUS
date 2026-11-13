@@ -126,9 +126,9 @@ public partial class MainWindow
             VideoSurface.Visibility = Visibility.Collapsed;
             OfficialWebView.Visibility = Visibility.Visible;
             StatusText.Text = "Preparando el reproductor oficial de " + entry.Title + "…";
+            if (!_isFullscreen) ToggleFullscreen();
             await EnsureOfficialWebViewAsync();
             OfficialWebView.CoreWebView2.Navigate(officialUrl!);
-            if (!_isFullscreen) ToggleFullscreen();
         }
         catch (Exception ex)
         {
