@@ -1,12 +1,18 @@
 name: TV Channel Availability
 on:
+  pull_request:
+    paths:
+      - 'scripts/check_tv_channel_availability.py'
+      - 'tests/test_tv_channel_availability.py'
+      - 'data/catalog/argentina-channel-inventory.json'
+      - '.github/workflows/tv-channel-availability.yml'
   workflow_dispatch:
   schedule:
     - cron: '17 */6 * * *'
 permissions:
   contents: read
 jobs:
-  check-official-pages:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -15,6 +21,15 @@ jobs:
           python-version: '3.12'
       - name: Test status classification
         run: python -m unittest discover -s tests -p 'test_tv_channel_availability.py' -v
+  check-official-pages:
+    if: github.event_name != 'pull_request'
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Check official viewing pages
         run: python scripts/check_tv_channel_availability.py
       - uses: actions/upload-artifact@v4
