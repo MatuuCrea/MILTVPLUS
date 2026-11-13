@@ -14,6 +14,7 @@ type Channel = {
 type CheckResult = {
   status: "online" | "offline" | "blocked" | "pending_review";
   detail: string;
+  logo?: { url: string; sourceUrl: string };
 };
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "https://rbnuxapfsnaabrzuxvdy.supabase.co";
@@ -125,6 +126,35 @@ async function fetchYoutubeLogo(channelUrl: string | null): Promise<{ url: strin
     return null;
   }
 }
+function extractOfficialFavicon(sample: string, pageUrl: string): { url: string; sourceUrl: string } | null {
+  try {
+    const base = new URL(pageUrl);
+    const lower = sample.toLowerCase();
+    const markers = ['rel="apple-touch-icon"', 'rel="icon"', 'rel="shortcut icon"'];
+    for (const marker of markers) {
+      const markerIndex = lower.indexOf(marker);
+      if (markerIndex < 0) continue;
+      const tagStart = lower.lastIndexOf("<link", markerIndex);
+      const tagEnd = lower.indexOf(">", markerIndex);
+      if (tagStart < 0 || tagEnd < 0) continue;
+      const tag = sample.slice(tagStart, tagEnd + 1);
+      const hrefMarker = 'href="';
+      const hrefIndex = tag.toLowerCase().indexOf(hrefMarker);
+      if (hrefIndex < 0) continue;
+      const valueStart = hrefIndex + hrefMarker.length;
+      const valueEnd = tag.indexOf('"', valueStart);
+      if (valueEnd < 0) continue;
+      const icon = new URL(tag.slice(valueStart, valueEnd), pageUrl);
+      if (icon.protocol === "https:" && icon.hostname === base.hostname) {
+        return { url: icon.toString(), sourceUrl: pageUrl };
+      }
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
 
 async function checkChannel(channel: Channel): Promise<CheckResult> {
   const url = channel.playback_type === "official_web"
@@ -150,6 +180,9 @@ async function checkChannel(channel: Channel): Promise<CheckResult> {
     });
     const finalUrl = new URL(response.url);
     const sample = await readSample(response, youtubePage ? 1048576 : 8192);
+    const officialLogo = channel.playback_type === "official_web" && !youtubePage
+      ? extractOfficialFavicon(sample, response.url)
+      : null;
     if (finalUrl.protocol !== "https:") {
       return { status: "blocked", detail: "La redirección abandonó HTTPS y se bloqueó por seguridad." };
     }
@@ -201,6 +234,7 @@ async function checkChannel(channel: Channel): Promise<CheckResult> {
     return {
       status: "online",
       detail: `Página oficial accesible (HTTP ${response.status}); este chequeo no verifica que el reproductor esté emitiendo vídeo en directo.`,
+      ...(officialLogo ? { logo: officialLogo } : {}),
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -293,12 +327,12 @@ Deno.serve(async (request: Request) => {
             return;
           }
           const result = await checkChannel(channel);
-          const logo = channel.logo_url ? null : await fetchYoutubeLogo(channel.official_watch_url);
+          const logo = channel.logo_url ? null : (result.logo ?? await fetchYoutubeLogo(channel.official_watch_url));
           const publishCandidate = !channel.is_published &&
             result.status === "online" &&
             result.detail.startsWith("YouTube confirma una emisión en directo ahora");
           const effectiveResult = !channel.is_published && !publishCandidate
-            ? { status: "pending_review" as const, detail: result.detail }
+            ? { status: "pending_review" as const, detail: result.detail, ...(result.logo ? { logo: result.logo } : {}) }
             : result;
           await patchStatus(channel.id, effectiveResult, checkedAt, publishCandidate, logo);
           summary.checked++;
