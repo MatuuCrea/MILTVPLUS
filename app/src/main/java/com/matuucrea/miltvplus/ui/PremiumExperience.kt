@@ -65,7 +65,9 @@ fun PremiumNavigationHeader(activeTab: String, onNavigate: (String) -> Unit) {
             }
         }
         BoxWithConstraints(Modifier.fillMaxWidth()) {
-            val compact = maxWidth < 760.dp
+            // Phones, portrait tablets and compact desktop windows use the expandable menu;
+            // wide tablets, Android TV and desktop layouts can show the full navigation row.
+            val compact = maxWidth < 1100.dp
             // Reserve room for the Más control on narrow phones so it is reachable without horizontal scrolling.
             val visible = if (compact) destinations.take(3) else destinations
             Row(
