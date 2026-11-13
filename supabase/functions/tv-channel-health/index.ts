@@ -129,7 +129,6 @@ async function fetchYoutubeLogo(channelUrl: string | null): Promise<{ url: strin
 }
 function extractOfficialFavicon(sample: string, pageUrl: string): { url: string; sourceUrl: string } | null {
   try {
-    const base = new URL(pageUrl);
     const lower = sample.toLowerCase();
     const markers = ['rel="apple-touch-icon"', 'rel="icon"', 'rel="shortcut icon"'];
     for (const marker of markers) {
