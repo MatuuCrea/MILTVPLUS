@@ -41,7 +41,7 @@ class M3uParserTest {
     }
 
     @Test fun preservesCommasInChannelDisplayName() {
-        val playlist = "#EXTM3U\\n#EXTINF:-1 tvg-name=\\"Fallback, Name\\" group-title=\\"News, World\\",BBC News, World\\nhttps://example.org/live.m3u8"
+        val playlist = "#EXTM3U\n#EXTINF:-1 tvg-name=\"Fallback, Name\" group-title=\"News, World\",BBC News, World\nhttps://example.org/live.m3u8"
         val channels = M3uParser.parse(playlist)
         assertEquals(1, channels.size)
         assertEquals("BBC News, World", channels[0].name)
@@ -49,15 +49,14 @@ class M3uParserTest {
     }
 
     @Test fun acceptsUtf8BomAndUsesTvgNameWhenTitleIsMissing() {
-        val playlist = "\\uFEFF#EXTM3U\\n#EXTINF:-1 tvg-name=\\"Radio Uno\\"\\nhttps://example.org/radio.m3u8"
+        val playlist = "\uFEFF#EXTM3U\n#EXTINF:-1 tvg-name=\"Radio Uno\"\nhttps://example.org/radio.m3u8"
         val channels = M3uParser.parse(playlist)
         assertEquals(1, channels.size)
         assertEquals("Radio Uno", channels[0].name)
     }
 
     @Test fun rejectsPlaylistsLargerThanFiveMegabytes() {
-        val playlist = "#EXTM3U\\n" + "x".repeat(5 * 1024 * 1024)
+        val playlist = "#EXTM3U\n" + "x".repeat(5 * 1024 * 1024)
         assertThrows(IllegalArgumentException::class.java) { M3uParser.parse(playlist) }
     }
-
 }
