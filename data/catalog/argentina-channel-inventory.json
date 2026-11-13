@@ -12,7 +12,8 @@
       "required": true,
       "official_watch_url": "https://www.c5n.com/vivo",
       "directory_status": "published_official_web",
-      "integrated_stream_status": "not_authorized_or_not_documented"
+      "integrated_stream_status": "not_authorized_or_not_documented",
+      "access_model": "free_web"
     },
     {
       "slug": "cronica-tv",
@@ -22,28 +23,32 @@
       "required": true,
       "official_watch_url": "https://www.cronica.com.ar/cronica-en-vivo/",
       "directory_status": "pending_manual_check",
-      "integrated_stream_status": "not_authorized_or_not_documented"
+      "integrated_stream_status": "not_authorized_or_not_documented",
+      "access_model": "unknown"
     },
     {
       "slug": "tn",
       "name": "Todo Noticias (TN)",
       "category": "news",
       "priority": 3,
-      "required": false
+      "required": false,
+      "access_model": "unknown"
     },
     {
       "slug": "a24",
       "name": "A24",
       "category": "news",
       "priority": 4,
-      "required": false
+      "required": false,
+      "access_model": "unknown"
     },
     {
       "slug": "ln-mas",
       "name": "LN+",
       "category": "news",
       "priority": 5,
-      "required": false
+      "required": false,
+      "access_model": "unknown"
     },
     {
       "slug": "canal-26",
@@ -53,21 +58,24 @@
       "required": false,
       "official_watch_url": "https://www.canal26.com/canal26-en-vivo/",
       "directory_status": "published_official_web",
-      "integrated_stream_status": "not_authorized_or_not_documented"
+      "integrated_stream_status": "not_authorized_or_not_documented",
+      "access_model": "free_web"
     },
     {
       "slug": "argentina-12",
       "name": "Argentina 12 / IP Noticias",
       "category": "news",
       "priority": 7,
-      "required": false
+      "required": false,
+      "access_model": "unknown"
     },
     {
       "slug": "canal-e",
       "name": "Canal E",
       "category": "news",
       "priority": 8,
-      "required": false
+      "required": false,
+      "access_model": "unknown"
     },
     {
       "slug": "senado-tv",
@@ -77,7 +85,8 @@
       "required": false,
       "official_watch_url": "https://www.senado.gob.ar/parlamentario/sesiones/enVivo",
       "directory_status": "published_official_web",
-      "integrated_stream_status": "not_authorized_or_not_documented"
+      "integrated_stream_status": "not_authorized_or_not_documented",
+      "access_model": "free_web"
     },
     {
       "slug": "diputados-tv",
@@ -87,7 +96,8 @@
       "required": false,
       "official_watch_url": "https://www.hcdn.gob.ar/dtv/index.html",
       "directory_status": "pending_manual_check",
-      "integrated_stream_status": "not_authorized_or_not_documented"
+      "integrated_stream_status": "not_authorized_or_not_documented",
+      "access_model": "unknown"
     }
   ],
   "other_categories": [
