@@ -11,6 +11,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -349,24 +350,65 @@ fun AdultAccessScreen(
     ) {
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF370B2D))
+            shape = RoundedCornerShape(22.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF260719))
         ) {
-            Row(
-                Modifier.fillMaxWidth().background(Brush.horizontalGradient(listOf(Color(0xFF4A0B38), Color(0xFF16051E))))
-                    .padding(18.dp),
-                verticalAlignment = Alignment.CenterVertically
+            Box(
+                Modifier.fillMaxWidth()
+                    .background(Brush.linearGradient(listOf(Color(0xFF570B36), Color(0xFF21051E), Color(0xFF090611))))
+                    .padding(horizontal = 18.dp, vertical = 20.dp)
             ) {
-                Box(Modifier.size(76.dp).background(Color(0xFF180512), RoundedCornerShape(40.dp)), contentAlignment = Alignment.Center) {
-                    Text("18+", color = Color.White, fontSize = 27.sp, fontWeight = FontWeight.Black)
+                Text("♡       ♡       ♡", Modifier.align(Alignment.TopEnd), color = Color(0xFFFF4D9D).copy(alpha = .32f), fontSize = 24.sp)
+                BoxWithConstraints(Modifier.fillMaxWidth()) {
+                    val compact = maxWidth < 430.dp
+                    if (compact) {
+                        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Box(Modifier.size(82.dp).background(Brush.radialGradient(listOf(Color(0xFFFF4D9D), Color(0xFF4B092F), Color(0xFF180512))), RoundedCornerShape(50)), contentAlignment = Alignment.Center) {
+                                Text("18+", color = Color.White, fontSize = 29.sp, fontWeight = FontWeight.Black)
+                            }
+                            Text("SOLO PARA ADULTOS", color = Color(0xFFFFB7D7), fontSize = 9.sp, fontWeight = FontWeight.ExtraBold)
+                            Icon(Icons.Default.WorkspacePremium, null, tint = Color(0xFFFFC247), modifier = Modifier.size(25.dp))
+                            Text("Contenido Adulto", color = Color.White, fontSize = 25.sp, fontWeight = FontWeight.Black)
+                            Text("Disfrutá de una experiencia cuidada y privada", color = Color(0xFFFFD8E9), style = MaterialTheme.typography.bodySmall)
+                            Button(onClick = {
+                                message = when {
+                                    !ageConfirmed -> "Confirmá que tenés 18 años o más en el control de acceso."
+                                    !pinExists -> "Creá tu PIN parental de seis dígitos para continuar."
+                                    !unlocked -> "Ingresá tu PIN parental de seis dígitos para desbloquear."
+                                    else -> "La sección +18 ya está desbloqueada."
+                                }
+                            }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE91E78)), shape = RoundedCornerShape(24.dp)) {
+                                Icon(Icons.Default.PlayArrow, null); Spacer(Modifier.width(6.dp)); Text("Ingresar Ahora", fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    } else {
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(18.dp)) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Box(Modifier.size(88.dp).background(Brush.radialGradient(listOf(Color(0xFFFF4D9D), Color(0xFF4B092F), Color(0xFF180512))), RoundedCornerShape(50)), contentAlignment = Alignment.Center) {
+                                    Text("18+", color = Color.White, fontSize = 31.sp, fontWeight = FontWeight.Black)
+                                }
+                                Text("Solo para adultos", color = Color(0xFFFFB7D7), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Icon(Icons.Default.WorkspacePremium, null, tint = Color(0xFFFFC247), modifier = Modifier.size(26.dp))
+                                Text("Contenido Adulto", color = Color.White, fontSize = 29.sp, fontWeight = FontWeight.Black)
+                                Text("Disfrutá de una experiencia cuidada, privada y clasificada +18.", color = Color(0xFFFFD8E9), style = MaterialTheme.typography.bodySmall)
+                                Text("ACCESO PRIVADO · MAYORES DE 18", color = Color(0xFFFF79B7), fontSize = 9.sp, fontWeight = FontWeight.ExtraBold)
+                                Button(onClick = {
+                                    message = when {
+                                        !ageConfirmed -> "Confirmá que tenés 18 años o más en el control de acceso."
+                                        !pinExists -> "Creá tu PIN parental de seis dígitos para continuar."
+                                        !unlocked -> "Ingresá tu PIN parental de seis dígitos para desbloquear."
+                                        else -> "La sección +18 ya está desbloqueada."
+                                    }
+                                }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE91E78)), shape = RoundedCornerShape(24.dp)) {
+                                    Icon(Icons.Default.PlayArrow, null); Spacer(Modifier.width(6.dp)); Text("Ingresar Ahora", fontWeight = FontWeight.Bold)
+                                }
+                            }
+                            Text("♡", color = Color(0xFFFF4D9D), fontSize = 38.sp)
+                        }
+                    }
                 }
-                Spacer(Modifier.width(14.dp))
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                    Text("Contenido Adulto", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Black)
-                    Text("Romance, historias para adultos y contenido clasificado +18", color = Color(0xFFFFD8E9), style = MaterialTheme.typography.bodySmall)
-                    Text("ACCESO PRIVADO · MAYORES DE 18", color = Color(0xFFFF79B7), fontSize = 9.sp, fontWeight = FontWeight.ExtraBold)
-                }
-                Icon(Icons.Default.Favorite, null, tint = Color(0xFFFF4D9D), modifier = Modifier.size(28.dp))
             }
         }
         Text("Explorá por categoría", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
@@ -415,6 +457,42 @@ fun AdultAccessScreen(
                             }
                         }
                         repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
+                    }
+                }
+            }
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.PlayArrow, null, tint = Color(0xFFFF1E7A), modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(6.dp))
+                Text("Recomendados para vos", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
+            }
+            if (!unlocked) {
+                Text("Desbloqueá la sección con tu PIN para ver recomendaciones del catálogo publicado.", color = Color(0xFFFFD8E9), style = MaterialTheme.typography.bodySmall)
+            } else if (adultItems.isEmpty()) {
+                Text("Todavía no hay títulos +18 publicados y verificados para esta región.", color = Color(0xFFFFD8E9), style = MaterialTheme.typography.bodySmall)
+            } else {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    items(adultItems.take(4), key = { it.id }) { item ->
+                        Card(modifier = Modifier.width(174.dp), shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF1B0B19))) {
+                            Column {
+                                Box(Modifier.fillMaxWidth().height(112.dp).background(Brush.linearGradient(listOf(Color(0xFF5A1647), Color(0xFF170D2C))),), contentAlignment = Alignment.Center) {
+                                    item.artworkUrl?.takeIf(::isSafeAdultArtworkUrl)?.let { artwork ->
+                                        AsyncImage(model = artwork, contentDescription = "Portada de ${item.title}", contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+                                    } ?: Icon(Icons.Default.Favorite, null, tint = Color(0xFFFF6DAF), modifier = Modifier.size(34.dp))
+                                    Text("18+", Modifier.align(Alignment.TopEnd).padding(6.dp).background(Color(0xFFB30B45), RoundedCornerShape(7.dp)).padding(horizontal = 7.dp, vertical = 3.dp), color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Black)
+                                }
+                                Row(Modifier.fillMaxWidth().padding(9.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Column(Modifier.weight(1f)) {
+                                        Text(item.title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp, maxLines = 2)
+                                        Text(item.category.ifBlank { item.ageRating ?: "18+" }, color = Color(0xFFFF9CCB), fontSize = 9.sp, maxLines = 1)
+                                    }
+                                    if (item.actionUrl?.let(::isSafeAdultArtworkUrl) == true) {
+                                        IconButton(onClick = { onPlay(item) }) { Icon(Icons.Default.PlayCircleFilled, "Reproducir ${item.title}", tint = Color(0xFFFF4D9D)) }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -505,6 +583,31 @@ fun AdultAccessScreen(
                         onClick = { unlocked = false },
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFF9CCB))
                     ) { Icon(Icons.Default.Lock, null); Spacer(Modifier.width(6.dp)); Text("Bloquear ahora") }
+                }
+            }
+        }
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val columns = if (maxWidth >= 720.dp) 4 else 2
+            val trustItems = listOf(
+                Triple(Icons.Default.Shield, "Contenido seguro", "y controlado"),
+                Triple(Icons.Default.Lock, "Acceso exclusivo", "para mayores +18"),
+                Triple(Icons.Default.WorkspacePremium, "Calidad premium", "según el catálogo"),
+                Triple(Icons.Default.Favorite, "Experiencia privada", "con control parental")
+            )
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                trustItems.chunked(columns).forEach { row ->
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        row.forEach { (icon, title, subtitle) ->
+                            Row(Modifier.weight(1f).clip(RoundedCornerShape(12.dp)).background(Color(0xFF170D19)).padding(9.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(icon, null, tint = Color(0xFFFFC247), modifier = Modifier.size(22.dp))
+                                Column(Modifier.padding(start = 7.dp)) {
+                                    Text(title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 9.sp)
+                                    Text(subtitle, color = Color(0xFFFFD8E9), fontSize = 8.sp)
+                                }
+                            }
+                        }
+                        repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
+                    }
                 }
             }
         }
