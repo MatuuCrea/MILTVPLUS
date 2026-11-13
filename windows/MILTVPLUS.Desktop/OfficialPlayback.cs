@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -94,7 +93,7 @@ public partial class MainWindow
             if (args.IsSuccess)
                 StatusText.Text = "Canal oficial abierto en el reproductor integrado.";
             else
-                StatusText.Text = "El emisor no permitió cargar el reproductor integrado. Podés abrir la página en el navegador.";
+                StatusText.Text = "El emisor no permitió cargar el reproductor integrado. MILTVPLUS permanece abierta; esta señal no está disponible en el reproductor integrado desde este dispositivo o región.";
         };
         _officialWebViewReady = true;
     }
@@ -133,18 +132,11 @@ public partial class MainWindow
         }
         catch (Exception ex)
         {
-            OfficialWebView.Visibility = Visibility.Collapsed;
-            VideoSurface.Visibility = Visibility.Visible;
-            StatusText.Text = "No se pudo iniciar el visor integrado: " + ex.Message;
-            try
-            {
-                Process.Start(new ProcessStartInfo(officialUrl!) { UseShellExecute = true });
-                StatusText.Text += " Se abrió la página oficial en el navegador externo.";
-            }
-            catch (Exception browserError)
-            {
-                StatusText.Text += " Tampoco se pudo abrir el navegador: " + browserError.Message;
-            }
+            // Never eject the user from MILTVPLUS to an external browser.
+            OfficialWebView.Visibility = Visibility.Visible;
+            VideoSurface.Visibility = Visibility.Collapsed;
+            StatusText.Text = "El reproductor integrado no pudo iniciar esta señal: " + ex.Message +
+                ". MILTVPLUS permanece abierta; puede tratarse de una restricción del emisor, DRM o WebView2.";
         }
     }
 
