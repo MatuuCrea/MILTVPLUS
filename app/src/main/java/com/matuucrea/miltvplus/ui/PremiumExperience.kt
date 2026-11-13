@@ -33,105 +33,85 @@ private val PremiumGold = Color(0xFFFFC247)
 private data class NavDestination(val label: String, val icon: androidx.compose.ui.graphics.vector.ImageVector)
 
 @Composable
-fun PremiumNavigationHeader(activeTab: String, onNavigate: (String) -> Unit) {
-    var menuExpanded by remember { mutableStateOf(false) }
-    val destinations = listOf(
-        NavDestination("Inicio", Icons.Default.Home),
-        NavDestination("TV en Vivo", Icons.Default.LiveTv),
-        NavDestination("Películas", Icons.Default.Movie),
-        NavDestination("Series", Icons.Default.VideoLibrary),
-        NavDestination("Deportes", Icons.Default.SportsSoccer),
-        NavDestination("Infantil", Icons.Default.ChildCare),
-        NavDestination("Apps", Icons.Default.Apps),
-        NavDestination("Fuentes", Icons.Default.PlaylistAdd),
-        NavDestination("Música", Icons.Default.MusicNote),
-        NavDestination("Cuenta", Icons.Default.AccountCircle),
-        NavDestination("Países", Icons.Default.Public),
-        NavDestination("EPG", Icons.Default.CalendarMonth),
-        NavDestination("Adultos 18+", Icons.Default.Favorite),
-        NavDestination("Favoritos", Icons.Default.Star),
-        NavDestination("Configuración", Icons.Default.Settings)
-    )
-    Column(Modifier.fillMaxWidth().background(PremiumNavy).animateContentSize()) {
-        Row(
-            Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 9.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = { menuExpanded = !menuExpanded }) {
-                Icon(if (menuExpanded) Icons.Default.Close else Icons.Default.Menu, "Expandir o contraer menú", tint = Color.White)
+fun PremiumSidebar(activeTab: String, onNavigate: (String) -> Unit) {
+    BoxWithConstraints(Modifier.fillMaxHeight()) {
+        val compact = maxWidth < 600.dp
+        var expanded by remember(compact) { mutableStateOf(!compact) }
+        var moreExpanded by remember { mutableStateOf(false) }
+        val entries = listOf(
+            NavDestination("Inicio", Icons.Default.Home), NavDestination("TV en Vivo", Icons.Default.LiveTv),
+            NavDestination("Películas", Icons.Default.Movie), NavDestination("Series", Icons.Default.VideoLibrary),
+            NavDestination("Deportes", Icons.Default.SportsSoccer), NavDestination("Infantil", Icons.Default.ChildCare),
+            NavDestination("Documentales", Icons.Default.MenuBook), NavDestination("Música", Icons.Default.MusicNote),
+            NavDestination("Adultos 18+", Icons.Default.Favorite), NavDestination("Favoritos", Icons.Default.Star),
+            NavDestination("Configuración", Icons.Default.Settings)
+        )
+        val extras = listOf(NavDestination("Apps", Icons.Default.Apps), NavDestination("Fuentes", Icons.Default.PlaylistAdd),
+            NavDestination("Cuenta", Icons.Default.AccountCircle), NavDestination("Países", Icons.Default.Public),
+            NavDestination("EPG", Icons.Default.CalendarMonth))
+        Column(Modifier.width(if (expanded) 206.dp else 62.dp).fillMaxHeight().background(Color(0xFF08060D)).padding(7.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable { expanded = !expanded }.padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = if (expanded) Arrangement.Start else Arrangement.Center) {
+                Icon(if (expanded) Icons.Default.MenuOpen else Icons.Default.Menu, "Expandir o contraer menú", tint = PremiumPink)
+                if (expanded) { Spacer(Modifier.width(8.dp)); Column {
+                    Text("✦ MILTVPLUS", color = Color.White, fontWeight = FontWeight.Black, fontSize = 15.sp)
+                    Text("Tu mundo en una sola app 🇦🇷", color = Color(0xFFB8AFC6), fontSize = 8.sp)
+                } }
             }
-            Column(Modifier.weight(1f)) {
-                Text("MILTVPLUS", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp)
-                Text("Tu TV, en todas partes  🇦🇷", color = PremiumCyan, fontSize = 10.sp)
-            }
-            IconButton(onClick = { onNavigate("Configuración") }) {
-                Icon(Icons.Default.Settings, "Configuración", tint = Color.White)
-            }
-        }
-        BoxWithConstraints(Modifier.fillMaxWidth()) {
-            // Phones, portrait tablets and compact desktop windows use the expandable menu;
-            // wide tablets, Android TV and desktop layouts can show the full navigation row.
-            val compact = maxWidth < 1100.dp
-            // Reserve room for the Más control on narrow phones so it is reachable without horizontal scrolling.
-            val visible = if (compact) destinations.take(3) else destinations
-            Row(
-                Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).focusGroup().padding(horizontal = 9.dp, vertical = 2.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                visible.forEach { destination ->
-                    val selected = activeTab == destination.label ||
-                        (destination.label == "TV en Vivo" && activeTab in setOf("Catálogo", "TV")) ||
-                        (destination.label == "Configuración" && activeTab == "Ajustes") ||
-                        (destination.label == "Adultos 18+" && activeTab == "Adultos")
-                    NavigationBarItem(
-                        selected = selected,
-                        onClick = { menuExpanded = false; onNavigate(destination.label) },
-                        icon = { Icon(destination.icon, null) },
-                        label = { Text(destination.label, maxLines = 1) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = if (destination.label == "Adultos 18+") PremiumPink else PremiumCyan,
-                            selectedTextColor = if (destination.label == "Adultos 18+") PremiumPink else Color.White,
-                            indicatorColor = Color(0xFF173A70)
-                        ),
-                        modifier = Modifier.widthIn(min = if (compact) 78.dp else 84.dp)
-                    )
-                }
-                if (compact) {
-                    TextButton(onClick = { menuExpanded = !menuExpanded }) {
-                        Icon(if (menuExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null, tint = PremiumCyan)
-                        Text("Más", color = PremiumCyan)
-                    }
+            HorizontalDivider(color = Color(0xFF34283B))
+            entries.forEach { item ->
+                val selected = activeTab == item.label || (item.label == "TV en Vivo" && activeTab in setOf("Catálogo","TV")) ||
+                    (item.label == "Configuración" && activeTab == "Ajustes") || (item.label == "Adultos 18+" && activeTab == "Adultos")
+                Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
+                    .background(if (selected) Brush.horizontalGradient(listOf(Color(0xFF94104F),Color(0xFF42102F))) else Brush.horizontalGradient(listOf(Color.Transparent,Color.Transparent)))
+                    .clickable { onNavigate(item.label) }.padding(horizontal = if (expanded) 10.dp else 0.dp, vertical = 9.dp),
+                    verticalAlignment = Alignment.CenterVertically, horizontalArrangement = if (expanded) Arrangement.Start else Arrangement.Center) {
+                    Icon(item.icon,item.label,tint=if(selected) Color(0xFFFF72B9) else Color(0xFFD6D0DE),modifier=Modifier.size(20.dp))
+                    if(expanded){Spacer(Modifier.width(10.dp));Text(item.label,color=Color.White,fontSize=11.sp,fontWeight=if(selected) FontWeight.Bold else FontWeight.Medium,maxLines=1)}
                 }
             }
-        }
-        AnimatedVisibility(menuExpanded) {
-            Column(
-                Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
-                    .background(PremiumPanel, RoundedCornerShape(16.dp)).focusGroup().padding(8.dp),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                destinations.forEach { destination ->
-                    Row(
-                        Modifier.fillMaxWidth().clickable {
-                            menuExpanded = false
-                            onNavigate(destination.label)
-                        }.background(
-                            if (activeTab == destination.label || (destination.label == "Adultos 18+" && activeTab == "Adultos"))
-                                (if (destination.label == "Adultos 18+") PremiumPink.copy(alpha = .18f) else PremiumBlue.copy(alpha = .18f))
-                            else Color.Transparent,
-                            RoundedCornerShape(10.dp)
-                        ).padding(horizontal = 12.dp, vertical = 10.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(destination.icon, null, tint = if (destination.label == "Adultos 18+") PremiumPink else PremiumCyan)
-                        Spacer(Modifier.width(12.dp))
-                        Text(destination.label, color = Color.White, fontWeight = FontWeight.SemiBold)
-                        Spacer(Modifier.weight(1f))
-                        Icon(Icons.Default.ChevronRight, null, tint = Color.LightGray)
-                    }
+            Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable { moreExpanded=!moreExpanded }
+                .padding(horizontal=if(expanded)10.dp else 0.dp,vertical=9.dp),verticalAlignment=Alignment.CenterVertically,
+                horizontalArrangement=if(expanded) Arrangement.Start else Arrangement.Center) {
+                Icon(Icons.Default.MoreHoriz,"Más Opciones",tint=PremiumCyan,modifier=Modifier.size(20.dp))
+                if(expanded){Spacer(Modifier.width(10.dp));Text("Más Opciones",color=Color.White,fontSize=11.sp);Spacer(Modifier.weight(1f));Icon(if(moreExpanded)Icons.Default.ExpandLess else Icons.Default.ExpandMore,null,tint=Color.LightGray)}
+            }
+            AnimatedVisibility(moreExpanded && expanded) {
+                Column(Modifier.fillMaxWidth().padding(start=8.dp).background(Color(0xFF11101A),RoundedCornerShape(10.dp)).padding(4.dp)) {
+                    extras.forEach { item -> TextButton(onClick={onNavigate(item.label)},modifier=Modifier.fillMaxWidth()) {
+                        Icon(item.icon,null,tint=PremiumCyan,modifier=Modifier.size(17.dp));Spacer(Modifier.width(7.dp));Text(item.label,color=Color.White,fontSize=10.sp)
+                    } }
                 }
             }
+            Spacer(Modifier.weight(1f))
+            if(expanded) Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(13.dp)).background(Brush.verticalGradient(listOf(Color(0xFF49300D),Color(0xFF1C1020)))).padding(9.dp),
+                horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(4.dp)) {
+                Icon(Icons.Default.WorkspacePremium,null,tint=PremiumGold,modifier=Modifier.size(24.dp))
+                Text("MILTVPLUS Premium",color=Color.White,fontWeight=FontWeight.Black,fontSize=10.sp)
+                Text("Más entretenimiento para vos",color=PremiumGold,fontSize=8.sp);Text("🇦🇷",fontSize=15.sp)
+            } else Icon(Icons.Default.WorkspacePremium,"MILTVPLUS Premium",tint=PremiumGold)
         }
+    }
+}
+
+@Composable
+fun PremiumAppTopBar(activeTab: String, onSearch: (String) -> Unit, onSettings: () -> Unit) {
+    var query by remember { mutableStateOf("") }
+    var now by remember { mutableStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(Unit) { while(true) { now=System.currentTimeMillis(); delay(30_000) } }
+    val clock=remember(now){java.text.SimpleDateFormat("HH:mm",java.util.Locale("es","AR")).format(java.util.Date(now))}
+    val date=remember(now){java.text.SimpleDateFormat("EEE, dd MMM",java.util.Locale("es","AR")).format(java.util.Date(now)).replaceFirstChar{it.uppercase()}}
+    Row(Modifier.fillMaxWidth().background(Color(0xFF090711)).padding(horizontal=12.dp,vertical=6.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+        Column { Text(activeTab,color=Color.White,fontWeight=FontWeight.Bold,fontSize=14.sp);Text("$clock · $date",color=PremiumCyan,fontSize=9.sp) }
+        Spacer(Modifier.weight(1f))
+        OutlinedTextField(query,{query=it;onSearch(it)},Modifier.weight(2f).heightIn(max=52.dp),
+            placeholder={Text("Buscar en MILTVPLUS...",fontSize=10.sp)},leadingIcon={Icon(Icons.Default.Search,null,modifier=Modifier.size(17.dp))},
+            singleLine=true,shape=RoundedCornerShape(24.dp),colors=OutlinedTextFieldDefaults.colors(focusedTextColor=Color.White,unfocusedTextColor=Color.White,
+                focusedBorderColor=PremiumPink,unfocusedBorderColor=Color(0xFF493D50),focusedLeadingIconColor=PremiumPink,unfocusedLeadingIconColor=Color.LightGray))
+        IconButton(onClick=onSettings){Icon(Icons.Default.Notifications,"Notificaciones",tint=Color.White)}
+        IconButton(onClick=onSettings){Icon(Icons.Default.Settings,"Configuración",tint=Color.White)}
+        Icon(Icons.Default.AccountCircle,"Perfil",tint=Color.White,modifier=Modifier.size(25.dp))
     }
 }
 
