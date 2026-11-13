@@ -1,0 +1,102 @@
+{
+  "country_code": "AR",
+  "country_name": "Argentina",
+  "status": "discovery_inventory_not_published",
+  "note": "Inventario de canales a investigar. No contiene streams ni logotipos porque cada activo debe obtenerse del titular y validarse antes de publicar.",
+  "required_news_channels": [
+    {
+      "slug": "c5n",
+      "name": "C5N",
+      "category": "news",
+      "priority": 1,
+      "required": true
+    },
+    {
+      "slug": "cronica-tv",
+      "name": "Crónica TV",
+      "category": "news",
+      "priority": 2,
+      "required": true
+    },
+    {
+      "slug": "tn",
+      "name": "Todo Noticias (TN)",
+      "category": "news",
+      "priority": 3,
+      "required": false
+    },
+    {
+      "slug": "a24",
+      "name": "A24",
+      "category": "news",
+      "priority": 4,
+      "required": false
+    },
+    {
+      "slug": "ln-mas",
+      "name": "LN+",
+      "category": "news",
+      "priority": 5,
+      "required": false
+    },
+    {
+      "slug": "canal-26",
+      "name": "Canal 26",
+      "category": "news",
+      "priority": 6,
+      "required": false
+    },
+    {
+      "slug": "argentina-12",
+      "name": "Argentina 12 / IP Noticias",
+      "category": "news",
+      "priority": 7,
+      "required": false
+    },
+    {
+      "slug": "canal-e",
+      "name": "Canal E",
+      "category": "news",
+      "priority": 8,
+      "required": false
+    },
+    {
+      "slug": "senado-tv",
+      "name": "Senado TV",
+      "category": "public",
+      "priority": 9,
+      "required": false
+    },
+    {
+      "slug": "diputados-tv",
+      "name": "Diputados TV",
+      "category": "public",
+      "priority": 10,
+      "required": false
+    }
+  ],
+  "other_categories": [
+    "general",
+    "public",
+    "sports",
+    "education",
+    "culture",
+    "music",
+    "regional",
+    "international",
+    "radio-video"
+  ],
+  "publication_fields_required": [
+    "logo_url",
+    "logo_source_url",
+    "official_watch_url",
+    "rights_holder",
+    "rights_reference",
+    "rights_regions",
+    "rights_valid_from",
+    "rights_verified",
+    "source_status"
+  ],
+  "default_state": "unverified",
+  "publish_only_after_owner_and_stream_verification": true
+}
