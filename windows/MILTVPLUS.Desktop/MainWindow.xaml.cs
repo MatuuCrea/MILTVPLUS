@@ -2,7 +2,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows;
-using System.Windows.Controls;
+using System.Windows.Controls;\nusing Microsoft.Win32;
 using LibVLCSharp.Shared;
 
 namespace MILTVPLUS.Desktop;
@@ -95,6 +95,54 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             StatusText.Text = "Error de reproducción: " + ex.Message;
+        }
+    }
+
+    private async void ImportM3u_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFileDialog
+        {
+            Title = "Importar lista M3U/M3U8",
+            Filter = "Listas M3U (*.m3u;*.m3u8)|*.m3u;*.m3u8|Todos los archivos (*.*)|*.*",
+            CheckFileExists = true
+        };
+        if (dialog.ShowDialog(this) != true) return;
+
+        try
+        {
+            var info = new FileInfo(dialog.FileName);
+            if (info.Length > 5 * 1024 * 1024)
+                throw new InvalidDataException("La lista supera el límite permitido de 5 MB.");
+
+            var lines = await File.ReadAllLinesAsync(dialog.FileName);
+            var imported = new List<CatalogEntry>();
+            var pendingTitle = "Canal importado";
+            foreach (var raw in lines)
+            {
+                var line = raw.Trim();
+                if (line.StartsWith("#EXTINF", StringComparison.OrdinalIgnoreCase))
+                {
+                    var comma = line.LastIndexOf(',');
+                    pendingTitle = comma >= 0 && comma < line.Length - 1 ? line[(comma + 1)..].Trim() : "Canal importado";
+                    continue;
+                }
+                if (line.Length == 0 || line.StartsWith('#')) continue;
+                if (!Uri.TryCreate(line, UriKind.Absolute, out var streamUri) || streamUri.Scheme != Uri.UriSchemeHttps)
+                    continue;
+                imported.Add(new CatalogEntry { Title = pendingTitle, Description = "Fuente importada localmente", StreamUrl = streamUri.ToString(), Kind = "live" });
+                pendingTitle = "Canal importado";
+            }
+
+            entries = imported;
+            Catalog.ItemsSource = entries;
+            PageTitle.Text = "Lista local importada";
+            StatusText.Text = imported.Count == 0
+                ? "No se encontraron enlaces HTTPS válidos en la lista."
+                : $"{imported.Count} entradas HTTPS importadas. Verificá que tengas derecho a reproducirlas.";
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = "No se pudo importar la lista: " + ex.Message;
         }
     }
 
