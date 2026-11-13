@@ -1,6 +1,6 @@
 {
-  "inventory_status": "official_page_directory_inventory",
-  "scope": "official_web_links_only_no_embedded_streams",
+  "inventory_status": "official_live_channel_directory_with_live_marker_checks",
+  "scope": "official_broadcaster_pages_and_official_youtube_live_pages_only_no_native_hls_dash",
   "channels": [
     {
       "slug": "al-jazeera-english",
@@ -48,13 +48,13 @@
     },
     {
       "slug": "canal-11-mx",
-      "name": "Canal Once",
+      "name": "Canal Once · Once.3",
       "country_code": "MX",
       "language_code": "es",
       "category": "education",
       "access_model": "free_web",
-      "official_watch_url": "https://mxplus.tv/television/canal-11",
-      "directory_status": "published_official_web",
+      "official_watch_url": "https://www.canalonce.mx/en-vivo",
+      "directory_status": "published_official_web_live_page",
       "integrated_stream_status": "not_authorized_or_not_documented"
     },
     {
@@ -70,13 +70,13 @@
     },
     {
       "slug": "canal-22-mx",
-      "name": "Canal 22",
+      "name": "Canal 22.1",
       "country_code": "MX",
       "language_code": "es",
       "category": "culture",
       "access_model": "free_web",
-      "official_watch_url": "https://mxplus.tv/television/canal-22",
-      "directory_status": "published_official_web",
+      "official_watch_url": "https://www.canal22.org.mx/streaming-22-1.html",
+      "directory_status": "published_official_web_live_page",
       "integrated_stream_status": "not_authorized_or_not_documented"
     },
     {
@@ -114,24 +114,24 @@
     },
     {
       "slug": "france-24-mxplus",
-      "name": "France 24",
+      "name": "France 24 English",
       "country_code": "FR",
-      "language_code": "fr",
+      "language_code": "en",
       "category": "international",
       "access_model": "free_web",
-      "official_watch_url": "https://mxplus.tv/television/france-24",
-      "directory_status": "published_official_web",
-      "integrated_stream_status": "not_authorized_or_not_documented"
+      "official_watch_url": "https://www.youtube.com/@france24_en/live",
+      "directory_status": "published_official_youtube_live_marker_confirmed",
+      "integrated_stream_status": "official_player_only_no_native_hls_dash"
     },
     {
       "slug": "dw-mxplus",
-      "name": "DW",
+      "name": "DW English",
       "country_code": "DE",
-      "language_code": "de",
+      "language_code": "en",
       "category": "international",
       "access_model": "free_web",
-      "official_watch_url": "https://mxplus.tv/television/dw",
-      "directory_status": "published_official_web",
+      "official_watch_url": "https://www.dw.com/en/live-tv/channel-english",
+      "directory_status": "published_official_web_live_page",
       "integrated_stream_status": "not_authorized_or_not_documented"
     },
     {
@@ -196,9 +196,9 @@
       "language_code": "en",
       "category": "news",
       "access_model": "geo_restricted",
-      "official_watch_url": "https://iview.abc.net.au/channel/news",
-      "directory_status": "published_official_web",
-      "integrated_stream_status": "not_authorized_or_not_documented"
+      "official_watch_url": "https://www.youtube.com/@abcnewsaustralia/live",
+      "directory_status": "published_official_youtube_live_marker_confirmed",
+      "integrated_stream_status": "official_player_only_no_native_hls_dash"
     },
     {
       "slug": "tv-brasil",
@@ -235,13 +235,68 @@
     },
     {
       "slug": "prasar-bharati-live-tv",
-      "name": "Prasar Bharati · Live TV",
+      "name": "Prasar Bharati · Portal de canales",
       "country_code": "IN",
       "language_code": "en",
       "category": "public",
       "official_watch_url": "https://prasarbharati.gov.in/en/live-tv/",
-      "directory_status": "published_official_web_directory",
+      "directory_status": "pending_manual_review_not_an_individual_channel",
       "access_model": "free_web",
+      "integrated_stream_status": "not_authorized_or_not_documented"
+    },
+    {
+      "slug": "france-24-es",
+      "name": "France 24 Español",
+      "country_code": "FR",
+      "language_code": "es",
+      "category": "news",
+      "access_model": "free_web",
+      "official_watch_url": "https://www.youtube.com/@France24_es/live",
+      "directory_status": "published_official_youtube_live_marker_confirmed",
+      "integrated_stream_status": "official_player_only_no_native_hls_dash"
+    },
+    {
+      "slug": "dd-news-india",
+      "name": "DD News",
+      "country_code": "IN",
+      "language_code": "hi",
+      "category": "news",
+      "access_model": "free_web",
+      "official_watch_url": "https://www.youtube.com/ddnews/live",
+      "directory_status": "published_official_youtube_live_marker_confirmed",
+      "integrated_stream_status": "official_player_only_no_native_hls_dash"
+    },
+    {
+      "slug": "dd-india",
+      "name": "DD India",
+      "country_code": "IN",
+      "language_code": "en",
+      "category": "international",
+      "access_model": "free_web",
+      "official_watch_url": "https://www.youtube.com/ddindia/live",
+      "directory_status": "published_official_youtube_live_marker_confirmed",
+      "integrated_stream_status": "official_player_only_no_native_hls_dash"
+    },
+    {
+      "slug": "mx-nuestro-cine",
+      "name": "MX Nuestro Cine",
+      "country_code": "MX",
+      "language_code": "es",
+      "category": "culture",
+      "access_model": "free_web",
+      "official_watch_url": "https://www.canal22.org.mx/mx_nuestro_cine.html",
+      "directory_status": "published_official_web_live_page",
+      "integrated_stream_status": "not_authorized_or_not_documented"
+    },
+    {
+      "slug": "canal-once-internacional",
+      "name": "Canal Once Internacional",
+      "country_code": "MX",
+      "language_code": "es",
+      "category": "general",
+      "access_model": "free_web",
+      "official_watch_url": "https://canalonce.mx/mexico",
+      "directory_status": "published_official_web_live_page",
       "integrated_stream_status": "not_authorized_or_not_documented"
     }
   ],
