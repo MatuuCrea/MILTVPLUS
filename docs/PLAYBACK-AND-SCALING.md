@@ -23,12 +23,14 @@
 - Android y Windows consultan todas las filas publicadas de `tv_channels`, sin restringir la consulta al país guardado en el perfil.
 - Paginación de 500 registros por página, hasta 10.000 filas por consulta para evitar el límite anterior de 100.
 - Filtros locales por país ISO y categoría.
-- El monitor de GitHub Actions corre cada seis horas una vez integrado en la rama predeterminada. Comprueba páginas oficiales y, para filas publicadas con `stream_url`, hace una prueba de manifiesto HLS/DASH.
+- El catálogo de Android y Windows se refresca cada 60 segundos; durante la reproducción Windows sincroniza la cola con la lista actualizada. Supabase Cron invoca `tv-channel-health` cada 5 minutos, procesa hasta 100 filas por ejecución en lotes de 10 y actualiza `source_status`, `last_checked_at` y `last_check_detail`. La política RLS pública sólo devuelve fichas publicadas con estado `online`, por lo que las fuentes caídas/bloqueadas dejan de mostrarse y pueden volver automáticamente cuando se recuperan.
+- El monitor de GitHub Actions sigue corriendo cada seis horas una vez integrado en la rama predeterminada y deja un informe independiente.
 
 ## Calidad y límites reales
 - El reproductor puede elegir automáticamente entre las variantes que entregue una fuente HLS/DASH. No puede crear una variante 4K, mejorar una fuente SD, garantizar una tasa de bits o cambiar la calidad si el emisor no publica esas variantes.
 - El ajuste FIT mantiene la relación de aspecto. La cadencia de cuadros y sincronización dependen del manifiesto, del decodificador, de la pantalla y de Android/Windows; no se debe prometer una frecuencia concreta en Hz.
 - Los reintentos ayudan ante fallas transitorias, pero no pueden reparar un origen caído, una URL revocada, una restricción geográfica, DRM incompatible o una red saturada.
+- La prueba automática HLS exige `#EXTM3U` y descarta listas con `#EXT-X-ENDLIST`/`PLAYLIST-TYPE:VOD`; la prueba DASH exige `MPD type=dynamic`. Para YouTube Live se busca un marcador de emisión en directo en la página. Las páginas `official_web` sólo se clasifican por respuesta HTTP y el detalle deja claro que eso no demuestra que el reproductor esté transmitiendo.
 - La prueba de manifiesto confirma que se recibió una cabecera HLS/DASH reconocible. No equivale a una prueba prolongada de audio/vídeo, a QA en cada dispositivo ni a una prueba de concurrencia.
 
 ## Arquitectura para muchos espectadores
