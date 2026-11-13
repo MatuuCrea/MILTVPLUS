@@ -132,7 +132,7 @@ class MainActivity:ComponentActivity(){
     var catalogRefresh by remember { mutableIntStateOf(0) }
     var remoteError by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(tab, remoteCategory, catalogRefresh, countryCode) {
-        if (tab in setOf("Inicio", "Catálogo") && remoteCategory == "tv_channels") {
+        if (tab == "Catálogo" || (tab == "Inicio" && remoteCategory == "tv_channels")) {
             remoteError = null
             while (true) {
                 if (remoteItems.isEmpty()) remoteLoading = true
