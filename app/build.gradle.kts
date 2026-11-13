@@ -16,6 +16,24 @@ android {
         buildConfigField("String", "SUPABASE_URL", "\"https://rbnuxapfsnaabrzuxvdy.supabase.co\"")
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"sb_publishable_tmBU-IB7P0db0w7RG9TMEw_GD754hb7\"")
     }
+    // Release signing is supplied only by protected CI secrets, never committed to source.
+    signingConfigs {
+        create("release") {
+            val releaseStorePath = System.getenv("ANDROID_KEYSTORE_PATH")
+            if (!releaseStorePath.isNullOrBlank()) {
+                storeFile = file(releaseStorePath)
+                storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("ANDROID_KEY_ALIAS")
+                keyPassword = System.getenv("ANDROID_KEY_PASSWORD")
+            }
+        }
+    }
+    buildTypes {
+        getByName("release") {
+            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = false
+        }
+    }
     // SupabaseCatalogRepository reads SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY
     // from the generated com.matuucrea.miltvplus.BuildConfig class.
     // Keep this enabled explicitly: AGP 8+ does not generate BuildConfig by default.
