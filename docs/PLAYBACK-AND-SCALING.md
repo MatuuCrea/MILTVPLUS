@@ -13,9 +13,11 @@
 - Cuando una ficha sólo tiene `official_watch_url`, abre `OfficialWatchActivity`: WebView inmersivo horizontal, reproducción HTML5 del propio emisor cuando el sitio la permite, soporte para su modo de video a pantalla completa, botones anterior/siguiente, apertura alternativa en navegador y actualización del listado cada 60 segundos. No se extraen ni se fuerzan URLs internas del reproductor del emisor.
 
 ### Windows
-- LibVLC con decodificación por hardware automática, caché de red/live y opción de reconexión HTTP.
-- Pantalla completa mediante botón, doble clic o F11; Escape vuelve a ventana.
-- Canal anterior/siguiente y refresco de catálogo cada 60 segundos mientras se navega por canales.
+- LibVLC con decodificación por hardware automática, caché de red/live y opción de reconexión HTTP para endpoints HTTPS directos.
+- Microsoft Edge WebView2 integrado para abrir dentro del reproductor las páginas HTTPS oficiales cuando la ficha no tiene stream directo; no se extraen URLs internas ni se eluden DRM o controles del emisor.
+- Al seleccionar una señal directa o una página oficial se entra automáticamente en pantalla completa. Botón, doble clic o F11 también permiten alternarla; Escape vuelve a ventana.
+- Canal anterior/siguiente entre las señales reproducibles y páginas oficiales que aparecen en el filtro actual; refresco de catálogo cada 60 segundos mientras se navega por canales.
+- Requiere WebView2 Runtime Evergreen. Si falta, la aplicación informa del problema y ofrece abrir el sitio oficial en el navegador predeterminado.
 
 ## Catálogo y actualizaciones
 - Android y Windows consultan todas las filas publicadas de `tv_channels`, sin restringir la consulta al país guardado en el perfil.
@@ -36,6 +38,6 @@
 
 ## Estado de contenido
 - Los canales publicados actualmente son enlaces oficiales web o fuentes aún sin stream directo documentado.
-- El reproductor integrado se habilita sólo para filas publicadas con un `stream_url` HTTPS. Una página `official_watch_url` se abre en el sitio del emisor; no se finge que es un stream embebido.
+- El reproductor nativo LibVLC/Media3 se habilita sólo para filas publicadas con un `stream_url` HTTPS. Una página `official_watch_url` se muestra dentro de WebView en Android o WebView2 en Windows, usando el player oficial del emisor cuando éste permite reproducción integrada; no se finge que cada página sea un manifiesto HLS/DASH ni se fuerza su reproducción.
 - Para incorporar una señal integrada se exige endpoint HLS/DASH real, titular, referencia de autorización, territorios, vigencia, logo auténtico y prueba de reproducción en dispositivos.
 - No se añaden URLs de listas IPTV de terceros ni se extraen streams de páginas oficiales sin permiso.
