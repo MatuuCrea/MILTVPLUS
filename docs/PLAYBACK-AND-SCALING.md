@@ -10,6 +10,7 @@
 - Controles de reproducción, canal anterior/siguiente y salida de pantalla completa.
 - Reconexión con hasta tres reintentos escalonados después de un error de reproducción.
 - Durante una sesión iniciada desde el catálogo remoto, vuelve a consultar la lista cada 60 segundos. Si cambió el conjunto de URLs, conserva el canal actual y su posición cuando sigue disponible; no reinicia la reproducción si sólo cambió el metadato.
+- Cuando una ficha sólo tiene `official_watch_url`, abre `OfficialWatchActivity`: WebView inmersivo horizontal, reproducción HTML5 del propio emisor cuando el sitio la permite, soporte para su modo de video a pantalla completa, botones anterior/siguiente, apertura alternativa en navegador y actualización del listado cada 60 segundos. No se extraen ni se fuerzan URLs internas del reproductor del emisor.
 
 ### Windows
 - LibVLC con decodificación por hardware automática, caché de red/live y opción de reconexión HTTP.
