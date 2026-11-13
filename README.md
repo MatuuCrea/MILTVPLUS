@@ -6,10 +6,12 @@ MILTVPLUS es un producto de aplicaciones instalables nativas: Android (teléfono
 
 Cliente nativo Kotlin, Jetpack Compose y Android Media3.
 - Navegación para TV en vivo, películas, series, deportes, radios, música, teatro, EPG, cuenta y ajustes.
-- Reproducción Media3/HLS de fuentes HTTPS autorizadas.
+- Reproducción Media3 HLS/MPEG-DASH de fuentes HTTPS autorizadas, con pantalla completa horizontal, selección adaptativa de variantes, reconexión limitada y cambio de canal.
+- Reproducción de páginas oficiales en un WebView inmersivo cuando el canal no tiene una URL HLS/DASH autorizada; el reproductor del emisor mantiene sus propias restricciones y controles.
+- Actualización del directorio cada 60 segundos durante navegación y reproducción remota.
 - Importación M3U/M3U8 local con límite de 5 MB y validación HTTPS.
 - Catálogo Supabase, favoritos, preferencias, Auth y sesión cifrada con Android Keystore.
-- Directorio de TV abierta por país (`tv_channels`), con logos reales, páginas oficiales y fallback al sitio del canal cuando no existe un stream directo autorizado.
+- Directorio global de TV por país/categoría (`tv_channels`), con campos para logotipos y procedencia, páginas oficiales, filtros de países y fallback al sitio del canal cuando no existe un stream directo autorizado. Los logotipos aprobados todavía no están cargados.
 - Control +18 con PIN PBKDF2 y bloqueo temporal.
 - Icono Android con logotipo MILTVPLUS y banner Android TV.
 - Comprobación automática de releases estables al iniciar y desde Ajustes; descarga APK sólo desde GitHub Releases, verifica SHA-256 y abre el instalador del sistema Android con confirmación del usuario.
@@ -25,11 +27,11 @@ APK: `app/build/outputs/apk/debug/app-debug.apk`. La APK debug se firma con la c
 
 Cliente de escritorio nativo WPF/.NET 8 en `windows/MILTVPLUS.Desktop`. No utiliza navegador ni WebView. Incluye navegación de secciones, búsqueda, consulta por tabla con proyecciones compatibles con el esquema real de Supabase y generación automática del icono Windows desde el logotipo de marca para el ejecutable y el instalador.
 
-El workflow `.github/workflows/windows.yml` publica la aplicación x64 autocontenida y construye un instalador `MILTVPLUS-Setup-x64.exe` con Inno Setup. Windows consulta la última release al iniciar y permite descargar el instalador oficial, verificar SHA-256 y ejecutar el actualizador con confirmación. El workflow `.github/workflows/release-native.yml` prepara un APK release firmado y el EXE como activos directos de una GitHub Release al etiquetar `v*`; el flujo genera `SHA256SUMS`, exige los secretos protegidos de firma Android y falla de forma segura si faltan. Hasta publicar la primera release firmada, los actualizadores no encontrarán una versión descargable. El cliente Windows incorpora reproducción nativa mediante LibVLC (incluido soporte HLS según el formato y códec del proveedor), validación HTTPS antes de iniciar un flujo e importación local M3U/M3U8 con límite de 5 MB. La lista local no se sincroniza con la nube ni se considera verificada por el mero hecho de usar HTTPS. Todavía faltan Auth, favoritos, control +18, preferencias, EPG/series completas y QA físico; no se declara paridad funcional con Android. La nueva sección Canales por país también consulta `tv_channels` y abre la página oficial si no hay URL directa.
+El workflow `.github/workflows/windows.yml` publica la aplicación x64 autocontenida y construye un instalador `MILTVPLUS-Setup-x64.exe` con Inno Setup. Windows consulta la última release al iniciar y permite descargar el instalador oficial, verificar SHA-256 y ejecutar el actualizador con confirmación. El workflow `.github/workflows/release-native.yml` prepara un APK release firmado y el EXE como activos directos de una GitHub Release al etiquetar `v*`; el flujo genera `SHA256SUMS`, exige los secretos protegidos de firma Android y falla de forma segura si faltan. Hasta publicar la primera release firmada, los actualizadores no encontrarán una versión descargable. El cliente Windows incorpora reproducción nativa mediante LibVLC, pantalla completa (F11/Escape/doble clic), cambio de canal, decodificación por hardware, caché de red y reconexión HTTP; valida HTTPS antes de iniciar un flujo e importa listas M3U/M3U8 con límite de 5 MB. La lista local no se sincroniza con la nube ni se considera verificada por el mero hecho de usar HTTPS. Todavía faltan Auth, favoritos, control +18, preferencias, EPG/series completas y QA físico; no se declara paridad funcional con Android. La nueva sección Canales por país también consulta `tv_channels` y abre la página oficial si no hay URL directa.
 
 ## Compatibilidad y criterios de lanzamiento
 
-La matriz detallada por dispositivo está en [`docs/DEVICE-RELEASE-MATRIX.md`](docs/DEVICE-RELEASE-MATRIX.md). Android TV y Google TV requieren pruebas de navegación D-pad en hardware real; TV Box/TV Stick sólo se consideran compatibles si ejecutan Android compatible y superan esa validación. Samsung Tizen y LG webOS requieren apps nativas separadas. La web oficial es un portal de información/descargas, no una aplicación de streaming.
+La matriz detallada por dispositivo está en [`docs/DEVICE-RELEASE-MATRIX.md`](docs/DEVICE-RELEASE-MATRIX.md). La arquitectura de reproducción, actualizaciones y escalabilidad está en [`docs/PLAYBACK-AND-SCALING.md`](docs/PLAYBACK-AND-SCALING.md). Android TV y Google TV requieren pruebas de navegación D-pad en hardware real; TV Box/TV Stick sólo se consideran compatibles si ejecutan Android compatible y superan esa validación. Samsung Tizen y LG webOS requieren apps nativas separadas. La web oficial es un portal de información/descargas, no una aplicación de streaming.
 
 El workflow de releases exige un APK Android firmado con keystore protegido. Deben configurarse los secretos `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` y `ANDROID_KEY_PASSWORD` en GitHub Actions antes de etiquetar una versión. El workflow falla si falta cualquiera; no publica APK debug como release. El instalador Windows se genera como `.exe`, pero todavía requiere certificado Authenticode para una distribución más confiable y QA de instalación en equipos limpios.
 
@@ -37,16 +39,18 @@ El workflow de releases exige un APK Android firmado con keystore protegido. Deb
 
 Proyecto Supabase: `rbnuxapfsnaabrzuxvdy`. Los clientes sólo usan la clave publishable. Nunca colocar service_role, secret keys ni contraseñas en el cliente.
 
-El catálogo general estaba vacío en la última auditoría. Se añadió la estructura `tv_channels` y un inventario de canales argentinos prioritarios; todavía no se publican señales hasta incorporar logotipos, páginas oficiales, chequeos online y referencias de derechos vigentes. No se agregan streams ficticios. Cada publicación requiere titular, referencia de derechos, territorios y vigencia. La autorización del propietario de esta aplicación para desarrollar el software no sustituye las licencias de los titulares de cada emisión.
+La tabla `tv_channels` contiene 25 registros de 10 países: 23 enlaces a páginas oficiales publicados y 2 registros argentinos en revisión (Crónica TV y Diputados TV). No hay URLs HLS/DASH directas integradas todavía y no se marcó ningún derecho de redistribución como verificado. Los canales publicados abren las plataformas oficiales dentro del visor inmersivo Android o en el navegador Windows; el visor puede depender de las restricciones, geobloqueos, DRM y políticas del emisor. No se agregan streams ficticios. Cada señal integrada requiere titular, referencia de derechos, territorios, vigencia y una prueba de reproducción. La autorización del propietario de esta aplicación para desarrollar el software no sustituye las licencias de los titulares de cada emisión.
 
 ## Pendientes externos y de producto
 
-- Poblar `tv_channels` país por país con logotipos auténticos, páginas oficiales, fuentes comprobadas y derechos vigentes; el inventario argentino prioriza C5N y Crónica TV.
+- Incorporar logotipos auténticos aprobados y verificar su procedencia para cada canal.
+- Obtener endpoints HLS/DASH autorizados para habilitar reproducción integrada nativa; hoy el directorio tiene páginas oficiales y el conteo de streams integrados es cero.
+- Completar la revisión de Crónica TV y Diputados TV.
 - Incorporar fuentes y metadatos de proveedores con autorización verificable.
 - Agregar en Supabase Auth Redirect URLs: `miltvplus://auth/callback`.
 - Preparar firma Android release con un keystore aportado de forma segura por el propietario.
 - Probar APK en móviles y Android TV físicos (incluido D-pad).
-- Completar Windows: reproducción, cuenta, seguridad, ajustes y pruebas.
+- Completar Windows: cuenta, seguridad, ajustes y pruebas físicas de reproducción.
 - Implementar entrega real de notificaciones push; hoy sólo existe la preferencia.
 - Completar temporadas/episodios y grilla EPG.
 - Validar accesibilidad, privacidad, licencias y publicación en tiendas.
