@@ -42,8 +42,9 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
+          VERSION="${GITHUB_REF_NAME#v}"
           gradle :app:testDebugUnitTest
-          gradle :app:assembleRelease
+          gradle -PappVersionName="$VERSION" :app:assembleRelease
       - uses: actions/upload-artifact@v4
         with:
           name: android-release-apk
@@ -81,7 +82,9 @@ jobs:
           pattern: '*'
           merge-multiple: true
           path: release-assets
-      - name: Publish signed APK and Windows installer
+      - name: Generate SHA-256 manifest
+        run: sha256sum release-assets/app-release.apk release-assets/MILTVPLUS-Setup-x64.exe > release-assets/SHA256SUMS
+      - name: Publish signed APK, Windows installer and checksums
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
