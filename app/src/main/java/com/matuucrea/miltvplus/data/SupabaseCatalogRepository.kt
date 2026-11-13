@@ -48,29 +48,38 @@ class SupabaseCatalogRepository {
                 val predicate = "(country_code.eq.$code,country_code.is.null,rights_regions.cs.{$code})"
                 "&or=" + URLEncoder.encode(predicate, "UTF-8")
             }.orEmpty()
-            val endpoint = URL("$baseUrl/rest/v1/$table?select=*&is_published=eq.true&order=$order&limit=100$countryFilter")
-            val connection = (endpoint.openConnection() as HttpURLConnection).apply {
-                requestMethod = "GET"
-                connectTimeout = 12_000
-                readTimeout = 15_000
-                useCaches = false
-                instanceFollowRedirects = false
-                setRequestProperty("apikey", apiKey)
-                setRequestProperty("Authorization", "Bearer $apiKey")
-                setRequestProperty("Accept", "application/json")
-                setRequestProperty("Cache-Control", "no-cache")
+            val allRows = ArrayList<RemoteCatalogEntry>()
+            var offset = 0
+            while (offset < MAX_CATALOG_ROWS) {
+                val endpoint = URL("$baseUrl/rest/v1/$table?select=*&is_published=eq.true&order=$order&limit=$PAGE_SIZE&offset=$offset$countryFilter")
+                val connection = (endpoint.openConnection() as HttpURLConnection).apply {
+                    requestMethod = "GET"
+                    connectTimeout = 12_000
+                    readTimeout = 15_000
+                    useCaches = false
+                    instanceFollowRedirects = false
+                    setRequestProperty("apikey", apiKey)
+                    setRequestProperty("Authorization", "Bearer $apiKey")
+                    setRequestProperty("Accept", "application/json")
+                    setRequestProperty("Cache-Control", "no-cache")
+                }
+                val pageSize: Int
+                try {
+                    val status = connection.responseCode
+                    check(isSafeHttpsUrl(connection.url.toString())) { "La conexión intentó salir de HTTPS." }
+                    val body = (if (status in 200..299) connection.inputStream else connection.errorStream)
+                        ?.use { stream -> readLimited(stream, MAX_RESPONSE_BYTES) }.orEmpty()
+                    check(status in 200..299) { "Supabase respondió HTTP $status: ${body.take(240)}" }
+                    val rows = JSONArray(body)
+                    pageSize = rows.length()
+                    for (index in 0 until pageSize) allRows.add(mapEntry(rows.getJSONObject(index), table))
+                } finally {
+                    connection.disconnect()
+                }
+                if (pageSize < PAGE_SIZE) break
+                offset += PAGE_SIZE
             }
-            try {
-                val status = connection.responseCode
-                check(isSafeHttpsUrl(connection.url.toString())) { "La conexión intentó salir de HTTPS." }
-                val body = (if (status in 200..299) connection.inputStream else connection.errorStream)
-                    ?.use { stream -> readLimited(stream, MAX_RESPONSE_BYTES) }.orEmpty()
-                check(status in 200..299) { "Supabase respondió HTTP $status: ${body.take(240)}" }
-                val rows = JSONArray(body)
-                (0 until rows.length()).map { index -> mapEntry(rows.getJSONObject(index), table) }
-            } finally {
-                connection.disconnect()
-            }
+            allRows
         }
     }
 
@@ -136,6 +145,8 @@ class SupabaseCatalogRepository {
 
     private companion object {
         const val MAX_RESPONSE_BYTES = 2 * 1024 * 1024
+        const val PAGE_SIZE = 500
+        const val MAX_CATALOG_ROWS = 10_000
         val PUBLISHED_TABLES = setOf(
             "catalog_items", "tv_channels", "radio_stations", "sports_events",
             "music_items", "theater_events", "epg_programs"
