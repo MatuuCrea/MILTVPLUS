@@ -101,7 +101,7 @@ class SupabaseCatalogRepository {
         val liveMarkerConfirmed = table == "tv_channels" &&
             row.optString("last_check_detail").startsWith("YouTube confirma", ignoreCase = true)
         val sourceStatusLabel = when {
-            liveMarkerConfirmed -> "EN VIVO verificado"
+            liveMarkerConfirmed -> "Marcador EN VIVO detectado en página oficial"
             row.optString("source_status") == "online" -> "Fuente accesible"
             row.optString("source_status") == "offline" -> "Fuente sin respuesta"
             row.optString("source_status") == "blocked" -> "Acceso bloqueado"

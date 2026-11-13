@@ -71,7 +71,7 @@ class OfficialWatchActivity : Activity() {
             if (android.os.Build.VERSION.SDK_INT >= 26) settings.safeBrowsingEnabled = true
             webViewClient = object : WebViewClient() {
                 override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean =
-                    request.url.scheme !in setOf("https", "http")
+                    !request.url.scheme.equals("https", ignoreCase = true)
                 override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: android.net.http.SslError) { handler.cancel() }
                 override fun onReceivedError(view: WebView, request: WebResourceRequest, error: android.webkit.WebResourceError) {
                     if (request.isForMainFrame) {

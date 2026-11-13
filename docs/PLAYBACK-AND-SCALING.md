@@ -10,14 +10,14 @@
 - Controles de reproducción, canal anterior/siguiente y salida de pantalla completa.
 - Reconexión con hasta tres reintentos escalonados después de un error de reproducción.
 - Durante una sesión iniciada desde el catálogo remoto, vuelve a consultar la lista cada 60 segundos. Si cambió el conjunto de URLs, conserva el canal actual y su posición cuando sigue disponible; no reinicia la reproducción si sólo cambió el metadato.
-- Cuando una ficha sólo tiene `official_watch_url`, abre `OfficialWatchActivity`: WebView inmersivo horizontal, reproducción HTML5 del propio emisor cuando el sitio la permite, soporte para su modo de video a pantalla completa, botones anterior/siguiente, apertura alternativa en navegador y actualización del listado cada 60 segundos. No se extraen ni se fuerzan URLs internas del reproductor del emisor.
+- Cuando una ficha sólo tiene `official_watch_url`, abre `OfficialWatchActivity`: WebView inmersivo horizontal, reproducción HTML5 del propio emisor cuando el sitio la permite, soporte para su modo de video a pantalla completa, botones anterior/siguiente y actualización del listado cada 60 segundos. Los enlaces externos no HTTPS se bloquean; los errores se muestran dentro de MILTVPLUS y no se abre un navegador externo. No se extraen ni se fuerzan URLs internas del reproductor del emisor.
 
 ### Windows
 - LibVLC con decodificación por hardware automática, caché de red/live y opción de reconexión HTTP para endpoints HTTPS directos.
 - Microsoft Edge WebView2 integrado para abrir dentro del reproductor las páginas HTTPS oficiales cuando la ficha no tiene stream directo. Las filas `youtube_live` también se enrutan al reproductor web oficial y nunca a LibVLC/Media3; no se extraen URLs internas ni se eluden DRM o controles del emisor.
 - Al seleccionar una señal directa o una página oficial se entra automáticamente en pantalla completa. Botón, doble clic o F11 también permiten alternarla; Escape vuelve a ventana.
 - Canal anterior/siguiente entre las señales reproducibles y páginas oficiales que aparecen en el filtro actual; el catálogo se consulta cada 60 segundos y la cola de reproducción se sincroniza automáticamente con las fichas actualizadas.
-- Requiere WebView2 Runtime Evergreen. Si falta, la aplicación informa del problema y ofrece abrir el sitio oficial en el navegador predeterminado.
+- Requiere WebView2 Runtime Evergreen. Si falta, la aplicación informa del problema y permanece abierta; no deriva la reproducción de TV a un navegador externo.
 
 ## Catálogo y actualizaciones
 - Android y Windows consultan todas las filas publicadas de `tv_channels`, sin restringir la consulta al país guardado en el perfil.
@@ -30,7 +30,7 @@
 - El reproductor puede elegir automáticamente entre las variantes que entregue una fuente HLS/DASH. No puede crear una variante 4K, mejorar una fuente SD, garantizar una tasa de bits o cambiar la calidad si el emisor no publica esas variantes.
 - El ajuste FIT mantiene la relación de aspecto. La cadencia de cuadros y sincronización dependen del manifiesto, del decodificador, de la pantalla y de Android/Windows; no se debe prometer una frecuencia concreta en Hz.
 - Los reintentos ayudan ante fallas transitorias, pero no pueden reparar un origen caído, una URL revocada, una restricción geográfica, DRM incompatible o una red saturada.
-- La prueba automática HLS exige `#EXTM3U` y descarta listas con `#EXT-X-ENDLIST`/`PLAYLIST-TYPE:VOD`; la prueba DASH exige `MPD type=dynamic`. Para YouTube Live se busca un marcador de emisión en directo en la página. Las páginas `official_web` sólo se clasifican por respuesta HTTP y el detalle deja claro que eso no demuestra que el reproductor esté transmitiendo.
+- La prueba automática HLS exige `#EXTM3U` y descarta listas con `#EXT-X-ENDLIST`/`PLAYLIST-TYPE:VOD`; la prueba DASH exige `MPD type=dynamic`. Para YouTube Live se busca un marcador de emisión en directo en la página; ese marcador no prueba que el vídeo se decodifique ni que la señal se reproduzca de forma continua dentro de MILTVPLUS. Las páginas `official_web` sólo se clasifican por respuesta HTTP y el detalle deja claro que eso no demuestra que el reproductor esté transmitiendo.
 - La prueba de manifiesto confirma que se recibió una cabecera HLS/DASH reconocible. No equivale a una prueba prolongada de audio/vídeo, a QA en cada dispositivo ni a una prueba de concurrencia.
 
 ## Arquitectura para muchos espectadores
