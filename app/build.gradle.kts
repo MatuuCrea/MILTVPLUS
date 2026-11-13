@@ -13,12 +13,10 @@ android {
         versionCode = 2203409
         versionName = "22.34.9"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    }
-    buildFeatures { compose = true; buildConfig = true }
-    defaultConfig {
         buildConfigField("String", "SUPABASE_URL", "\\\"https://rbnuxapfsnaabrzuxvdy.supabase.co\\\"")
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\\\"sb_publishable_tmBU-IB7P0db0w7RG9TMEw_GD754hb7\\\"")
     }
+    buildFeatures { compose = true; buildConfig = true }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
