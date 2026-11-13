@@ -176,8 +176,22 @@ class MainActivity:ComponentActivity(){
         uri?.let { u -> runCatching { context.contentResolver.openInputStream(u)?.use { M3uParser.parse(readM3uLimited(it)) } ?: throw IllegalStateException("No se pudo abrir el archivo") }
             .onSuccess { vm.setChannels(it); tab="TV" }.onFailure { vm.setError("No se pudo importar: "+(it.message ?: "archivo inválido")) } }
     }
+    val activeNavigation = when {
+        tab == "Catálogo" && remoteCategory == "epg_programs" -> "Guía EPG"
+        tab == "Catálogo" && remoteCategory == "catalog_items" && remoteKindFilter == "movie" -> "Películas"
+        tab == "Catálogo" && remoteCategory == "catalog_items" && remoteKindFilter == "series" -> "Series"
+        tab == "Catálogo" && remoteCategory == "catalog_items" && remoteKindFilter == "kids" -> "Infantil"
+        tab == "Catálogo" && remoteCategory == "catalog_items" && remoteKindFilter == "documentary" -> "Documentales"
+        tab == "Catálogo" && remoteCategory == "sports_events" -> "Deportes"
+        tab == "Catálogo" && remoteCategory == "music_items" -> "Música"
+        tab == "Catálogo" && remoteCategory == "radio_stations" -> "Radios"
+        tab == "Catálogo" && remoteCategory == "theater_events" -> "Teatro"
+        tab == "Catálogo" -> "TV en Vivo"
+        else -> tab
+    }
+
     Scaffold(containerColor=bg){pad->Row(Modifier.fillMaxSize().padding(pad)) {
-        PremiumSidebar(tab) { destination ->
+        PremiumSidebar(activeNavigation) { destination ->
             when(destination) {
                 "Inicio" -> { remoteCategory="tv_channels"; remoteKindFilter=null; tab="Inicio" }
                 "TV en Vivo" -> { remoteCategory="tv_channels"; remoteKindFilter=null; tab="Catálogo" }
