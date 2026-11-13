@@ -173,13 +173,86 @@ class MainActivity:ComponentActivity(){
         uri?.let { u -> runCatching { context.contentResolver.openInputStream(u)?.use { M3uParser.parse(readM3uLimited(it)) } ?: throw IllegalStateException("No se pudo abrir el archivo") }
             .onSuccess { vm.setChannels(it); tab="TV" }.onFailure { vm.setError("No se pudo importar: "+(it.message ?: "archivo inválido")) } }
     }
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        gesturesEnabled = true,
+        drawerContent = {
+            ModalDrawerSheet(
+                drawerContainerColor = Color(0xFF0C1020),
+                drawerContentColor = Color.White
+            ) {
+                Row(
+                    Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 20.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("MILTVPLUS", Modifier.weight(1f), color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.Black)
+                    IconButton(onClick = { uiScope.launch { drawerState.close() } }) {
+                        Icon(Icons.Default.MenuOpen, "Contraer menú", tint = cyan)
+                    }
+                }
+                Text("EXPLORAR", Modifier.padding(start = 18.dp, top = 4.dp, bottom = 8.dp), color = cyan, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
+                val menuItems = listOf(
+                    Triple("Inicio", Icons.Default.Home, "Inicio"),
+                    Triple("TV en Vivo", Icons.Default.LiveTv, "tv_channels"),
+                    Triple("Películas y series", Icons.Default.Movie, "catalog_items"),
+                    Triple("Deportes", Icons.Default.SportsSoccer, "sports_events"),
+                    Triple("Radios", Icons.Default.Radio, "radio_stations"),
+                    Triple("Música", Icons.Default.MusicNote, "music_items"),
+                    Triple("Teatro", Icons.Default.TheaterComedy, "theater_events"),
+                    Triple("Guía EPG", Icons.Default.CalendarMonth, "epg_programs"),
+                    Triple("Países", Icons.Default.Public, "Países"),
+                    Triple("Favoritos", Icons.Default.Favorite, "Favoritos"),
+                    Triple("Fuentes M3U", Icons.Default.PlaylistAdd, "Fuentes"),
+                    Triple("Adultos 18+", Icons.Default.Lock, "Adultos"),
+                    Triple("Configuración", Icons.Default.Settings, "Ajustes"),
+                    Triple("Cuenta", Icons.Default.AccountCircle, "Cuenta")
+                )
+                menuItems.forEach { (label, icon, destination) ->
+                    NavigationDrawerItem(
+                        label = { Text(label, fontWeight = if (tab == destination) FontWeight.Bold else FontWeight.Medium) },
+                        icon = { Icon(icon, contentDescription = null, tint = if (destination == "Adultos") Color(0xFFFF5C9C) else cyan) },
+                        selected = tab == destination || (destination == "tv_channels" && tab == "Catálogo" && remoteCategory == "tv_channels"),
+                        onClick = {
+                            when (destination) {
+                                "tv_channels", "catalog_items", "sports_events", "radio_stations", "music_items", "theater_events", "epg_programs" -> {
+                                    remoteCategory = destination
+                                    remoteKindFilter = null
+                                    channelCategoryFilter = null
+                                    selectedChannelCountry = null
+                                    tab = "Catálogo"
+                                }
+                                else -> tab = destination
+                            }
+                            uiScope.launch { drawerState.close() }
+                        },
+                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
+                        colors = NavigationDrawerItemDefaults.colors(
+                            selectedContainerColor = Color(0xFF15365B),
+                            selectedTextColor = Color.White,
+                            unselectedTextColor = Color(0xFFE4E8F2)
+                        )
+                    )
+                }
+                HorizontalDivider(Modifier.padding(vertical = 10.dp), color = Color(0xFF28334A))
+                Text("PAÍS ACTIVO", Modifier.padding(start = 18.dp, bottom = 4.dp), color = Color.LightGray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                NavigationDrawerItem(
+                    label = { Text(countryFlag(countryCode) + "  " + countryDisplayName(countryCode)) },
+                    icon = { Icon(Icons.Default.Public, null, tint = cyan) },
+                    selected = false,
+                    onClick = { tab = "Países"; uiScope.launch { drawerState.close() } },
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                )
+            }
+        }
+    ) {
     Scaffold(containerColor=bg,bottomBar={NavigationBar(containerColor=Color(0xFF101014)){
         listOf("Inicio","TV","Fuentes","Favoritos","Ajustes").forEach { t ->
             val ico=when(t){"Inicio"->Icons.Default.Home;"TV"->Icons.Default.LiveTv;"Fuentes"->Icons.Default.PlaylistAdd;"Favoritos"->Icons.Default.Favorite;else->Icons.Default.Settings}
             NavigationBarItem(selected=tab==t || (t=="TV" && tab=="Catálogo" && remoteCategory=="tv_channels"),onClick={if(t=="TV"){remoteCategory="tv_channels";remoteKindFilter=null;tab="Catálogo"}else {if(t=="Inicio")remoteCategory="tv_channels";tab=t}},icon={Icon(ico,null)},label={Text(t)},colors=NavigationBarItemDefaults.colors(selectedIconColor=Color(0xFFFF4059),selectedTextColor=Color(0xFFFF4059),indicatorColor=Color(0xFFFF4059).copy(alpha=.16f)))
         }
     }}){pad->Column(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF08080A),Color(0xFF0B0B0E),Color(0xFF08080A)))).padding(pad)){
-        Row(Modifier.fillMaxWidth().padding(20.dp),verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text("MILTVPLUS",color=Color.White,fontSize=25.sp,fontWeight=FontWeight.Black,letterSpacing=1.5.sp);Text("ENTRETENIMIENTO • V22.34.9",color=cyan,fontSize=10.sp)};Row(verticalAlignment=Alignment.CenterVertically) {
+        Row(Modifier.fillMaxWidth().padding(20.dp),verticalAlignment=Alignment.CenterVertically){IconButton(onClick={uiScope.launch { if(drawerState.currentValue==DrawerValue.Open) drawerState.close() else drawerState.open() }}) { Icon(Icons.Default.Menu,"Abrir o contraer menú",tint=cyan) };Column(Modifier.weight(1f)){Text("MILTVPLUS",color=Color.White,fontSize=25.sp,fontWeight=FontWeight.Black,letterSpacing=1.5.sp);Text("ENTRETENIMIENTO • V22.34.9",color=cyan,fontSize=10.sp)};Row(verticalAlignment=Alignment.CenterVertically) {
             Text(if(authSession==null) "● LOCAL" else "● CUENTA",color=cyan,fontSize=10.sp)
             updateNotice?.let { version -> TextButton(onClick={tab="Ajustes"}) { Text("ACTUALIZAR $version",color=orange,fontSize=10.sp) } }
             TextButton(onClick={tab="Adultos"}, colors=ButtonDefaults.textButtonColors(contentColor=Color(0xFFFF5C9C))) { Text("18+", fontWeight=FontWeight.Black) }
@@ -410,6 +483,7 @@ class MainActivity:ComponentActivity(){
             else->{Title(if(tab=="TV")"Televisión en vivo" else "Tus favoritos","Elegí un canal para reproducir");OutlinedTextField(query,{query=it},Modifier.fillMaxWidth().padding(horizontal=16.dp),placeholder={Text("Buscar canal o categoría")},singleLine=true);val list=channels.filter{(tab!="Favoritos"||it.id in favorites)&&(it.name.contains(query,true)||it.group.contains(query,true))};if(list.isEmpty())Empty("No hay canales para mostrar","Agregá una lista autorizada desde Fuentes.");LazyColumn(contentPadding=PaddingValues(14.dp)){items(list,key={it.id}){c->ChannelItem(c,c.id in favorites,{launchChannelPlayer(context,channels,channels.indexOfFirst { it.id==c.id })},{vm.toggleFavorite(c.id)})}};selected?.let{channel->Card(Modifier.fillMaxWidth().padding(14.dp),colors=CardDefaults.cardColors(containerColor=Color.Black)){Column(Modifier.padding(12.dp)){Text("REPRODUCIENDO · "+channel.name,color=cyan,fontWeight=FontWeight.Bold);AndroidView(factory={ctx->PlayerView(ctx).apply{player=exoPlayer;useController=true;setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING)}},update={it.player=exoPlayer},modifier=Modifier.fillMaxWidth().height(220.dp));Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){TextButton(onClick={launchChannelPlayer(context,channels,channels.indexOfFirst { it.id==channel.id }.coerceAtLeast(0))}){Text("Pantalla completa")};TextButton(onClick={vm.stop()}){Text("Detener reproducción")}}}}};errorMessage?.let{Text(it,color=orange,modifier=Modifier.padding(12.dp))}}
         }
     }}
+    }
 }
 private fun readM3uLimited(input:InputStream):String {
     val output=ByteArrayOutputStream()
