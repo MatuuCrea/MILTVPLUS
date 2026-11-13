@@ -151,6 +151,7 @@ class ChannelPlayerActivity : Activity() {
                     if (urls == activeUrls) {
                         names.clear()
                         names.addAll(eligible.map { it.title })
+                        title.text = names.getOrElse(exo.currentMediaItemIndex) { "MILTVPLUS" }
                         continue
                     }
                     val currentUrl = exo.currentMediaItem?.localConfiguration?.uri?.toString()
