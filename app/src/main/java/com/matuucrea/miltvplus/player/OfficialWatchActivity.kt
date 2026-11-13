@@ -73,6 +73,16 @@ class OfficialWatchActivity : Activity() {
                 override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean =
                     request.url.scheme !in setOf("https", "http")
                 override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: android.net.http.SslError) { handler.cancel() }
+                override fun onReceivedError(view: WebView, request: WebResourceRequest, error: android.webkit.WebResourceError) {
+                    if (request.isForMainFrame) {
+                        channelTitle.text = "No se pudo cargar ${channels.getOrNull(index)?.optString("name") ?: "el canal"}: ${error.description}. MILTVPLUS sigue abierta; probá cambiar de canal o reintentar."
+                    }
+                }
+                override fun onReceivedHttpError(view: WebView, request: WebResourceRequest, response: android.webkit.WebResourceResponse) {
+                    if (request.isForMainFrame && response.statusCode >= 400) {
+                        channelTitle.text = "El emisor rechazó la reproducción (HTTP ${response.statusCode}). La aplicación permanece abierta."
+                    }
+                }
             }
             webChromeClient = object : WebChromeClient() {
                 override fun onShowCustomView(view: View, callback: CustomViewCallback) {
