@@ -6,10 +6,10 @@ Aplicación Android nativa en Kotlin, Jetpack Compose y Media3, con orientación
 
 - Navegación Inicio, TV local, Fuentes, Favoritos y Ajustes.
 - Importación de listas M3U/M3U8 locales mediante el selector de documentos de Android.
-- Parser M3U con validación de cabecera, extracción de nombre/grupo/logo HTTPS y rechazo de esquemas locales.
+- Parser M3U con validación de cabecera, extracción de nombre/grupo/logo HTTPS, rechazo de HTTP, esquemas locales y URLs con credenciales; elimina entradas duplicadas.
 - Persistencia local de listas y favoritos mediante SharedPreferences.
 - Reproducción Media3/ExoPlayer para fuentes HTTPS y soporte de HLS mediante la dependencia correspondiente.
-- Consulta REST de solo lectura a Supabase para filas publicadas de catálogo, radios, deportes, música, teatro y EPG.
+- Consulta REST de solo lectura a Supabase para filas publicadas de catálogo, radios, deportes, música, teatro y EPG; envía la clave publishable en los encabezados `apikey` y `Authorization`.
 - Estados de carga, error y catálogo vacío; no se generan canales ni enlaces de prueba falsos.
 - GitHub Actions ejecuta pruebas JVM, `:app:assembleDebug` y publica el APK como artefacto.
 
@@ -50,7 +50,7 @@ Todavía pendiente de desarrollo y validación:
 - Inicio de sesión y flujos de cuenta con Supabase Auth.
 - Sincronización remota de favoritos, preferencias y fuentes por usuario.
 - Consumo EPG por canal y horario; actualmente la sección consulta filas pero no construye una grilla de programación.
-- Vistas de detalle y reproducción VOD con metadatos y proveedores autorizados.
+- Vistas de detalle VOD con metadatos, navegación de temporadas/episodios y proveedores autorizados.
 - Catálogos reales, acuerdos/licencias y validación editorial de cada URL.
 - Controles parentales y consentimiento de edad completos.
 - Navegación D-pad/remote, pruebas de accesibilidad y QA físico en Android TV/Google TV y distintos móviles.
