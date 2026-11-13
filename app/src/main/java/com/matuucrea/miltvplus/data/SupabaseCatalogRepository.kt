@@ -18,7 +18,10 @@ data class RemoteCatalogEntry(
     val subtitle: String,
     val artworkUrl: String?,
     val actionUrl: String?,
-    val category: String
+    val category: String,
+    val channelExternalId: String? = null,
+    val startsAt: String? = null,
+    val endsAt: String? = null
 )
 
 class SupabaseCatalogRepository {
@@ -71,7 +74,10 @@ class SupabaseCatalogRepository {
             subtitle = subtitle,
             artworkUrl = artwork,
             actionUrl = action,
-            category = table
+            category = table,
+            channelExternalId = row.optString("channel_external_id").takeIf { it.isNotBlank() && it != "null" },
+            startsAt = startsAt,
+            endsAt = endsAt
         )
     }
 
