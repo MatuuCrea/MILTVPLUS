@@ -331,6 +331,94 @@
       "official_watch_url": "https://www.raiplay.it/dirette/rainews24?channel=RaiNews",
       "directory_status": "published_official_web_live_page_geo_restrictions_may_apply",
       "integrated_stream_status": "official_player_only_no_native_hls_dash"
+    },
+    {
+      "slug": "nhk-world-japan",
+      "name": "NHK World-Japan",
+      "country_code": "JP",
+      "language_code": "en",
+      "category": "news",
+      "access_model": "free_web",
+      "official_watch_url": "https://www3.nhk.or.jp/nhkworld/en/live_tv/",
+      "directory_status": "published_official_web_live_page",
+      "integrated_stream_status": "official_player_only_no_native_hls_dash"
+    },
+    {
+      "slug": "rtp1-portugal",
+      "name": "RTP 1",
+      "country_code": "PT",
+      "language_code": "pt",
+      "category": "general",
+      "access_model": "geo_restricted",
+      "official_watch_url": "https://www.rtp.pt/play/direto/rtp1",
+      "directory_status": "published_official_web_live_page_geo_restrictions_may_apply",
+      "integrated_stream_status": "official_player_only_no_native_hls_dash"
+    },
+    {
+      "slug": "rtp2-portugal",
+      "name": "RTP 2",
+      "country_code": "PT",
+      "language_code": "pt",
+      "category": "culture",
+      "access_model": "geo_restricted",
+      "official_watch_url": "https://www.rtp.pt/play/direto/rtp2",
+      "directory_status": "published_official_web_live_page_geo_restrictions_may_apply",
+      "integrated_stream_status": "official_player_only_no_native_hls_dash"
+    },
+    {
+      "slug": "rtp3-portugal",
+      "name": "RTP 3",
+      "country_code": "PT",
+      "language_code": "pt",
+      "category": "news",
+      "access_model": "geo_restricted",
+      "official_watch_url": "https://www.rtp.pt/play/direto/rtp3",
+      "directory_status": "published_official_web_live_page_geo_restrictions_may_apply",
+      "integrated_stream_status": "official_player_only_no_native_hls_dash"
+    },
+    {
+      "slug": "rtp-africa-portugal",
+      "name": "RTP África",
+      "country_code": "PT",
+      "language_code": "pt",
+      "category": "general",
+      "access_model": "geo_restricted",
+      "official_watch_url": "https://www.rtp.pt/play/direto/rtpafrica",
+      "directory_status": "published_official_web_live_page_geo_restrictions_may_apply",
+      "integrated_stream_status": "official_player_only_no_native_hls_dash"
+    },
+    {
+      "slug": "rtp-mundo-portugal",
+      "name": "RTP Mundo",
+      "country_code": "PT",
+      "language_code": "pt",
+      "category": "general",
+      "access_model": "geo_restricted",
+      "official_watch_url": "https://www.rtp.pt/play/direto/rtpinternacional",
+      "directory_status": "published_official_web_live_page_geo_restrictions_may_apply",
+      "integrated_stream_status": "official_player_only_no_native_hls_dash"
+    },
+    {
+      "slug": "rtp-acores-portugal",
+      "name": "RTP Açores",
+      "country_code": "PT",
+      "language_code": "pt",
+      "category": "general",
+      "access_model": "geo_restricted",
+      "official_watch_url": "https://www.rtp.pt/play/direto/rtpa%C3%A7ores",
+      "directory_status": "published_official_web_live_page_geo_restrictions_may_apply",
+      "integrated_stream_status": "official_player_only_no_native_hls_dash"
+    },
+    {
+      "slug": "rtp-madeira-portugal",
+      "name": "RTP Madeira",
+      "country_code": "PT",
+      "language_code": "pt",
+      "category": "general",
+      "access_model": "geo_restricted",
+      "official_watch_url": "https://www.rtp.pt/play/direto/rtpmadeira",
+      "directory_status": "published_official_web_live_page_geo_restrictions_may_apply",
+      "integrated_stream_status": "official_player_only_no_native_hls_dash"
     }
   ],
   "last_reviewed": "2026-11-13"
