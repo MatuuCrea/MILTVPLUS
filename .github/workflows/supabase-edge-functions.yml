@@ -1,0 +1,32 @@
+name: Supabase Edge Functions
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/functions/**"
+      - "supabase/migrations/**"
+      - ".github/workflows/supabase-edge-functions.yml"
+  push:
+    branches: [main]
+    paths:
+      - "supabase/functions/**"
+      - "supabase/migrations/**"
+      - ".github/workflows/supabase-edge-functions.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Lint Edge Functions
+        run: deno lint supabase/functions/tv-channel-health/index.ts
+      - name: Type-check Edge Functions
+        run: deno check supabase/functions/tv-channel-health/index.ts

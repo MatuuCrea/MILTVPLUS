@@ -24,8 +24,8 @@ Este documento define lo que debe existir y probarse antes de declarar cada plat
 
 ## Windows 10/11 x64
 - **Paquete:** aplicación nativa WPF/.NET 8 autocontenida y un instalador Inno Setup .exe.
-- **Recursos:** ejecutable x64, runtime y bibliotecas nativas incluidas, icono .ico original en varios tamaños, manifiesto, desinstalador y firma Authenticode recomendada para reducir advertencias SmartScreen.
-- **Pruebas:** instalación y desinstalación en Windows limpio, primer inicio sin runtime preinstalado, actualización, permisos, catálogo, reproducción HLS/HTTPS autorizada, importación M3U limitada, audio, escalado DPI y errores.
+- **Recursos:** ejecutable x64, runtime .NET y bibliotecas nativas incluidas, WebView2 Runtime Evergreen como requisito para el visor integrado de páginas oficiales, icono .ico original en varios tamaños, manifiesto, desinstalador y firma Authenticode recomendada para reducir advertencias SmartScreen.
+- **Pruebas:** instalación y desinstalación en Windows limpio, primer inicio sin .NET preinstalado y con/sin WebView2 Runtime, actualización, permisos, catálogo, reproducción HLS/HTTPS autorizada mediante LibVLC, apertura de páginas oficiales con WebView2, cambio de canal, pantalla completa, importación M3U limitada, audio, escalado DPI y errores.
 - **Alcance actual:** el cliente Windows es una base funcional en desarrollo; aún no tiene paridad Android en autenticación, favoritos, PIN parental, ajustes, EPG y otras funciones. No anunciar equivalencia hasta implementar y probar esas áreas.
 
 ## Samsung Tizen y LG webOS
@@ -48,5 +48,5 @@ Este documento define lo que debe existir y probarse antes de declarar cada plat
 ## Estado conocido al 13 de noviembre de 2026
 - Android CI y Windows installer CI pasaron en commits recientes; eso confirma compilación/paquetizado en runners, no QA físico.
 - Android release signing requiere los secretos protegidos ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS y ANDROID_KEY_PASSWORD. Sin ellos, el workflow falla intencionalmente y no publica un APK debug como final.
-- El cliente Windows compila y empaqueta, pero no tiene paridad completa con Android.
+- El cliente Windows compila y empaqueta, incorpora LibVLC y WebView2 para reproducción directa y páginas oficiales, pero no tiene paridad completa con Android.
 - El catálogo no debe poblarse con fuentes no autorizadas ni datos ficticios.

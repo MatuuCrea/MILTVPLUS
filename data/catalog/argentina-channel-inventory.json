@@ -1,0 +1,166 @@
+{
+  "country_code": "AR",
+  "country_name": "Argentina",
+  "status": "discovery_inventory_not_published",
+  "note": "Inventario de Argentina actualizado. C5N, Crónica TV, TN, A24, Canal 26, Televisión Pública y América TV usan páginas oficiales YouTube Live con marcador de emisión actual confirmado por el monitor; El Nueve y Senado TV abren sus páginas oficiales de señal. Las 9 fichas publicadas tienen imágenes de marca de fuentes oficiales (avatares de canal o iconos del emisor); no hay streams HLS/DASH nativos ni derechos de retransmisión verificados. Diputados TV permanece en revisión.",
+  "required_news_channels": [
+    {
+      "slug": "c5n",
+      "name": "C5N",
+      "category": "news",
+      "priority": 1,
+      "required": true,
+      "official_watch_url": "https://www.youtube.com/@c5n/live",
+      "directory_status": "published_official_youtube_live_marker_confirmed",
+      "integrated_stream_status": "official_player_only_no_native_hls_dash",
+      "access_model": "free_web"
+    },
+    {
+      "slug": "cronica-tv",
+      "name": "Crónica TV",
+      "category": "news",
+      "priority": 2,
+      "required": true,
+      "official_watch_url": "https://www.youtube.com/@cronicatv/live",
+      "directory_status": "published_official_youtube_live_marker_confirmed",
+      "integrated_stream_status": "official_player_only_no_native_hls_dash",
+      "access_model": "free_web"
+    },
+    {
+      "slug": "tn-todo-noticias",
+      "name": "Todo Noticias (TN)",
+      "category": "news",
+      "priority": 3,
+      "required": false,
+      "access_model": "free_web",
+      "official_watch_url": "https://www.youtube.com/@todonoticias/live",
+      "directory_status": "published_official_youtube_live_marker_confirmed",
+      "integrated_stream_status": "official_player_only_no_native_hls_dash"
+    },
+    {
+      "slug": "a24",
+      "name": "A24",
+      "category": "news",
+      "priority": 4,
+      "required": false,
+      "access_model": "free_web",
+      "official_watch_url": "https://www.youtube.com/@A24com/live",
+      "directory_status": "published_official_youtube_live_marker_confirmed",
+      "integrated_stream_status": "official_player_only_no_native_hls_dash"
+    },
+    {
+      "slug": "ln-mas",
+      "name": "LN+",
+      "category": "news",
+      "priority": 5,
+      "required": false,
+      "access_model": "unknown"
+    },
+    {
+      "slug": "canal-26",
+      "name": "Canal 26",
+      "category": "news",
+      "priority": 6,
+      "required": false,
+      "official_watch_url": "https://www.youtube.com/@canal26/live",
+      "directory_status": "published_official_youtube_live_marker_confirmed",
+      "integrated_stream_status": "official_player_only_no_native_hls_dash",
+      "access_model": "free_web"
+    },
+    {
+      "slug": "argentina-12",
+      "name": "Argentina 12 / IP Noticias",
+      "category": "news",
+      "priority": 7,
+      "required": false,
+      "access_model": "unknown"
+    },
+    {
+      "slug": "canal-e",
+      "name": "Canal E",
+      "category": "news",
+      "priority": 8,
+      "required": false,
+      "access_model": "unknown"
+    },
+    {
+      "slug": "senado-tv",
+      "name": "Senado TV",
+      "category": "public",
+      "priority": 9,
+      "required": false,
+      "official_watch_url": "https://www.senado.gob.ar/parlamentario/sesiones/enVivo",
+      "directory_status": "published_official_web",
+      "integrated_stream_status": "official_player_only_no_native_hls_dash",
+      "access_model": "free_web"
+    },
+    {
+      "slug": "diputados-tv",
+      "name": "Diputados TV",
+      "category": "public",
+      "priority": 10,
+      "required": false,
+      "official_watch_url": "https://www.hcdn.gob.ar/dtv/index.html",
+      "directory_status": "pending_manual_check",
+      "integrated_stream_status": "not_authorized_or_not_documented",
+      "access_model": "unknown"
+    },
+    {
+      "slug": "tv-publica-argentina",
+      "name": "Televisión Pública",
+      "category": "general",
+      "priority": 11,
+      "required": false,
+      "official_watch_url": "https://www.youtube.com/channel/UCs231K71Bnu5295_x0MB5Pg/live",
+      "directory_status": "published_official_youtube_live_marker_confirmed",
+      "integrated_stream_status": "official_player_only_no_native_hls_dash",
+      "access_model": "free_web"
+    },
+    {
+      "slug": "america-tv-argentina",
+      "name": "América TV",
+      "category": "general",
+      "priority": 12,
+      "required": false,
+      "official_watch_url": "https://www.youtube.com/channel/UC6NVDkuzY2exMOVFw4i9oHw/live",
+      "directory_status": "published_official_youtube_live_marker_confirmed",
+      "integrated_stream_status": "official_player_only_no_native_hls_dash",
+      "access_model": "free_web"
+    },
+    {
+      "slug": "el-nueve",
+      "name": "El Nueve",
+      "category": "general",
+      "priority": 13,
+      "required": false,
+      "official_watch_url": "https://www.elnueve.com.ar/en-vivo",
+      "directory_status": "published_official_web",
+      "integrated_stream_status": "official_player_only_no_native_hls_dash",
+      "access_model": "free_web"
+    }
+  ],
+  "other_categories": [
+    "general",
+    "public",
+    "sports",
+    "education",
+    "culture",
+    "music",
+    "regional",
+    "international",
+    "radio-video"
+  ],
+  "publication_fields_required": [
+    "logo_url",
+    "logo_source_url",
+    "official_watch_url",
+    "rights_holder",
+    "rights_reference",
+    "rights_regions",
+    "rights_valid_from",
+    "rights_verified",
+    "source_status"
+  ],
+  "default_state": "unverified",
+  "publish_only_after_owner_and_stream_verification": true
+}

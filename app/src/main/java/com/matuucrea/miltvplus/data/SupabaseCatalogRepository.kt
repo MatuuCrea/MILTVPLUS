@@ -42,35 +42,44 @@ class SupabaseCatalogRepository {
             require(apiKey.startsWith("sb_publishable_")) { "Falta configurar la clave publishable de Supabase." }
 
             // EPG must arrive in schedule order; the other catalog sections show newest publications first.
-            val order = if (table in setOf("epg_programs", "sports_events", "theater_events")) "starts_at.asc" else "created_at.desc"
+            val order = when (table) { "tv_channels" -> "sort_order.asc,title.asc"; "epg_programs", "sports_events", "theater_events" -> "starts_at.asc"; else -> "created_at.desc" }
             require(countryCode == null || countryCode.matches(Regex("^[A-Z]{2}$"))) { "Código de país inválido." }
             val countryFilter = countryCode?.let { code ->
                 val predicate = "(country_code.eq.$code,country_code.is.null,rights_regions.cs.{$code})"
                 "&or=" + URLEncoder.encode(predicate, "UTF-8")
             }.orEmpty()
-            val endpoint = URL("$baseUrl/rest/v1/$table?select=*&is_published=eq.true&order=$order&limit=100$countryFilter")
-            val connection = (endpoint.openConnection() as HttpURLConnection).apply {
-                requestMethod = "GET"
-                connectTimeout = 12_000
-                readTimeout = 15_000
-                useCaches = false
-                instanceFollowRedirects = false
-                setRequestProperty("apikey", apiKey)
-                setRequestProperty("Authorization", "Bearer $apiKey")
-                setRequestProperty("Accept", "application/json")
-                setRequestProperty("Cache-Control", "no-cache")
+            val allRows = ArrayList<RemoteCatalogEntry>()
+            var offset = 0
+            while (offset < MAX_CATALOG_ROWS) {
+                val endpoint = URL("$baseUrl/rest/v1/$table?select=*&is_published=eq.true&order=$order&limit=$PAGE_SIZE&offset=$offset$countryFilter")
+                val connection = (endpoint.openConnection() as HttpURLConnection).apply {
+                    requestMethod = "GET"
+                    connectTimeout = 12_000
+                    readTimeout = 15_000
+                    useCaches = false
+                    instanceFollowRedirects = false
+                    setRequestProperty("apikey", apiKey)
+                    setRequestProperty("Authorization", "Bearer $apiKey")
+                    setRequestProperty("Accept", "application/json")
+                    setRequestProperty("Cache-Control", "no-cache")
+                }
+                val pageSize: Int
+                try {
+                    val status = connection.responseCode
+                    check(isSafeHttpsUrl(connection.url.toString())) { "La conexión intentó salir de HTTPS." }
+                    val body = (if (status in 200..299) connection.inputStream else connection.errorStream)
+                        ?.use { stream -> readLimited(stream, MAX_RESPONSE_BYTES) }.orEmpty()
+                    check(status in 200..299) { "Supabase respondió HTTP $status: ${body.take(240)}" }
+                    val rows = JSONArray(body)
+                    pageSize = rows.length()
+                    for (index in 0 until pageSize) allRows.add(mapEntry(rows.getJSONObject(index), table))
+                } finally {
+                    connection.disconnect()
+                }
+                if (pageSize < PAGE_SIZE) break
+                offset += PAGE_SIZE
             }
-            try {
-                val status = connection.responseCode
-                check(isSafeHttpsUrl(connection.url.toString())) { "La conexión intentó salir de HTTPS." }
-                val body = (if (status in 200..299) connection.inputStream else connection.errorStream)
-                    ?.use { stream -> readLimited(stream, MAX_RESPONSE_BYTES) }.orEmpty()
-                check(status in 200..299) { "Supabase respondió HTTP $status: ${body.take(240)}" }
-                val rows = JSONArray(body)
-                (0 until rows.length()).map { index -> mapEntry(rows.getJSONObject(index), table) }
-            } finally {
-                connection.disconnect()
-            }
+            allRows
         }
     }
 
@@ -81,26 +90,56 @@ class SupabaseCatalogRepository {
         val startsAt = row.optString("starts_at").takeIf { it.isNotBlank() && it != "null" }
         val endsAt = row.optString("ends_at").takeIf { it.isNotBlank() && it != "null" }
         val schedule = listOfNotNull(startsAt, endsAt).joinToString(" – ")
-        val subtitle = (subtitleParts + listOfNotNull(schedule)).distinct().joinToString(" · ")
-        val artwork = listOf("poster_url", "backdrop_url", "logo_url", "artwork_url", "image_url")
+        val accessModelLabel = when (row.optString("access_model")) {
+            "free_web" -> "Acceso web gratuito"
+            "free_to_air" -> "Televisión abierta"
+            "free_with_ads" -> "Gratis con anuncios"
+            "subscription" -> "Suscripción"
+            "geo_restricted" -> "Con restricción geográfica"
+            else -> null
+        }
+        val liveMarkerConfirmed = table == "tv_channels" &&
+            row.optString("last_check_detail").startsWith("YouTube confirma", ignoreCase = true)
+        val sourceStatusLabel = when {
+            liveMarkerConfirmed -> "EN VIVO verificado"
+            row.optString("source_status") == "online" -> "Fuente accesible"
+            row.optString("source_status") == "offline" -> "Fuente sin respuesta"
+            row.optString("source_status") == "blocked" -> "Acceso bloqueado"
+            row.optString("source_status") == "pending_review" -> "En revisión"
+            row.optString("source_status") == "geo_restricted" -> "Restricción geográfica"
+            else -> null
+        }
+        val healthDetail = row.optString("last_check_detail")
+            .takeIf { it.isNotBlank() && it != "null" }
+            ?.take(150)
+        val subtitle = (subtitleParts + listOfNotNull(schedule, accessModelLabel, sourceStatusLabel, healthDetail)).distinct().joinToString(" · ")
+        val artwork = listOf("logo_url", "poster_url", "backdrop_url", "artwork_url", "image_url")
             .firstNotNullOfOrNull { key -> row.optString(key).takeIf(::isSafeHttpsUrl) }
-        val action = listOf("stream_url", "authorized_stream_url")
+        val youtubeLive = table == "tv_channels" &&
+            row.optString("playback_type").equals("youtube_live", ignoreCase = true)
+        // YouTube Live pages must use the broadcaster's official web player, not ExoPlayer/Media3.
+        // Keep their URL in infoUrl so the app opens it in the immersive official-player view.
+        val action = if (youtubeLive) null else listOf("stream_url", "authorized_stream_url")
             .firstNotNullOfOrNull { key -> row.optString(key).takeIf(::isSafeHttpsUrl) }
+        val infoUrlKeys = if (youtubeLive) {
+            listOf("stream_url", "official_watch_url", "official_info_url", "info_url", "website_url", "external_url")
+        } else {
+            listOf("official_watch_url", "official_info_url", "info_url", "website_url", "external_url")
+        }
         return RemoteCatalogEntry(
             id = row.optString("id").ifBlank { "${table}_${row.hashCode()}" },
             title = title,
             subtitle = subtitle,
             artworkUrl = artwork,
             actionUrl = action,
-            category = table,
+            category = if (table == "tv_channels") row.optString("category").ifBlank { "other" } else table,
             channelExternalId = row.optString("channel_external_id").takeIf { it.isNotBlank() && it != "null" },
             startsAt = startsAt,
             endsAt = endsAt,
             kind = row.optString("kind").takeIf { it.isNotBlank() && it != "null" },
             countryCode = row.optString("country_code").takeIf { it.isNotBlank() && it != "null" },
             ageRating = row.optString("age_rating").takeIf { it.isNotBlank() && it != "null" },
-            infoUrl = listOf("official_info_url", "info_url", "website_url", "external_url")
-                .firstNotNullOfOrNull { key -> row.optString(key).takeIf(::isSafeHttpsUrl) }
+            infoUrl = infoUrlKeys.firstNotNullOfOrNull { key -> row.optString(key).takeIf(::isSafeHttpsUrl) }
         )
     }
 
@@ -128,8 +167,10 @@ class SupabaseCatalogRepository {
 
     private companion object {
         const val MAX_RESPONSE_BYTES = 2 * 1024 * 1024
+        const val PAGE_SIZE = 500
+        const val MAX_CATALOG_ROWS = 10_000
         val PUBLISHED_TABLES = setOf(
-            "catalog_items", "radio_stations", "sports_events",
+            "catalog_items", "tv_channels", "radio_stations", "sports_events",
             "music_items", "theater_events", "epg_programs"
         )
     }
