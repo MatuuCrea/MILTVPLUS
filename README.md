@@ -1,28 +1,61 @@
 # MILTVPLUS V22.34.9
 
-Aplicación Android nativa para Android, Android TV y Google TV. Kotlin, Jetpack Compose y Media3.
+Aplicación Android nativa en Kotlin, Jetpack Compose y Media3, con orientación a móviles y Android TV / Google TV.
 
-## Incluido
-- Navegación Inicio, TV, Fuentes, Favoritos y Ajustes.
-- Importación local M3U/M3U8 con SAF, validación y agrupación.
-- Búsqueda y favoritos de sesión.
-- Media3 ExoPlayer + HLS como dependencias del motor.
-- Backend Supabase MILTVPLUS: catálogo, perfiles, favoritos, fuentes, EPG, radios, eventos deportivos, música, teatro, preferencias y consentimiento de edad; RLS activado.
-- CI Android para pruebas JVM y ensamblado Debug.
+## Funciones implementadas en el repositorio
+
+- Navegación Inicio, TV local, Fuentes, Favoritos y Ajustes.
+- Importación de listas M3U/M3U8 locales mediante el selector de documentos de Android.
+- Parser M3U con validación de cabecera, extracción de nombre/grupo/logo HTTPS y rechazo de esquemas locales.
+- Persistencia local de listas y favoritos mediante SharedPreferences.
+- Reproducción Media3/ExoPlayer para fuentes HTTPS y soporte de HLS mediante la dependencia correspondiente.
+- Consulta REST de solo lectura a Supabase para filas publicadas de catálogo, radios, deportes, música, teatro y EPG.
+- Estados de carga, error y catálogo vacío; no se generan canales ni enlaces de prueba falsos.
+- GitHub Actions ejecuta pruebas JVM, `:app:assembleDebug` y publica el APK como artefacto.
 
 ## Uso
-Abrir Fuentes y seleccionar un archivo M3U/M3U8 propio o autorizado. No se incluyen canales de prueba falsos. M3U es un formato, no una licencia de retransmisión.
+
+Abrir **Fuentes** y seleccionar una lista M3U/M3U8 propia, pública o licenciada. M3U/M3U8 es un formato técnico, no una autorización para retransmitir contenido.
+
+El catálogo remoto sólo mostrará elementos que estén cargados y publicados en Supabase. No hay proveedores ni contenido autorizado cargado por defecto.
 
 ## Construcción
-JDK 17 + Android SDK 35. Ejecutar `gradle :app:testDebugUnitTest :app:assembleDebug` desde la raíz.
 
-## Backend
-Proyecto Supabase: `rbnuxapfsnaabrzuxvdy` (región us-east-1, PostgreSQL 17).
-La migración inicial se aplicó al proyecto y está versionada en `supabase/migrations/`. Las tres tablas tienen RLS activado. El catálogo sólo permite lectura de filas publicadas; perfiles y favoritos están limitados por `auth.uid()`.
-Las tablas y políticas están creadas en producción, pero el cliente Android todavía no integra el SDK de Supabase ni sincroniza el catálogo remoto. Las tablas nuevas están vacías y no hay proveedores de contenido conectados. La clave publishable es pública; nunca agregar una secret key ni contraseña de Postgres al APK.
+Requisitos: JDK 17, Android SDK 35 y Gradle 8.9. Desde la raíz:
 
-## Estado real
-No se afirma que haya APK compilado/probado ni backend de producción con contenido cargado. La importación y persistencia local de listas/favoritos y la superficie Media3 están implementadas y pasan compilación automatizada. Pendientes: integración Android-Supabase y autenticación; sincronización real; consumo EPG/VOD; catálogos poblados con acuerdos/fuentes autorizadas; configuración persistente y controles completos; pruebas físicas en móviles/Android TV y clientes Tizen/webOS. No afirmar que estas áreas están terminadas hasta verificarlas. Tizen/webOS requieren apps separadas.
+```bash
+gradle :app:testDebugUnitTest
+gradle :app:assembleDebug
+```
+
+El APK de depuración se genera en `app/build/outputs/apk/debug/app-debug.apk`. El artefacto de Actions se considera disponible sólo cuando el job confirma correctamente el paso `upload-artifact`.
+
+## Backend Supabase
+
+Proyecto: `rbnuxapfsnaabrzuxvdy`.
+
+La aplicación tiene un cliente REST Android de sólo lectura que consulta las tablas publicadas `catalog_items`, `radio_stations`, `sports_events`, `music_items`, `theater_events` y `epg_programs`. La clave configurada en BuildConfig es una clave publishable pública; no se incluye una clave service_role ni una contraseña de base de datos.
+
+Las tablas tienen Row Level Security (RLS). Las políticas públicas limitan la lectura a filas publicadas. Las tablas de fuentes y datos de usuario están restringidas por identidad autenticada. Las tablas de catálogo estaban vacías en la última verificación, por lo que el catálogo puede aparecer vacío hasta que se cargue contenido con derechos y se publique.
+
+La integración actual no incluye inicio de sesión, escrituras autenticadas, sincronización de favoritos con la nube ni alta remota de fuentes. Esas funciones requieren Supabase Auth y políticas específicas por usuario antes de habilitar operaciones de escritura.
+
+Más detalles: [docs/SUPABASE-ANDROID.md](docs/SUPABASE-ANDROID.md).
+
+## Estado y pendientes conocidos
+
+Implementado y comprobado por CI: pruebas JVM, compilación Debug y publicación del artefacto APK en la ejecución indicada por GitHub Actions.
+
+Todavía pendiente de desarrollo y validación:
+- Inicio de sesión y flujos de cuenta con Supabase Auth.
+- Sincronización remota de favoritos, preferencias y fuentes por usuario.
+- Consumo EPG por canal y horario; actualmente la sección consulta filas pero no construye una grilla de programación.
+- Vistas de detalle y reproducción VOD con metadatos y proveedores autorizados.
+- Catálogos reales, acuerdos/licencias y validación editorial de cada URL.
+- Controles parentales y consentimiento de edad completos.
+- Navegación D-pad/remote, pruebas de accesibilidad y QA físico en Android TV/Google TV y distintos móviles.
+- Aplicaciones específicas para Tizen, webOS y Web; no están incluidas en este APK Android.
 
 ## Marca
-El único logo oficial es la imagen de referencia del propietario. No se sustituye por iconos de stock ni variantes. El PNG maestro aún debe incorporarse como recurso binario de GitHub.
+
+El único logo oficial debe ser el archivo de marca aprobado por el propietario. No se reemplaza por iconos genéricos. El recurso binario original todavía debe incorporarse al repositorio.
