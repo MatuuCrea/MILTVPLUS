@@ -95,7 +95,7 @@ public partial class MainWindow : Window
         var category = CategoryFilter.SelectedItem?.ToString();
         Catalog.ItemsSource = entries.Where(x =>
             (string.IsNullOrEmpty(term) ||
-                (x.Title + " " + x.Description + " " + x.Genre + " " + x.Creator + " " + x.CountryCode + " " + x.Category + " " + x.LanguageCode + " " + x.SourceStatus)
+                (x.Title + " " + x.Description + " " + x.Genre + " " + x.Creator + " " + x.CountryCode + " " + x.Category + " " + x.LanguageCode + " " + x.SourceStatus + " " + x.AccessModel)
                 .Contains(term, StringComparison.OrdinalIgnoreCase)) &&
             (string.IsNullOrEmpty(country) || country == "Todos" || string.Equals(x.CountryCode, country, StringComparison.OrdinalIgnoreCase)) &&
             (string.IsNullOrEmpty(category) || category == "Todas" || string.Equals(x.Category, category, StringComparison.OrdinalIgnoreCase))
@@ -250,7 +250,7 @@ public partial class MainWindow : Window
         var section = item.Content?.ToString();
         (table, select, order, kind) = section switch
         {
-            "Canales por país" => ("tv_channels", "title,description,country_code,created_at,category,language_code,logo_url,official_watch_url,stream_url,playback_type,is_free_to_air,source_status", "sort_order.asc,title.asc", null),
+            "Canales por país" => ("tv_channels", "title,description,country_code,created_at,category,language_code,access_model,logo_url,official_watch_url,stream_url,playback_type,is_free_to_air,source_status", "sort_order.asc,title.asc", null),
             "TV en vivo" => ("catalog_items", "title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url", "created_at.desc", "live"),
             "Películas" => ("catalog_items", "title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url", "created_at.desc", "movie"),
             "Series" => ("catalog_items", "title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url", "created_at.desc", "series"),
@@ -290,6 +290,16 @@ public partial class MainWindow : Window
         [JsonPropertyName("playback_type")] public string? PlaybackType { get; set; }
         [JsonPropertyName("is_free_to_air")] public bool? IsFreeToAir { get; set; }
         [JsonPropertyName("source_status")] public string? SourceStatus { get; set; }
-        public string Metadata => string.Join(" · ", new[] { Category ?? Kind ?? ItemType ?? Sport, Genre ?? Competition ?? Creator, CountryCode, LanguageCode, PlaybackType, SourceStatus, ReleaseYear?.ToString(), AgeRating, StartsAt?.ToLocalTime().ToString("g") }.Where(x => !string.IsNullOrWhiteSpace(x)));
+        [JsonPropertyName("access_model")] public string? AccessModel { get; set; }
+        private string? AccessModelLabel => AccessModel switch
+        {
+            "free_web" => "Acceso web gratuito",
+            "free_to_air" => "Televisión abierta",
+            "free_with_ads" => "Gratis con anuncios",
+            "subscription" => "Suscripción",
+            "geo_restricted" => "Con restricción geográfica",
+            _ => null
+        };
+        public string Metadata => string.Join(" · ", new[] { Category ?? Kind ?? ItemType ?? Sport, Genre ?? Competition ?? Creator, CountryCode, LanguageCode, AccessModelLabel, PlaybackType, SourceStatus, ReleaseYear?.ToString(), AgeRating, StartsAt?.ToLocalTime().ToString("g") }.Where(x => !string.IsNullOrWhiteSpace(x)));
     }
 }
