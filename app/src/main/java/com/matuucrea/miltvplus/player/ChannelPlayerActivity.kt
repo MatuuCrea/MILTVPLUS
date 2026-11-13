@@ -147,7 +147,12 @@ class ChannelPlayerActivity : Activity() {
                             (selectedCategory.isBlank() || entry.category == selectedCategory)
                     }
                     val urls = eligible.mapNotNull { it.actionUrl }
-                    if (urls.isEmpty() || urls == activeUrls) continue
+                    if (urls.isEmpty()) continue
+                    if (urls == activeUrls) {
+                        names.clear()
+                        names.addAll(eligible.map { it.title })
+                        continue
+                    }
                     val currentUrl = exo.currentMediaItem?.localConfiguration?.uri?.toString()
                     val currentPosition = exo.currentPosition
                     val newItems = urls.map { streamUrl ->
