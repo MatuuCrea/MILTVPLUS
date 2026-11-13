@@ -5,6 +5,7 @@ on:
       - 'scripts/check_tv_channel_availability.py'
       - 'tests/test_tv_channel_availability.py'
       - 'data/catalog/argentina-channel-inventory.json'
+      - 'data/catalog/international-channel-inventory.json'
       - '.github/workflows/tv-channel-availability.yml'
   workflow_dispatch:
   schedule:
