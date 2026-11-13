@@ -1,0 +1,4 @@
+# Public project settings for local Android development.
+# This file is a template; copy to local.properties if/when Android BuildConfig wiring is added.
+SUPABASE_URL=https://rbnuxapfsnaabrzuxvdy.supabase.co
+SUPABASE_PUBLISHABLE_KEY=sb_publishable_tmBU-IB7P0db0w7RG9TMEw_GD754hb7

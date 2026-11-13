@@ -1,0 +1,13 @@
+# Android / Gradle
+.gradle/
+**/build/
+local.properties
+*.iml
+.idea/
+.DS_Store
+
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+supabase/.temp/
