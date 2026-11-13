@@ -23,6 +23,205 @@
       "directory_status": "published_official_web",
       "access_model": "free_web",
       "integrated_stream_status": "not_authorized_or_not_documented"
+    },
+    {
+      "slug": "tv-migrante-mx",
+      "name": "TV Migrante",
+      "country_code": "MX",
+      "language_code": "es",
+      "category": "news",
+      "access_model": "free_web",
+      "official_watch_url": "https://mxplus.tv/television/tv-migrante",
+      "directory_status": "published_official_web",
+      "integrated_stream_status": "not_authorized_or_not_documented"
+    },
+    {
+      "slug": "canal-14-mx",
+      "name": "Canal 14",
+      "country_code": "MX",
+      "language_code": "es",
+      "category": "general",
+      "access_model": "free_web",
+      "official_watch_url": "https://mxplus.tv/television/canal-14",
+      "directory_status": "published_official_web",
+      "integrated_stream_status": "not_authorized_or_not_documented"
+    },
+    {
+      "slug": "canal-11-mx",
+      "name": "Canal Once",
+      "country_code": "MX",
+      "language_code": "es",
+      "category": "education",
+      "access_model": "free_web",
+      "official_watch_url": "https://mxplus.tv/television/canal-11",
+      "directory_status": "published_official_web",
+      "integrated_stream_status": "not_authorized_or_not_documented"
+    },
+    {
+      "slug": "tv-unam-mx",
+      "name": "TV UNAM",
+      "country_code": "MX",
+      "language_code": "es",
+      "category": "education",
+      "access_model": "free_web",
+      "official_watch_url": "https://mxplus.tv/television/tv-unam",
+      "directory_status": "published_official_web",
+      "integrated_stream_status": "not_authorized_or_not_documented"
+    },
+    {
+      "slug": "canal-22-mx",
+      "name": "Canal 22",
+      "country_code": "MX",
+      "language_code": "es",
+      "category": "culture",
+      "access_model": "free_web",
+      "official_watch_url": "https://mxplus.tv/television/canal-22",
+      "directory_status": "published_official_web",
+      "integrated_stream_status": "not_authorized_or_not_documented"
+    },
+    {
+      "slug": "tv-puebla-mx",
+      "name": "TV de Puebla",
+      "country_code": "MX",
+      "language_code": "es",
+      "category": "regional",
+      "access_model": "free_web",
+      "official_watch_url": "https://mxplus.tv/television/tv-puebla",
+      "directory_status": "published_official_web",
+      "integrated_stream_status": "not_authorized_or_not_documented"
+    },
+    {
+      "slug": "smrtv-mx",
+      "name": "SMRTV",
+      "country_code": "MX",
+      "language_code": "es",
+      "category": "regional",
+      "access_model": "free_web",
+      "official_watch_url": "https://mxplus.tv/television/smrtv",
+      "directory_status": "published_official_web",
+      "integrated_stream_status": "not_authorized_or_not_documented"
+    },
+    {
+      "slug": "television-mexiquense-mx",
+      "name": "Televisión Mexiquense",
+      "country_code": "MX",
+      "language_code": "es",
+      "category": "regional",
+      "access_model": "free_web",
+      "official_watch_url": "https://mxplus.tv/television/television-mexiquense",
+      "directory_status": "published_official_web",
+      "integrated_stream_status": "not_authorized_or_not_documented"
+    },
+    {
+      "slug": "france-24-mxplus",
+      "name": "France 24",
+      "country_code": "FR",
+      "language_code": "fr",
+      "category": "international",
+      "access_model": "free_web",
+      "official_watch_url": "https://mxplus.tv/television/france-24",
+      "directory_status": "published_official_web",
+      "integrated_stream_status": "not_authorized_or_not_documented"
+    },
+    {
+      "slug": "dw-mxplus",
+      "name": "DW",
+      "country_code": "DE",
+      "language_code": "de",
+      "category": "international",
+      "access_model": "free_web",
+      "official_watch_url": "https://mxplus.tv/television/dw",
+      "directory_status": "published_official_web",
+      "integrated_stream_status": "not_authorized_or_not_documented"
+    },
+    {
+      "slug": "rtve-la-1",
+      "name": "La 1 RTVE",
+      "country_code": "ES",
+      "language_code": "es",
+      "category": "general",
+      "access_model": "geo_restricted",
+      "official_watch_url": "https://www.rtve.es/play/videos/directo/canales-lineales/la-1/",
+      "directory_status": "published_official_web",
+      "integrated_stream_status": "not_authorized_or_not_documented"
+    },
+    {
+      "slug": "rtve-la-2",
+      "name": "La 2 RTVE",
+      "country_code": "ES",
+      "language_code": "es",
+      "category": "culture",
+      "access_model": "geo_restricted",
+      "official_watch_url": "https://www.rtve.es/play/videos/directo/canales-lineales/la-2/",
+      "directory_status": "published_official_web",
+      "integrated_stream_status": "not_authorized_or_not_documented"
+    },
+    {
+      "slug": "rtve-24h",
+      "name": "24 Horas RTVE",
+      "country_code": "ES",
+      "language_code": "es",
+      "category": "news",
+      "access_model": "geo_restricted",
+      "official_watch_url": "https://www.rtve.es/play/videos/directo/canales-lineales/24h/",
+      "directory_status": "published_official_web",
+      "integrated_stream_status": "not_authorized_or_not_documented"
+    },
+    {
+      "slug": "rtve-teledeporte",
+      "name": "Teledeporte RTVE",
+      "country_code": "ES",
+      "language_code": "es",
+      "category": "sports",
+      "access_model": "geo_restricted",
+      "official_watch_url": "https://www.rtve.es/play/videos/directo/canales-lineales/tdp/",
+      "directory_status": "published_official_web",
+      "integrated_stream_status": "not_authorized_or_not_documented"
+    },
+    {
+      "slug": "rtve-clan",
+      "name": "Clan RTVE",
+      "country_code": "ES",
+      "language_code": "es",
+      "category": "other",
+      "access_model": "geo_restricted",
+      "official_watch_url": "https://www.rtve.es/play/clan/directo/",
+      "directory_status": "published_official_web",
+      "integrated_stream_status": "not_authorized_or_not_documented"
+    },
+    {
+      "slug": "abc-news-au",
+      "name": "ABC News Australia",
+      "country_code": "AU",
+      "language_code": "en",
+      "category": "news",
+      "access_model": "geo_restricted",
+      "official_watch_url": "https://iview.abc.net.au/channel/news",
+      "directory_status": "published_official_web",
+      "integrated_stream_status": "not_authorized_or_not_documented"
+    },
+    {
+      "slug": "tv-brasil",
+      "name": "TV Brasil",
+      "country_code": "BR",
+      "language_code": "pt",
+      "category": "public",
+      "access_model": "free_web",
+      "official_watch_url": "https://tvbrasil.ebc.com.br/webtv",
+      "directory_status": "published_official_web",
+      "integrated_stream_status": "not_authorized_or_not_documented"
+    },
+    {
+      "slug": "tv-chile-tvn",
+      "name": "TV Chile",
+      "country_code": "CL",
+      "language_code": "es",
+      "category": "international",
+      "access_model": "unknown",
+      "official_watch_url": "https://tvnplay.cl/show/tv-chile-senal-en-vivo",
+      "directory_status": "published_official_web",
+      "integrated_stream_status": "not_authorized_or_not_documented"
     }
-  ]
+  ],
+  "last_reviewed": "2026-11-13"
 }
