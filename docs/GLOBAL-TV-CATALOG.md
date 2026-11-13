@@ -55,7 +55,7 @@ La misma taxonomía soporta todos los países y territorios con código ISO de d
 - Migración: `supabase/migrations/20261113170000_global_tv_channels.sql`.
 - Android: el catálogo global incluye la tabla `tv_channels`, usa el país seleccionado y muestra el logotipo; si no existe stream directo, ofrece abrir la página oficial.
 - Windows: sección `Canales por país`, logotipo, metadatos y apertura del sitio oficial como fallback.
-- Supabase contiene tres registros iniciales de Argentina: C5N y Canal 26 publicados sólo como enlaces a sus páginas oficiales (no como streams integrados), y Crónica TV en revisión porque el chequeo automatizado de su página oficial devolvió HTTP 403. Ninguno está declarado como reproducción integrada.
+- Supabase contiene cinco registros iniciales de Argentina: C5N, Canal 26 y Senado TV publicados sólo como enlaces a sus páginas oficiales (no como streams integrados); Crónica TV está en revisión porque el chequeo automatizado devolvió HTTP 403 y Diputados TV requiere comprobar el reproductor en el cliente. Ninguno está declarado como reproducción integrada.
 - Android ordena por prioridad y filtra por país y categoría; Windows ofrece filtros dinámicos por país y categoría sobre los registros recibidos.
 - Migración adicional: `supabase/migrations/20261113193000_official_web_directory_links.sql`.
 
