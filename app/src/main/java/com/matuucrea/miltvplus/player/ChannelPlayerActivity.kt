@@ -79,7 +79,10 @@ class ChannelPlayerActivity : Activity() {
                 cleanUrl.endsWith(".mpd", true) -> MimeTypes.APPLICATION_MPD
                 else -> null
             }
-            val media = MediaItem.Builder().setUri(url).apply { if (mime != null) setMimeType(mime) }.build()
+            // Stable IDs let the periodic catalog refresh keep the currently playing channel.
+            val channelId = row.optString("id").ifBlank { "channel_$i" }
+            val media = MediaItem.Builder().setMediaId(channelId).setUri(url)
+                .apply { if (mime != null) setMimeType(mime) }.build()
             items.add(media)
             activeUrls.add(url)
             activeChannelIds.add(row.optString("id").ifBlank { "channel_$i" })
