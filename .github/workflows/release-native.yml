@@ -58,15 +58,20 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
+      - name: Set Windows release version
+        shell: pwsh
+        run: |
+          $version = $env:GITHUB_REF_NAME.TrimStart("v")
+          "MILTVPLUS_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append
       - name: Generate Windows icon
         shell: pwsh
         run: ./windows/scripts/prepare-icon.ps1
       - name: Publish native Windows app
-        run: dotnet publish windows/MILTVPLUS.Desktop/MILTVPLUS.Desktop.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o windows/publish
+        run: dotnet publish windows/MILTVPLUS.Desktop/MILTVPLUS.Desktop.csproj -c Release -r win-x64 --self-contained true -p:Version=$env:MILTVPLUS_VERSION -p:AssemblyVersion=$env:MILTVPLUS_VERSION.0 -p:FileVersion=$env:MILTVPLUS_VERSION.0 -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o windows/publish
       - name: Install Inno Setup
         run: choco install innosetup --no-progress -y
       - name: Build installer
-        run: iscc windows/installer/MILTVPLUS.iss
+        run: iscc /DAppVersion=$env:MILTVPLUS_VERSION windows/installer/MILTVPLUS.iss
       - uses: actions/upload-artifact@v4
         with:
           name: windows-installer
