@@ -1,6 +1,7 @@
 package com.matuucrea.miltvplus.ui
 
 import android.content.Context
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,6 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 import com.matuucrea.miltvplus.auth.AuthSession
 import com.matuucrea.miltvplus.auth.SupabaseAuthRepository
 import com.matuucrea.miltvplus.data.AppDirectory
@@ -294,6 +297,7 @@ fun AdultAccessScreen(
     var adultItems by remember { mutableStateOf<List<RemoteCatalogEntry>>(emptyList()) }
     var loading by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
+    var selectedCategory by remember { mutableStateOf("Recomendados") }
 
     LaunchedEffect(ageConfirmed, isSignedIn) {
         if (ageConfirmed && isSignedIn) {
@@ -316,61 +320,180 @@ fun AdultAccessScreen(
         } else adultItems = emptyList()
     }
 
+    val categories = listOf("Recomendados", "Romance", "Parejas", "Pasión", "Hot", "Premium", "Solo adultos")
+    val visibleItems = adultItems.filter { item ->
+        val metadata = (item.title + " " + item.subtitle + " " + item.category + " " + (item.kind ?: "")).lowercase()
+        when (selectedCategory) {
+            "Recomendados" -> true
+            "Romance" -> listOf("romance", "románt", "romant", "amor").any { it in metadata }
+            "Parejas" -> listOf("pareja", "couple", "relación").any { it in metadata }
+            "Pasión", "Hot" -> listOf("pasión", "passion", "sensual", "adult", "erót").any { it in metadata }
+            "Premium" -> listOf("premium", "exclusive", "exclusivo").any { it in metadata }
+            "Solo adultos" -> true
+            else -> false
+        }
+    }
+
     Column(
-        Modifier.fillMaxWidth().padding(18.dp).verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        Modifier.fillMaxSize().background(
+            androidx.compose.ui.graphics.Brush.verticalGradient(
+                listOf(androidx.compose.ui.graphics.Color(0xFF210414), androidx.compose.ui.graphics.Color(0xFF09030B), androidx.compose.ui.graphics.Color(0xFF030207))
+            )
+        ).verticalScroll(rememberScrollState()).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        Text("Contenido para mayores de 18", style = MaterialTheme.typography.headlineSmall)
-        Text("El acceso requiere declaración de mayoría de edad y un PIN parental de seis dígitos. La confirmación no reemplaza los controles legales de edad exigibles en cada país.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        when {
-            !ageConfirmed -> {
-                Icon(Icons.Default.Lock, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(42.dp))
-                Text("Confirmá que tenés 18 años o más para continuar.")
-                Button(onClick = { store.confirmAge(); ageConfirmed = true }) { Text("Confirmo que tengo 18 años o más") }
-            }
-            !pinExists -> {
-                Text("Creá un PIN parental para proteger esta sección.")
-                OutlinedTextField(pin, { if (it.length <= 6 && it.all { ch -> ch.isDigit() }) pin = it }, label = { Text("Nuevo PIN de 6 dígitos") }, visualTransformation = PasswordVisualTransformation())
-                Button(onClick = {
-                    runCatching { store.setPin(pin) }
-                        .onSuccess { pinExists = true; pin = ""; message = "PIN guardado. Ingresalo para desbloquear." }
-                        .onFailure { message = it.message }
-                }, enabled = pin.length == 6) { Text("Guardar PIN") }
-            }
-            !unlocked -> {
-                OutlinedTextField(pin, { if (it.length <= 6 && it.all { ch -> ch.isDigit() }) pin = it }, label = { Text("PIN parental") }, visualTransformation = PasswordVisualTransformation())
-                Button(onClick = {
-                    unlocked = store.verifyPin(pin)
-                    pin = ""
-                    if (!unlocked) message = "PIN incorrecto o acceso temporalmente bloqueado."
-                }, enabled = pin.length == 6) { Text("Desbloquear sección") }
-            }
-            else -> {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.VerifiedUser, null, tint = MaterialTheme.colorScheme.primary)
-                    Text("Sección desbloqueada · Catálogo clasificado +18", modifier = Modifier.padding(start = 8.dp))
+        Card(
+            Modifier.fillMaxWidth(),
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(22.dp),
+            colors = CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color(0xFF250719))
+        ) {
+            Box(
+                Modifier.fillMaxWidth()
+                    .background(androidx.compose.ui.graphics.Brush.horizontalGradient(
+                        listOf(androidx.compose.ui.graphics.Color(0xFF4A0B38), androidx.compose.ui.graphics.Color(0xFF160817), androidx.compose.ui.graphics.Color(0xFF310B37))
+                    ))
+                    .heightIn(min = 196.dp).padding(18.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Box(
+                            Modifier.size(86.dp)
+                                .background(androidx.compose.ui.graphics.Color(0xFF100510), androidx.compose.foundation.shape.CircleShape)
+                                .then(Modifier),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.Favorite, null, tint = androidx.compose.ui.graphics.Color(0xFFFF4F9A), modifier = Modifier.size(78.dp))
+                            Text("18+", color = androidx.compose.ui.graphics.Color.White, style = MaterialTheme.typography.headlineMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.Black)
+                        }
+                        Text("SOLO ADULTOS", color = androidx.compose.ui.graphics.Color(0xFFFFB5D4), style = MaterialTheme.typography.labelSmall)
+                    }
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                        Text("Contenido Adulto", color = androidx.compose.ui.graphics.Color.White, style = MaterialTheme.typography.headlineMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.Black)
+                        Text("Romance, parejas, pasión e historias para mayores de edad.", color = androidx.compose.ui.graphics.Color(0xFFFFDDEB), style = MaterialTheme.typography.bodyMedium)
+                        Text("MILTVPLUS · EXPERIENCIA 18+", color = androidx.compose.ui.graphics.Color(0xFFFF6FAF), style = MaterialTheme.typography.labelSmall)
+                    }
                 }
-                if (loading) CircularProgressIndicator()
-                else if (adultItems.isEmpty()) Text("No hay títulos +18 publicados para esta región. No se muestran títulos ficticios.")
-                else LazyColumn(Modifier.heightIn(max = 420.dp)) {
-                    items(adultItems, key = { it.id }) { item ->
-                        Card(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-                            Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Column(Modifier.weight(1f)) {
-                                    Text(item.title, style = MaterialTheme.typography.titleMedium)
-                                    Text(item.subtitle, style = MaterialTheme.typography.bodySmall)
-                                    Text(item.ageRating ?: "18+", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+            }
+        }
+
+        if (!ageConfirmed) {
+            Card(colors = CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color(0xFF160B18))) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Icon(Icons.Default.Lock, null, tint = androidx.compose.ui.graphics.Color(0xFFFF5C9C), modifier = Modifier.size(34.dp))
+                    Text("Acceso exclusivo para mayores de 18 años", color = MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.titleMedium)
+                    Text("Confirmá tu mayoría de edad para continuar. Esta declaración no reemplaza los controles legales de edad exigibles en tu país.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Button(onClick = { store.confirmAge(); ageConfirmed = true }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFE91E63))) {
+                        Text("Confirmo que tengo 18 años o más")
+                    }
+                }
+            }
+        } else if (!pinExists) {
+            Card(colors = CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color(0xFF160B18))) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text("Creá tu PIN privado", style = MaterialTheme.typography.titleMedium)
+                    OutlinedTextField(pin, { if (it.length <= 6 && it.all(Char::isDigit)) pin = it }, modifier = Modifier.fillMaxWidth(), label = { Text("Nuevo PIN de 6 dígitos") }, visualTransformation = PasswordVisualTransformation())
+                    Button(onClick = {
+                        runCatching { store.setPin(pin) }
+                            .onSuccess { pinExists = true; pin = ""; message = "PIN guardado. Ingresalo para desbloquear." }
+                            .onFailure { message = it.message }
+                    }, enabled = pin.length == 6, modifier = Modifier.fillMaxWidth()) { Text("Guardar PIN") }
+                }
+            }
+        } else if (!unlocked) {
+            Card(colors = CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color(0xFF160B18))) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Icon(Icons.Default.Lock, null, tint = androidx.compose.ui.graphics.Color(0xFFFF5C9C), modifier = Modifier.size(32.dp))
+                    Text("Sección protegida", style = MaterialTheme.typography.titleLarge)
+                    Text("Ingresá tu PIN parental para ver el catálogo 18+.", style = MaterialTheme.typography.bodySmall)
+                    OutlinedTextField(pin, { if (it.length <= 6 && it.all(Char::isDigit)) pin = it }, modifier = Modifier.fillMaxWidth(), label = { Text("PIN parental") }, visualTransformation = PasswordVisualTransformation())
+                    Button(onClick = {
+                        unlocked = store.verifyPin(pin)
+                        pin = ""
+                        if (!unlocked) message = "PIN incorrecto o acceso temporalmente bloqueado."
+                    }, enabled = pin.length == 6, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFE91E63))) { Text("Ingresar ahora") }
+                }
+            }
+        } else {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.VerifiedUser, null, tint = androidx.compose.ui.graphics.Color(0xFFFF78B4))
+                Text(" Acceso desbloqueado · ${adultItems.size} títulos publicados", color = androidx.compose.ui.graphics.Color.White, style = MaterialTheme.typography.labelLarge)
+                Spacer(Modifier.weight(1f))
+                TextButton(onClick = { unlocked = false }) { Text("Bloquear") }
+            }
+            androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                items(categories) { category ->
+                    val symbol = when(category) {
+                        "Recomendados" -> "✨"
+                        "Romance" -> "💋"
+                        "Parejas" -> "💞"
+                        "Pasión" -> "❤️"
+                        "Hot" -> "🔥"
+                        "Premium" -> "💎"
+                        else -> "🔞"
+                    }
+                    Card(
+                        onClick = { selectedCategory = category },
+                        modifier = Modifier.width(112.dp).height(88.dp),
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(15.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if(selectedCategory == category) androidx.compose.ui.graphics.Color(0xFF8E1458) else androidx.compose.ui.graphics.Color(0xFF1D1021)
+                        )
+                    ) {
+                        Column(Modifier.fillMaxSize().padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                            Text(symbol, style = MaterialTheme.typography.headlineSmall)
+                            Text(category, color = androidx.compose.ui.graphics.Color.White, style = MaterialTheme.typography.labelMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+            Text("Recomendados para vos", color = androidx.compose.ui.graphics.Color.White, style = MaterialTheme.typography.titleLarge)
+            when {
+                loading -> CircularProgressIndicator(color = androidx.compose.ui.graphics.Color(0xFFFF5C9C))
+                visibleItems.isEmpty() -> Text(
+                    if (adultItems.isEmpty()) "Todavía no hay títulos 18+ publicados y verificados para esta región. No mostramos contenido inventado."
+                    else "No hay títulos publicados en esta categoría. Probá otra categoría.",
+                    color = androidx.compose.ui.graphics.Color(0xFFD8C7D2)
+                )
+                else -> androidx.compose.foundation.lazy.LazyColumn(
+                    modifier = Modifier.fillMaxWidth().heightIn(max = 560.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    items(visibleItems, key = { it.id }) { item ->
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color(0xFF180D1A)),
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
+                        ) {
+                            Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                if(!item.artworkUrl.isNullOrBlank()) {
+                                    AsyncImage(model=item.artworkUrl,contentDescription=item.title,contentScale=ContentScale.Crop,modifier=Modifier.width(104.dp).height(76.dp).background(androidx.compose.ui.graphics.Color(0xFF2A1428),androidx.compose.foundation.shape.RoundedCornerShape(10.dp)))
+                                    Spacer(Modifier.width(12.dp))
                                 }
-                                if (item.actionUrl != null) TextButton(onClick = { onPlay(item) }) { Text("Reproducir") }
+                                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    Text(item.title, color = androidx.compose.ui.graphics.Color.White, style = MaterialTheme.typography.titleMedium)
+                                    Text(item.subtitle, color = androidx.compose.ui.graphics.Color(0xFFD4C4D0), style = MaterialTheme.typography.bodySmall)
+                                    Text(item.ageRating ?: "18+", color = androidx.compose.ui.graphics.Color(0xFFFF79B6), style = MaterialTheme.typography.labelSmall)
+                                }
+                                if (item.actionUrl != null) {
+                                    Button(onClick = { onPlay(item) }, colors = ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFE91E63))) {
+                                        Icon(Icons.Default.PlayArrow, null)
+                                        Text(" Ver")
+                                    }
+                                } else {
+                                    Text("No disponible", color = androidx.compose.ui.graphics.Color(0xFFB8A8B4), style = MaterialTheme.typography.labelSmall)
+                                }
                             }
                         }
                     }
                 }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = { selectedCategory = "Recomendados" }) { Text("Ver todo") }
                 OutlinedButton(onClick = { unlocked = false }) { Text("Bloquear ahora") }
             }
         }
-        message?.let { Text(it, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall) }
-        if (!isSignedIn) Text("Iniciá sesión para sincronizar la constancia de edad con tu cuenta.", style = MaterialTheme.typography.bodySmall)
+        message?.let { Text(it, color = androidx.compose.ui.graphics.Color(0xFFFF9CC7), style = MaterialTheme.typography.bodySmall) }
+        if (!isSignedIn) Text("Iniciá sesión para sincronizar la constancia de edad con tu cuenta.", color = androidx.compose.ui.graphics.Color(0xFFD4C4D0), style = MaterialTheme.typography.bodySmall)
     }
 }
 

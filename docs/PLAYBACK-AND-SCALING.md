@@ -8,8 +8,8 @@
 - Media3 ExoPlayer con extensiones HLS y MPEG-DASH. La selección adaptativa de calidad queda a cargo del selector de pistas de Media3, usando las variantes que publique el emisor y el ancho de banda medido.
 - Ajuste de imagen `FIT`: conserva la relación de aspecto y evita recortar la imagen para llenar la pantalla.
 - Controles de reproducción, canal anterior/siguiente y salida de pantalla completa.
-- Reconexión con hasta tres reintentos escalonados después de un error de reproducción.
-- Durante una sesión iniciada desde el catálogo remoto, vuelve a consultar la lista cada 60 segundos. Si cambió el conjunto de URLs, conserva el canal actual y su posición cuando sigue disponible; no reinicia la reproducción si sólo cambió el metadato.
+- Reconexión automática con espera exponencial creciente (1, 2, 4, 8, 16 y hasta 30 segundos), sin abandonar definitivamente el canal tras tres fallas transitorias; el contador se reinicia al recuperar estado READY. La recuperación vuelve al punto en vivo para no quedar anclada a una posición antigua.
+- Durante una sesión iniciada desde el catálogo remoto, vuelve a consultar la lista cada 60 segundos. La cola se sincroniza por ID estable del canal, no sólo por URL; si el proveedor rota la URL del mismo canal, se conserva la selección del canal y se vuelve al punto en vivo. Si sólo cambia el metadato, no se reinicia la reproducción.
 - Cuando una ficha sólo tiene `official_watch_url`, abre `OfficialWatchActivity`: WebView inmersivo horizontal, reproducción HTML5 del propio emisor cuando el sitio la permite, soporte para su modo de video a pantalla completa, botones anterior/siguiente y actualización del listado cada 60 segundos. Los enlaces externos no HTTPS se bloquean; los errores se muestran dentro de MILTVPLUS y no se abre un navegador externo. No se extraen ni se fuerzan URLs internas del reproductor del emisor.
 
 ### Windows

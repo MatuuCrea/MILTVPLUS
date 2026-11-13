@@ -173,15 +173,91 @@ class MainActivity:ComponentActivity(){
         uri?.let { u -> runCatching { context.contentResolver.openInputStream(u)?.use { M3uParser.parse(readM3uLimited(it)) } ?: throw IllegalStateException("No se pudo abrir el archivo") }
             .onSuccess { vm.setChannels(it); tab="TV" }.onFailure { vm.setError("No se pudo importar: "+(it.message ?: "archivo inválido")) } }
     }
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        gesturesEnabled = true,
+        drawerContent = {
+            ModalDrawerSheet(
+                modifier = Modifier.fillMaxHeight().verticalScroll(rememberScrollState()),
+                drawerContainerColor = Color(0xFF0C1020),
+                drawerContentColor = Color.White
+            ) {
+                Row(
+                    Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 20.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("MILTVPLUS", Modifier.weight(1f), color = Color.White, fontSize = 21.sp, fontWeight = FontWeight.Black)
+                    IconButton(onClick = { uiScope.launch { drawerState.close() } }) {
+                        Icon(Icons.Default.MenuOpen, "Contraer menú", tint = cyan)
+                    }
+                }
+                Text("EXPLORAR", Modifier.padding(start = 18.dp, top = 4.dp, bottom = 8.dp), color = cyan, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
+                val menuItems = listOf(
+                    Triple("Inicio", Icons.Default.Home, "Inicio"),
+                    Triple("TV en Vivo", Icons.Default.LiveTv, "tv_channels"),
+                    Triple("Películas y series", Icons.Default.Movie, "catalog_items"),
+                    Triple("Deportes", Icons.Default.SportsSoccer, "sports_events"),
+                    Triple("Radios", Icons.Default.Radio, "radio_stations"),
+                    Triple("Música", Icons.Default.MusicNote, "music_items"),
+                    Triple("Teatro", Icons.Default.TheaterComedy, "theater_events"),
+                    Triple("Guía EPG", Icons.Default.CalendarMonth, "epg_programs"),
+                    Triple("Apps", Icons.Default.Apps, "Apps"),
+                    Triple("Países", Icons.Default.Public, "Países"),
+                    Triple("Favoritos", Icons.Default.Favorite, "Favoritos"),
+                    Triple("Fuentes M3U", Icons.Default.PlaylistAdd, "Fuentes"),
+                    Triple("Adultos 18+", Icons.Default.Lock, "Adultos"),
+                    Triple("Configuración", Icons.Default.Settings, "Ajustes"),
+                    Triple("Cuenta", Icons.Default.AccountCircle, "Cuenta")
+                )
+                menuItems.forEach { (label, icon, destination) ->
+                    NavigationDrawerItem(
+                        label = { Text(label, fontWeight = if (tab == destination) FontWeight.Bold else FontWeight.Medium) },
+                        icon = { Icon(icon, contentDescription = null, tint = if (destination == "Adultos") Color(0xFFFF5C9C) else cyan) },
+                        selected = tab == destination || (destination == "tv_channels" && tab == "Catálogo" && remoteCategory == "tv_channels"),
+                        onClick = {
+                            when (destination) {
+                                "tv_channels", "catalog_items", "sports_events", "radio_stations", "music_items", "theater_events", "epg_programs" -> {
+                                    remoteCategory = destination
+                                    remoteKindFilter = null
+                                    channelCategoryFilter = null
+                                    selectedChannelCountry = null
+                                    tab = "Catálogo"
+                                }
+                                else -> tab = destination
+                            }
+                            uiScope.launch { drawerState.close() }
+                        },
+                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding),
+                        colors = NavigationDrawerItemDefaults.colors(
+                            selectedContainerColor = Color(0xFF15365B),
+                            selectedTextColor = Color.White,
+                            unselectedTextColor = Color(0xFFE4E8F2)
+                        )
+                    )
+                }
+                HorizontalDivider(Modifier.padding(vertical = 10.dp), color = Color(0xFF28334A))
+                Text("PAÍS ACTIVO", Modifier.padding(start = 18.dp, bottom = 4.dp), color = Color.LightGray, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                NavigationDrawerItem(
+                    label = { Text(countryFlag(countryCode) + "  " + countryDisplayName(countryCode)) },
+                    icon = { Icon(Icons.Default.Public, null, tint = cyan) },
+                    selected = false,
+                    onClick = { tab = "Países"; uiScope.launch { drawerState.close() } },
+                    modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                )
+            }
+        }
+    ) {
     Scaffold(containerColor=bg,bottomBar={NavigationBar(containerColor=Color(0xFF101014)){
         listOf("Inicio","TV","Fuentes","Favoritos","Ajustes").forEach { t ->
             val ico=when(t){"Inicio"->Icons.Default.Home;"TV"->Icons.Default.LiveTv;"Fuentes"->Icons.Default.PlaylistAdd;"Favoritos"->Icons.Default.Favorite;else->Icons.Default.Settings}
             NavigationBarItem(selected=tab==t || (t=="TV" && tab=="Catálogo" && remoteCategory=="tv_channels"),onClick={if(t=="TV"){remoteCategory="tv_channels";remoteKindFilter=null;tab="Catálogo"}else {if(t=="Inicio")remoteCategory="tv_channels";tab=t}},icon={Icon(ico,null)},label={Text(t)},colors=NavigationBarItemDefaults.colors(selectedIconColor=Color(0xFFFF4059),selectedTextColor=Color(0xFFFF4059),indicatorColor=Color(0xFFFF4059).copy(alpha=.16f)))
         }
     }}){pad->Column(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF08080A),Color(0xFF0B0B0E),Color(0xFF08080A)))).padding(pad)){
-        Row(Modifier.fillMaxWidth().padding(20.dp),verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text("MILTVPLUS",color=Color.White,fontSize=25.sp,fontWeight=FontWeight.Black,letterSpacing=1.5.sp);Text("ENTRETENIMIENTO • V22.34.9",color=cyan,fontSize=10.sp)};Row(verticalAlignment=Alignment.CenterVertically) {
+        Row(Modifier.fillMaxWidth().padding(20.dp),verticalAlignment=Alignment.CenterVertically){IconButton(onClick={uiScope.launch { if(drawerState.currentValue==DrawerValue.Open) drawerState.close() else drawerState.open() }}) { Icon(Icons.Default.Menu,"Abrir o contraer menú",tint=cyan) };Column(Modifier.weight(1f)){Text("MILTVPLUS",color=Color.White,fontSize=25.sp,fontWeight=FontWeight.Black,letterSpacing=1.5.sp);Text("ENTRETENIMIENTO • V22.34.9",color=cyan,fontSize=10.sp)};Row(verticalAlignment=Alignment.CenterVertically) {
             Text(if(authSession==null) "● LOCAL" else "● CUENTA",color=cyan,fontSize=10.sp)
             updateNotice?.let { version -> TextButton(onClick={tab="Ajustes"}) { Text("ACTUALIZAR $version",color=orange,fontSize=10.sp) } }
+            TextButton(onClick={tab="Adultos"}, colors=ButtonDefaults.textButtonColors(contentColor=Color(0xFFFF5C9C))) { Text("18+", fontWeight=FontWeight.Black) }
             IconButton(onClick={tab="Cuenta"}) { Icon(Icons.Default.AccountCircle,"Cuenta",tint=cyan) }
         }}
         when(tab){
@@ -189,6 +265,24 @@ class MainActivity:ComponentActivity(){
                 val countryItems=remoteItems.filter { it.countryCode==countryCode }
                 val featured=countryItems.firstOrNull()
                 Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(18.dp)) {
+                    Row(Modifier.fillMaxWidth().padding(horizontal=18.dp, vertical=2.dp),verticalAlignment=Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text("BIENVENIDO A",color=Color(0xFFE5ECF8),fontSize=11.sp,fontWeight=FontWeight.Bold,letterSpacing=2.sp)
+                            Text("MILTVPLUS",color=Color.White,fontSize=30.sp,fontWeight=FontWeight.Black,letterSpacing=1.sp)
+                            Text("Tu TV, en todas partes 🇦🇷",color=cyan,fontSize=12.sp,fontWeight=FontWeight.SemiBold)
+                        }
+                        Surface(color=Color(0xFF13264A),shape=RoundedCornerShape(15.dp),onClick={tab="Países"}) {
+                            Row(Modifier.padding(horizontal=12.dp,vertical=9.dp),verticalAlignment=Alignment.CenterVertically) {
+                                Text(countryFlag(countryCode),fontSize=21.sp)
+                                Spacer(Modifier.width(7.dp))
+                                Column {
+                                    Text(countryDisplayName(countryCode),color=Color.White,fontWeight=FontWeight.Bold,fontSize=11.sp)
+                                    Text("Cambiar país",color=cyan,fontSize=10.sp)
+                                }
+                                Icon(Icons.Default.ExpandMore,null,tint=cyan)
+                            }
+                        }
+                    }
                     Card(Modifier.fillMaxWidth().padding(horizontal=14.dp),shape=RoundedCornerShape(24.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF17171C))) {
                         Box(Modifier.fillMaxWidth().height(238.dp)) {
                             if(featured?.artworkUrl!=null) AsyncImage(model=featured.artworkUrl,contentDescription=featured.title,contentScale=ContentScale.Crop,modifier=Modifier.fillMaxSize())
@@ -214,6 +308,44 @@ class MainActivity:ComponentActivity(){
                         }
                     }
                     Column(Modifier.padding(horizontal=16.dp),verticalArrangement=Arrangement.spacedBy(9.dp)) {
+                        Text("EXPLORÁ MILTVPLUS",color=Color.White,fontSize=18.sp,fontWeight=FontWeight.Bold)
+                        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(9.dp)) {
+                            listOf(
+                                Triple("TV en Vivo","📺","tv_channels"),
+                                Triple("Películas","🎬","movie"),
+                                Triple("Series","📽️","series"),
+                                Triple("Deportes","⚽","sports_events"),
+                                Triple("Infantiles","🧸","catalog_items"),
+                                Triple("Países","🌎","Países")
+                            ).forEach { (label,emoji,destination) ->
+                                Card(
+                                    onClick={
+                                        if(destination=="Países") tab="Países" else {
+                                            remoteCategory=if(destination=="movie"||destination=="series") "catalog_items" else destination
+                                            remoteKindFilter=when(destination){"movie"->"movie";"series"->"series";else->null}
+                                            selectedChannelCountry=if(destination=="tv_channels") countryCode else null
+                                            tab="Catálogo"
+                                        }
+                                    },
+                                    modifier=Modifier.width(108.dp).height(96.dp),
+                                    colors=CardDefaults.cardColors(containerColor=when(label) {
+                                        "TV en Vivo"->Color(0xFF123E87)
+                                        "Películas"->Color(0xFF42216E)
+                                        "Series"->Color(0xFF12613F)
+                                        "Deportes"->Color(0xFF82420D)
+                                        "Infantiles"->Color(0xFF7B205A)
+                                        else->Color(0xFF075C78)
+                                    }),
+                                    shape=RoundedCornerShape(16.dp)
+                                ) {
+                                    Column(Modifier.fillMaxSize().padding(8.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.Center) {
+                                        Text(emoji,fontSize=25.sp)
+                                        Spacer(Modifier.height(5.dp))
+                                        Text(label,color=Color.White,fontWeight=FontWeight.Bold,fontSize=11.sp)
+                                    }
+                                }
+                            }
+                        }
                         Text("EXPLORAR POR PAÍS",color=Color.White,fontSize=18.sp,fontWeight=FontWeight.Bold)
                         Text("País seleccionado: "+countryDisplayName(countryCode),color=Color.LightGray,fontSize=12.sp)
                         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
@@ -401,6 +533,42 @@ class MainActivity:ComponentActivity(){
                 TextButton(onClick={tab="Adultos"},modifier=Modifier.padding(horizontal=16.dp)){Text("🔞 Control parental +18")}
                 TextButton(onClick={tab="Música"},modifier=Modifier.padding(horizontal=16.dp)){Text("🎧 Conectar con Spotify")}
             }
+            "Apps"->{
+                Title("Apps y servicios","Accesos oficiales desde MILTVPLUS")
+                val services=listOf(
+                    Triple("YouTube","Videos, canales y directos","https://www.youtube.com/"),
+                    Triple("Spotify","Música y podcasts","https://open.spotify.com/"),
+                    Triple("Twitch","Directos y comunidades","https://www.twitch.tv/"),
+                    Triple("Pluto TV","Televisión gratuita con publicidad","https://pluto.tv/"),
+                    Triple("Plex","Tu biblioteca multimedia","https://app.plex.tv/"),
+                    Triple("VLC","Reproductor multimedia","https://www.videolan.org/vlc/")
+                )
+                Column(Modifier.fillMaxWidth().padding(horizontal=14.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
+                    services.chunked(2).forEach { pair ->
+                        Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) {
+                            pair.forEach { (name,description,url) ->
+                                Card(
+                                    onClick={runCatching { context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(url))) }.onFailure { remoteError="No se pudo abrir $name." }},
+                                    modifier=Modifier.weight(1f),
+                                    colors=CardDefaults.cardColors(containerColor=Color(0xFF121D32)),
+                                    shape=RoundedCornerShape(16.dp)
+                                ) {
+                                    Column(Modifier.fillMaxWidth().padding(15.dp),verticalArrangement=Arrangement.spacedBy(7.dp)) {
+                                        Text(name,color=Color.White,fontSize=16.sp,fontWeight=FontWeight.Bold)
+                                        Text(description,color=Color.LightGray,fontSize=11.sp)
+                                        Row(verticalAlignment=Alignment.CenterVertically) {
+                                            Text("Abrir servicio",color=cyan,fontSize=11.sp,fontWeight=FontWeight.Bold)
+                                            Icon(Icons.Default.OpenInNew,null,tint=cyan,modifier=Modifier.size(14.dp))
+                                        }
+                                    }
+                                }
+                            }
+                            if(pair.size==1) Spacer(Modifier.weight(1f))
+                        }
+                    }
+                    Text("Estos accesos abren los servicios oficiales. Su contenido, suscripción y disponibilidad dependen de cada proveedor.",Modifier.padding(4.dp),color=Color.LightGray,fontSize=11.sp)
+                }
+            }
             "Música"->{Title("Música","Artistas, álbumes y listas publicadas")
                 Button(onClick={ { runCatching { context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse("https://open.spotify.com/"))) }.onFailure { remoteError="No se pudo abrir Spotify." } } },modifier=Modifier.padding(horizontal=16.dp)){Icon(Icons.Default.OpenInNew,null);Text("Abrir Spotify")}
                 Text("La conexión con Spotify abre su servicio oficial. El inicio de sesión OAuth y la reproducción integrada requieren una aplicación Spotify registrada y aprobada.",Modifier.padding(16.dp),color=MaterialTheme.colorScheme.onSurfaceVariant)
@@ -409,6 +577,7 @@ class MainActivity:ComponentActivity(){
             else->{Title(if(tab=="TV")"Televisión en vivo" else "Tus favoritos","Elegí un canal para reproducir");OutlinedTextField(query,{query=it},Modifier.fillMaxWidth().padding(horizontal=16.dp),placeholder={Text("Buscar canal o categoría")},singleLine=true);val list=channels.filter{(tab!="Favoritos"||it.id in favorites)&&(it.name.contains(query,true)||it.group.contains(query,true))};if(list.isEmpty())Empty("No hay canales para mostrar","Agregá una lista autorizada desde Fuentes.");LazyColumn(contentPadding=PaddingValues(14.dp)){items(list,key={it.id}){c->ChannelItem(c,c.id in favorites,{launchChannelPlayer(context,channels,channels.indexOfFirst { it.id==c.id })},{vm.toggleFavorite(c.id)})}};selected?.let{channel->Card(Modifier.fillMaxWidth().padding(14.dp),colors=CardDefaults.cardColors(containerColor=Color.Black)){Column(Modifier.padding(12.dp)){Text("REPRODUCIENDO · "+channel.name,color=cyan,fontWeight=FontWeight.Bold);AndroidView(factory={ctx->PlayerView(ctx).apply{player=exoPlayer;useController=true;setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING)}},update={it.player=exoPlayer},modifier=Modifier.fillMaxWidth().height(220.dp));Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){TextButton(onClick={launchChannelPlayer(context,channels,channels.indexOfFirst { it.id==channel.id }.coerceAtLeast(0))}){Text("Pantalla completa")};TextButton(onClick={vm.stop()}){Text("Detener reproducción")}}}}};errorMessage?.let{Text(it,color=orange,modifier=Modifier.padding(12.dp))}}
         }
     }}
+    }
 }
 private fun readM3uLimited(input:InputStream):String {
     val output=ByteArrayOutputStream()
