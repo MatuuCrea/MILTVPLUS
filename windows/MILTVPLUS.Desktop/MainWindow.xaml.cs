@@ -26,6 +26,7 @@ public partial class MainWindow : Window
     private string order = "created_at.desc";
     private string? kind;
     private UpdateRelease? _availableUpdate;
+    private bool _updatingFilters;
 
     public MainWindow()
     {
@@ -55,7 +56,7 @@ public partial class MainWindow : Window
             }
             await using var stream = await response.Content.ReadAsStreamAsync();
             entries = await JsonSerializer.DeserializeAsync<List<CatalogEntry>>(stream, JsonOptions) ?? [];
-            ApplySearch();
+            UpdateFilterOptions();
             StatusText.Text = entries.Count == 0
                 ? "Todavía no hay contenido autorizado publicado en esta sección."
                 : $"{entries.Count} publicaciones · Contenido publicado";
@@ -68,12 +69,42 @@ public partial class MainWindow : Window
         }
     }
 
+    private void UpdateFilterOptions()
+    {
+        _updatingFilters = true;
+        var previousCountry = CountryFilter.SelectedItem?.ToString() ?? "Todos";
+        var previousCategory = CategoryFilter.SelectedItem?.ToString() ?? "Todas";
+        var countries = new[] { "Todos" }.Concat(entries.Select(x => x.CountryCode)
+            .Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)!).ToList();
+        var categories = new[] { "Todas" }.Concat(entries.Select(x => x.Category)
+            .Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)!).ToList();
+        CountryFilter.ItemsSource = countries;
+        CategoryFilter.ItemsSource = categories;
+        CountryFilter.SelectedItem = countries.Contains(previousCountry) ? previousCountry : "Todos";
+        CategoryFilter.SelectedItem = categories.Contains(previousCategory) ? previousCategory : "Todas";
+        _updatingFilters = false;
+        ApplySearch();
+    }
+
     private void ApplySearch()
     {
         var term = SearchBox.Text.Trim();
-        Catalog.ItemsSource = entries.Where(x => string.IsNullOrEmpty(term) ||
-            (x.Title + " " + x.Description + " " + x.Genre + " " + x.Creator + " " + x.CountryCode + " " + x.Category + " " + x.LanguageCode + " " + x.SourceStatus)
-            .Contains(term, StringComparison.OrdinalIgnoreCase)).ToList();
+        var country = CountryFilter.SelectedItem?.ToString();
+        var category = CategoryFilter.SelectedItem?.ToString();
+        Catalog.ItemsSource = entries.Where(x =>
+            (string.IsNullOrEmpty(term) ||
+                (x.Title + " " + x.Description + " " + x.Genre + " " + x.Creator + " " + x.CountryCode + " " + x.Category + " " + x.LanguageCode + " " + x.SourceStatus)
+                .Contains(term, StringComparison.OrdinalIgnoreCase)) &&
+            (string.IsNullOrEmpty(country) || country == "Todos" || string.Equals(x.CountryCode, country, StringComparison.OrdinalIgnoreCase)) &&
+            (string.IsNullOrEmpty(category) || category == "Todas" || string.Equals(x.Category, category, StringComparison.OrdinalIgnoreCase))
+        ).ToList();
+    }
+
+    private void Filter_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (IsLoaded && !_updatingFilters) ApplySearch();
     }
 
     private async void Refresh_Click(object sender, RoutedEventArgs e) => await LoadCatalog();
@@ -185,7 +216,7 @@ public partial class MainWindow : Window
             }
 
             entries = imported;
-            Catalog.ItemsSource = entries;
+            UpdateFilterOptions();
             PageTitle.Text = "Lista local importada";
             StatusText.Text = imported.Count == 0
                 ? "No se encontraron enlaces HTTPS válidos en la lista."
