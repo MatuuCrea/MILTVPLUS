@@ -355,31 +355,65 @@ fun AdultAccessScreen(
             }
         }
         Text("Explorá por categoría", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
-        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-            adultCategories.forEach { category ->
-                FilterChip(
-                    selected = selectedAdultCategory == category,
-                    onClick = {
-                        selectedAdultCategory = category
-                        if (unlocked && category != "Todos" && category != "Solo Adultos") {
-                            val available = adultItems.any {
-                                it.category.contains(category, ignoreCase = true) ||
-                                    it.title.contains(category, ignoreCase = true)
+        // Seis accesos visuales de la referencia. "Todos" queda como filtro auxiliar.
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val columns = if (maxWidth >= 760.dp) 6 else 3
+            val tiles = adultCategories.filterNot { it == "Todos" }
+            Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                tiles.chunked(columns).forEach { row ->
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        row.forEach { category ->
+                            val (symbol, tileColor) = when (category) {
+                                "Romance" -> "💋" to Color(0xFF6A1454)
+                                "Eróticos" -> "🔥" to Color(0xFF65152F)
+                                "Parejas" -> "♡" to Color(0xFF511044)
+                                "Hot" -> "⭐" to Color(0xFF5C183C)
+                                "Premium" -> "◇" to Color(0xFF102E70)
+                                else -> "18+" to Color(0xFF68152A)
                             }
-                            if (!available) unavailableCategory = category
-                        } else if (unlocked && adultItems.isEmpty() && category != "Todos") {
-                            unavailableCategory = category
+                            Card(
+                                onClick = {
+                                    selectedAdultCategory = category
+                                    if (unlocked && category != "Solo Adultos") {
+                                        val available = adultItems.any {
+                                            it.category.contains(category, ignoreCase = true) ||
+                                                it.title.contains(category, ignoreCase = true)
+                                        }
+                                        if (!available) unavailableCategory = category
+                                    } else if (unlocked && adultItems.isEmpty()) {
+                                        unavailableCategory = category
+                                    }
+                                },
+                                modifier = Modifier.weight(1f).height(104.dp),
+                                shape = RoundedCornerShape(15.dp),
+                                colors = CardDefaults.cardColors(containerColor = tileColor)
+                            ) {
+                                Column(
+                                    Modifier.fillMaxSize().padding(8.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Text(symbol, color = Color(0xFFFF78B9), fontSize = 27.sp, fontWeight = FontWeight.Black)
+                                    Spacer(Modifier.height(5.dp))
+                                    Text(category, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                                }
+                            }
                         }
-                    },
-                    label = { Text(category) },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = Color(0xFFB30B64),
-                        selectedLabelColor = Color.White,
-                        labelColor = Color(0xFFFFD8E9)
-                    )
-                )
+                        repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
+                    }
+                }
             }
         }
+        FilterChip(
+            selected = selectedAdultCategory == "Todos",
+            onClick = { selectedAdultCategory = "Todos" },
+            label = { Text("Ver todas las categorías") },
+            colors = FilterChipDefaults.filterChipColors(
+                selectedContainerColor = Color(0xFFB30B64),
+                selectedLabelColor = Color.White,
+                labelColor = Color(0xFFFFD8E9)
+            )
+        )
         Text("Solo contenido publicado y clasificado por edad. No se muestran canales de televisión ni enlaces inventados.", color = Color(0xFFFFD8E9), style = MaterialTheme.typography.bodySmall)
         Text("El acceso requiere declaración de mayoría de edad y un PIN parental de seis dígitos. La confirmación no reemplaza los controles legales de edad exigibles en cada país.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         when {
