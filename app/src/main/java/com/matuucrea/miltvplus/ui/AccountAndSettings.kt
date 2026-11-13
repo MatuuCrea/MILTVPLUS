@@ -295,6 +295,8 @@ fun AdultAccessScreen(
     onPlay: (RemoteCatalogEntry) -> Unit
 ) {
     val context = LocalContext.current
+    val screenScrollState = rememberScrollState()
+    val screenScope = rememberCoroutineScope()
     val store = remember { ParentalAccessStore(context) }
     val catalog = remember { SupabaseCatalogRepository() }
     var ageConfirmed by remember { mutableStateOf(store.ageConfirmed) }
@@ -345,7 +347,7 @@ fun AdultAccessScreen(
     Column(
         Modifier.fillMaxWidth()
             .background(Brush.verticalGradient(listOf(Color(0xFF210619), Color(0xFF09030D), Color(0xFF05030A))))
-            .padding(16.dp).verticalScroll(rememberScrollState()),
+            .padding(16.dp).verticalScroll(screenScrollState),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         Card(
@@ -395,6 +397,7 @@ fun AdultAccessScreen(
                                 Text("Disfrutá de una experiencia cuidada, privada y clasificada +18.", color = Color(0xFFFFD8E9), style = MaterialTheme.typography.bodySmall)
                                 Text("ACCESO PRIVADO · MAYORES DE 18", color = Color(0xFFFF79B7), fontSize = 9.sp, fontWeight = FontWeight.ExtraBold)
                                 Button(onClick = {
+                                    screenScope.launch { screenScrollState.animateScrollTo(screenScrollState.maxValue) }
                                     message = when {
                                         !ageConfirmed -> "Confirmá que tenés 18 años o más en el control de acceso."
                                         !pinExists -> "Creá tu PIN parental de seis dígitos para continuar."
