@@ -55,7 +55,7 @@ La misma taxonomía soporta todos los países y territorios con código ISO de d
 - Migración: `supabase/migrations/20261113170000_global_tv_channels.sql`.
 - Android: el catálogo global incluye la tabla `tv_channels`, usa el país seleccionado y muestra el logotipo; si no existe stream directo, ofrece abrir la página oficial.
 - Windows: sección `Canales por país`, logotipo, metadatos y apertura del sitio oficial como fallback.
-- Supabase contiene siete registros publicados/en revisión: Argentina tiene C5N, Canal 26 y Senado TV publicados como enlaces oficiales; Crónica TV y Diputados TV quedan en revisión. Se sumaron Al Jazeera English (QA) y TRT World (TR), publicados sólo como páginas oficiales de TV en vivo. No hay streams integrados ni derechos de redistribución marcados como verificados.
+- Supabase contiene 25 registros: 23 publicados como enlaces oficiales web y 2 en revisión. Argentina: C5N, Canal 26 y Senado TV publicados; Crónica TV y Diputados TV en revisión. Internacional: Al Jazeera English, TRT World, TV Migrante, Canal 14, Canal Once, TV UNAM, Canal 22, TV de Puebla, SMRTV, Televisión Mexiquense, France 24, DW, La 1, La 2, 24 Horas, Teledeporte, Clan, ABC News Australia, TV Brasil y TV Chile. Son enlaces a las plataformas oficiales, no streams integrados. No hay derechos de redistribución marcados como verificados.
 - Android ordena por prioridad, filtra por país y categoría y muestra el modelo de acceso; Windows ofrece filtros dinámicos por país/categoría y muestra el modelo de acceso.
 - Migración adicional: `supabase/migrations/20261113193000_official_web_directory_links.sql`.
 
@@ -70,3 +70,6 @@ La misma taxonomía soporta todos los países y territorios con código ISO de d
 ## Fuera de alcance de esta fase
 
 Películas y series permanecen sin implementación de catálogo/contenido. No importar ni publicar VOD hasta que el propietario habilite expresamente esa fase y se acrediten los derechos correspondientes.
+
+
+El inventario internacional se amplió con páginas de señal en vivo de MXPlus para canales públicos mexicanos, RTVE Play para señales españolas, ABC iview para ABC News, TVN Play para TV Chile y la WebTV oficial de TV Brasil. Algunos servicios limitan contenido por país o por derechos de programas; cada ficha conserva ese estado y no se convierte en stream HLS/DASH.
