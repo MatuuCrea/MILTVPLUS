@@ -3,6 +3,9 @@ using System.Reflection;
 using System.IO;
 using System.Diagnostics;
 using System.Text.Json;
+using System.Globalization;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Controls;
@@ -33,6 +36,9 @@ public partial class MainWindow : Window
     private bool _localPlaylistLoaded;
     private CatalogEntry? _currentEntry;
     private readonly DispatcherTimer _catalogRefreshTimer = new() { Interval = TimeSpan.FromMinutes(1) };
+    private readonly DispatcherTimer _clockTimer = new() { Interval = TimeSpan.FromSeconds(1) };
+    private bool _adultUnlocked;
+    private string AdultDataDirectory => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MILTVPLUS");
 
     public MainWindow()
     {
@@ -41,10 +47,14 @@ public partial class MainWindow : Window
         _mediaPlayer = new MediaPlayer(_libVlc);
         InitializeComponent();
         VideoSurface.MediaPlayer = _mediaPlayer;
+        UpdateClock();
+        _clockTimer.Tick += (_, _) => UpdateClock();
+        _clockTimer.Start();
+        AdultAgeConfirm.IsChecked = File.Exists(Path.Combine(AdultDataDirectory, "adult-age-confirmed"));
         Client.DefaultRequestHeaders.TryAddWithoutValidation("apikey", PublicKey);
         Client.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "application/json");
         Loaded += async (_, _) => { await LoadCatalog(); await CheckForUpdates(silent: true); };
-        Closed += (_, _) => { _catalogRefreshTimer.Stop(); DisposePlayer(); };
+        Closed += (_, _) => { _catalogRefreshTimer.Stop(); _clockTimer.Stop(); DisposePlayer(); };
         _catalogRefreshTimer.Tick += async (_, _) => { if (table == "tv_channels" && !_localPlaylistLoaded) await LoadCatalog(); };
         _catalogRefreshTimer.Start();
         VideoSurface.MouseLeftButtonDown += (_, e) => { if (e.ClickCount == 2) ToggleFullscreen(); };
@@ -72,6 +82,13 @@ public partial class MainWindow : Window
                 var page = await JsonSerializer.DeserializeAsync<List<CatalogEntry>>(stream, JsonOptions) ?? [];
                 loaded.AddRange(page);
                 if (page.Count < pageSize) break;
+            }
+            if (table == "catalog_items")
+            {
+                var adultSection = Sections.SelectedItem is ListBoxItem selectedItem && selectedItem.Tag?.ToString() == "Adultos 18+";
+                loaded = adultSection && _adultUnlocked
+                    ? loaded.Where(x => IsAdultRating(x.AgeRating)).ToList()
+                    : loaded.Where(x => !IsAdultRating(x.AgeRating)).ToList();
             }
             entries = loaded;
             UpdateFilterOptions();
@@ -229,7 +246,7 @@ public partial class MainWindow : Window
             VideoContainer.Padding = new Thickness(0);
             VideoContainer.Margin = new Thickness(0);
             Grid.SetRow(VideoContainer, 0);
-            Grid.SetRowSpan(VideoContainer, 4);
+            Grid.SetRowSpan(VideoContainer, 5);
         }
         else
         {
@@ -247,6 +264,95 @@ public partial class MainWindow : Window
             WindowState = WindowState.Normal;
         }
     }
+
+
+    private void UpdateClock()
+    {
+        var now = DateTime.Now;
+        ClockTime.Text = now.ToString("HH:mm", CultureInfo.GetCultureInfo("es-AR"));
+        ClockDate.Text = now.ToString("ddd, dd MMM yyyy", CultureInfo.GetCultureInfo("es-AR"));
+    }
+
+    private void QuickNavigation_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not FrameworkElement element || element.Tag is not string target) return;
+        var item = Sections.Items.Cast<ListBoxItem>().FirstOrDefault(x => string.Equals(x.Tag?.ToString(), target, StringComparison.OrdinalIgnoreCase));
+        if (item is not null) Sections.SelectedItem = item;
+    }
+
+    private void OpenSettings_Click(object sender, RoutedEventArgs e) => QuickSelect("Configuración");
+    private void OpenAccount_Click(object sender, RoutedEventArgs e) =>
+        MessageBox.Show(this, "La gestión de cuenta y sincronización está disponible en el cliente Android. Esta compilación de escritorio usa el catálogo público y fuentes locales.", "MILTVPLUS · Cuenta", MessageBoxButton.OK, MessageBoxImage.Information);
+
+    private void QuickSelect(string tag)
+    {
+        var item = Sections.Items.Cast<ListBoxItem>().FirstOrDefault(x => x.Tag?.ToString() == tag);
+        if (item is not null) Sections.SelectedItem = item;
+    }
+
+    private async void AdultUnlock_Click(object sender, RoutedEventArgs e)
+    {
+        if (AdultAgeConfirm.IsChecked != true)
+        {
+            AdultGateStatus.Text = "Primero confirmá que tenés 18 años o más.";
+            return;
+        }
+        var pin = AdultPinBox.Password;
+        if (pin.Length != 6 || pin.Any(ch => !char.IsDigit(ch)))
+        {
+            AdultGateStatus.Text = "El PIN debe contener exactamente seis números.";
+            return;
+        }
+        try
+        {
+            Directory.CreateDirectory(AdultDataDirectory);
+            File.WriteAllText(Path.Combine(AdultDataDirectory, "adult-age-confirmed"), DateTimeOffset.UtcNow.ToString("O"));
+            var pinPath = Path.Combine(AdultDataDirectory, "adult-pin.sha256");
+            var hash = SHA256.HashData(Encoding.UTF8.GetBytes(pin));
+            if (!File.Exists(pinPath))
+            {
+                File.WriteAllText(pinPath, Convert.ToHexString(hash));
+                AdultGateStatus.Text = "PIN parental creado. Sección desbloqueada.";
+            }
+            else
+            {
+                var saved = Convert.FromHexString((await File.ReadAllTextAsync(pinPath)).Trim());
+                if (!CryptographicOperations.FixedTimeEquals(saved, hash))
+                {
+                    AdultGateStatus.Text = "PIN incorrecto. La sección permanece bloqueada.";
+                    AdultPinBox.Clear();
+                    return;
+                }
+                AdultGateStatus.Text = "Acceso +18 confirmado.";
+            }
+            _adultUnlocked = true;
+            AdultPinBox.Clear();
+            AdultGatePanel.Visibility = Visibility.Collapsed;
+            VideoContainer.Visibility = Visibility.Visible;
+            CatalogScroll.Visibility = Visibility.Visible;
+            table = "catalog_items";
+            select = "id,title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url";
+            order = "created_at.desc";
+            kind = null;
+            await LoadCatalog();
+            PageTitle.Text = "Adultos 18+";
+        }
+        catch (Exception ex)
+        {
+            AdultGateStatus.Text = "No se pudo validar el acceso: " + ex.Message;
+        }
+    }
+
+    private static bool IsAdultRating(string? rating)
+    {
+        var value = (rating ?? string.Empty).Trim().ToUpperInvariant();
+        return value.Contains("18") || new[] { "NC-17", "R18", "TV-MA", "MA", "AO", "ADULT", "ADULTS ONLY" }.Contains(value);
+    }
+
+    private void PreviousAnyChannel_Click(object sender, RoutedEventArgs e) => ChangeChannel(-1);
+    private void NextAnyChannel_Click(object sender, RoutedEventArgs e) => ChangeChannel(1);
+    private void StopAny_Click(object sender, RoutedEventArgs e) => Stop_Click(sender, e);
+    private void Watch_Click(object sender, RoutedEventArgs e) => Play_Click(sender, e);
 
     private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
     {
@@ -325,22 +431,40 @@ public partial class MainWindow : Window
     private async void Sections_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!IsLoaded || Sections.SelectedItem is not ListBoxItem item) return;
-        var section = item.Content?.ToString();
+        var section = item.Tag?.ToString() ?? item.Content?.ToString();
         _localPlaylistLoaded = false;
+        HomePanel.Visibility = section == "Inicio" ? Visibility.Visible : Visibility.Collapsed;
+        var isAdult = section == "Adultos 18+";
+        AdultGatePanel.Visibility = isAdult && !_adultUnlocked ? Visibility.Visible : Visibility.Collapsed;
+        VideoContainer.Visibility = isAdult && !_adultUnlocked ? Visibility.Collapsed : Visibility.Visible;
+        CatalogScroll.Visibility = isAdult && !_adultUnlocked ? Visibility.Collapsed : Visibility.Visible;
+        if (isAdult && !_adultUnlocked)
+        {
+            entries = [];
+            Catalog.ItemsSource = entries;
+            PageTitle.Text = "Adultos 18+ · Acceso protegido";
+            StatusText.Text = "Confirmá tu edad y validá tu PIN parental para continuar.";
+            return;
+        }
         (table, select, order, kind) = section switch
         {
-            "Canales por país" => ("tv_channels", "title,description,country_code,created_at,category,language_code,access_model,logo_url,official_watch_url,stream_url,playback_type,is_free_to_air,source_status,last_checked_at,last_check_detail", "sort_order.asc,title.asc", null),
-            "TV en vivo" => ("catalog_items", "title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url", "created_at.desc", "live"),
-            "Películas" => ("catalog_items", "title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url", "created_at.desc", "movie"),
-            "Series" => ("catalog_items", "title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url", "created_at.desc", "series"),
-            "Deportes" => ("sports_events", "title,description,country_code,starts_at,competition,sport,poster_url,official_info_url", "starts_at.asc", null),
-            "Radios" => ("radio_stations", "title,description,country_code,created_at,genre,language_code,logo_url,stream_url,website_url", "created_at.desc", null),
-            "Música" => ("music_items", "title,creator,country_code,created_at,item_type,album,genre,release_year,external_url,artwork_url", "created_at.desc", null),
-            "Teatro" => ("theater_events", "title,description,country_code,starts_at,venue,genre,poster_url,info_url", "starts_at.asc", null),
-            "Guía EPG" => ("epg_programs", "title,description,country_code,starts_at,ends_at,category,language_code,channel_external_id", "starts_at.asc", null),
-            _ => ("catalog_items", "title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url", "created_at.desc", null)
+            "Inicio" or "TV en vivo" or "Países" => ("tv_channels", "id,title,description,country_code,created_at,category,language_code,access_model,logo_url,official_watch_url,stream_url,playback_type,is_free_to_air,source_status,last_checked_at,last_check_detail", "sort_order.asc,title.asc", null),
+            "Películas" => ("catalog_items", "id,title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url", "created_at.desc", "movie"),
+            "Series" => ("catalog_items", "id,title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url", "created_at.desc", "series"),
+            "Infantil" => ("catalog_items", "id,title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url", "created_at.desc", "kids"),
+            "Documentales" => ("catalog_items", "id,title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url", "created_at.desc", "documentary"),
+            "Adultos 18+" => ("catalog_items", "id,title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url", "created_at.desc", null),
+            "Deportes" => ("sports_events", "id,title,description,country_code,starts_at,competition,sport,poster_url,official_info_url", "starts_at.asc", null),
+            "Música" => ("music_items", "id,title,creator,country_code,created_at,item_type,album,genre,release_year,external_url,artwork_url", "created_at.desc", null),
+            "Guía EPG" => ("epg_programs", "id,title,description,country_code,starts_at,ends_at,category,language_code,channel_external_id", "starts_at.asc", null),
+            "Favoritos" => ("tv_channels", "id,title,description,country_code,created_at,category,language_code,access_model,logo_url,official_watch_url,stream_url,playback_type,is_free_to_air,source_status,last_checked_at,last_check_detail", "sort_order.asc,title.asc", null),
+            "Configuración" => ("tv_channels", "id,title,description,country_code,created_at,category,language_code,access_model,logo_url,official_watch_url,stream_url,playback_type,is_free_to_air,source_status,last_checked_at,last_check_detail", "sort_order.asc,title.asc", null),
+            _ => ("tv_channels", "id,title,description,country_code,created_at,category,language_code,access_model,logo_url,official_watch_url,stream_url,playback_type,is_free_to_air,source_status,last_checked_at,last_check_detail", "sort_order.asc,title.asc", null)
         };
         PageTitle.Text = section ?? "MILTVPLUS";
+        if (section == "Configuración") StatusText.Text = "Pantalla completa: F11 · Cambio de canal: Ctrl + ← / →.";
+        if (section == "Favoritos") StatusText.Text = "Los favoritos sincronizados se administran desde la cuenta MILTVPLUS.";
+        if (section == "Más Opciones") StatusText.Text = "Más opciones: Fuentes M3U, Control parental +18 y Soporte.";
         await LoadCatalog();
     }
 
