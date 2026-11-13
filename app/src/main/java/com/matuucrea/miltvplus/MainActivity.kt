@@ -202,6 +202,7 @@ class MainActivity:ComponentActivity(){
                     Triple("Música", Icons.Default.MusicNote, "music_items"),
                     Triple("Teatro", Icons.Default.TheaterComedy, "theater_events"),
                     Triple("Guía EPG", Icons.Default.CalendarMonth, "epg_programs"),
+                    Triple("Apps", Icons.Default.Apps, "Apps"),
                     Triple("Países", Icons.Default.Public, "Países"),
                     Triple("Favoritos", Icons.Default.Favorite, "Favoritos"),
                     Triple("Fuentes M3U", Icons.Default.PlaylistAdd, "Fuentes"),
@@ -531,6 +532,42 @@ class MainActivity:ComponentActivity(){
                 TextButton(onClick={tab="Cuenta"},modifier=Modifier.padding(horizontal=16.dp)){Text("👤 Cuenta y sincronización")}
                 TextButton(onClick={tab="Adultos"},modifier=Modifier.padding(horizontal=16.dp)){Text("🔞 Control parental +18")}
                 TextButton(onClick={tab="Música"},modifier=Modifier.padding(horizontal=16.dp)){Text("🎧 Conectar con Spotify")}
+            }
+            "Apps"->{
+                Title("Apps y servicios","Accesos oficiales desde MILTVPLUS")
+                val services=listOf(
+                    Triple("YouTube","Videos, canales y directos","https://www.youtube.com/"),
+                    Triple("Spotify","Música y podcasts","https://open.spotify.com/"),
+                    Triple("Twitch","Directos y comunidades","https://www.twitch.tv/"),
+                    Triple("Pluto TV","Televisión gratuita con publicidad","https://pluto.tv/"),
+                    Triple("Plex","Tu biblioteca multimedia","https://app.plex.tv/"),
+                    Triple("VLC","Reproductor multimedia","https://www.videolan.org/vlc/")
+                )
+                Column(Modifier.fillMaxWidth().padding(horizontal=14.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
+                    services.chunked(2).forEach { pair ->
+                        Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) {
+                            pair.forEach { (name,description,url) ->
+                                Card(
+                                    onClick={runCatching { context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(url))) }.onFailure { remoteError="No se pudo abrir $name." }},
+                                    modifier=Modifier.weight(1f),
+                                    colors=CardDefaults.cardColors(containerColor=Color(0xFF121D32)),
+                                    shape=RoundedCornerShape(16.dp)
+                                ) {
+                                    Column(Modifier.fillMaxWidth().padding(15.dp),verticalArrangement=Arrangement.spacedBy(7.dp)) {
+                                        Text(name,color=Color.White,fontSize=16.sp,fontWeight=FontWeight.Bold)
+                                        Text(description,color=Color.LightGray,fontSize=11.sp)
+                                        Row(verticalAlignment=Alignment.CenterVertically) {
+                                            Text("Abrir servicio",color=cyan,fontSize=11.sp,fontWeight=FontWeight.Bold)
+                                            Icon(Icons.Default.OpenInNew,null,tint=cyan,modifier=Modifier.size(14.dp))
+                                        }
+                                    }
+                                }
+                            }
+                            if(pair.size==1) Spacer(Modifier.weight(1f))
+                        }
+                    }
+                    Text("Estos accesos abren los servicios oficiales. Su contenido, suscripción y disponibilidad dependen de cada proveedor.",Modifier.padding(4.dp),color=Color.LightGray,fontSize=11.sp)
+                }
             }
             "Música"->{Title("Música","Artistas, álbumes y listas publicadas")
                 Button(onClick={ { runCatching { context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse("https://open.spotify.com/"))) }.onFailure { remoteError="No se pudo abrir Spotify." } } },modifier=Modifier.padding(horizontal=16.dp)){Icon(Icons.Default.OpenInNew,null);Text("Abrir Spotify")}
