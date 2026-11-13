@@ -296,7 +296,7 @@ class MainActivity:ComponentActivity(){
                                             }) { Icon(if(item.id in cloudFavorites) Icons.Default.Favorite else Icons.Default.FavoriteBorder,"Favorito en la nube",tint=cyan) }
                                         }
                                         if(item.actionUrl!=null && remoteCategory=="tv_channels") TextButton(onClick={
-                                            val playable = remoteItems.filter { it.actionUrl != null }.map { Channel(it.id,it.title,it.actionUrl!!,it.countryCode ?: "",it.artworkUrl) }
+                                            val playable = remoteItems.filter { it.actionUrl != null && (selectedChannelCountry==null || it.countryCode==selectedChannelCountry) && (channelCategoryFilter==null || it.category==channelCategoryFilter) }.map { Channel(it.id,it.title,it.actionUrl!!,it.countryCode ?: "",it.artworkUrl) }
                                             val start = playable.indexOfFirst { it.id == item.id }
                                             if(start >= 0) launchChannelPlayer(context, playable, start)
                                         }){Text("Ver en pantalla completa")}
