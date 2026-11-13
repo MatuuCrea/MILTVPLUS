@@ -83,7 +83,7 @@ jobs:
           merge-multiple: true
           path: release-assets
       - name: Generate SHA-256 manifest
-        run: sha256sum release-assets/app-release.apk release-assets/MILTVPLUS-Setup-x64.exe > release-assets/SHA256SUMS
+        run: cd release-assets && sha256sum app-release.apk MILTVPLUS-Setup-x64.exe > SHA256SUMS
       - name: Publish signed APK, Windows installer and checksums
         uses: softprops/action-gh-release@v2
         with:
@@ -91,4 +91,5 @@ jobs:
           files: |
             release-assets/app-release.apk
             release-assets/MILTVPLUS-Setup-x64.exe
+            release-assets/SHA256SUMS
           fail_on_unmatched_files: true
