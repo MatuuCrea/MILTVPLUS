@@ -81,7 +81,15 @@ class SupabaseCatalogRepository {
         val startsAt = row.optString("starts_at").takeIf { it.isNotBlank() && it != "null" }
         val endsAt = row.optString("ends_at").takeIf { it.isNotBlank() && it != "null" }
         val schedule = listOfNotNull(startsAt, endsAt).joinToString(" – ")
-        val subtitle = (subtitleParts + listOfNotNull(schedule)).distinct().joinToString(" · ")
+        val accessModelLabel = when (row.optString("access_model")) {
+            "free_web" -> "Acceso web gratuito"
+            "free_to_air" -> "Televisión abierta"
+            "free_with_ads" -> "Gratis con anuncios"
+            "subscription" -> "Suscripción"
+            "geo_restricted" -> "Con restricción geográfica"
+            else -> null
+        }
+        val subtitle = (subtitleParts + listOfNotNull(schedule, accessModelLabel)).distinct().joinToString(" · ")
         val artwork = listOf("logo_url", "poster_url", "backdrop_url", "artwork_url", "image_url")
             .firstNotNullOfOrNull { key -> row.optString(key).takeIf(::isSafeHttpsUrl) }
         val action = listOf("stream_url", "authorized_stream_url")
