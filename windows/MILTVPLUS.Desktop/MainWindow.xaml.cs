@@ -457,6 +457,8 @@ public partial class MainWindow : Window
             "Adultos 18+" => ("catalog_items", "id,title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url", "created_at.desc", null),
             "Deportes" => ("sports_events", "id,title,description,country_code,starts_at,competition,sport,poster_url,official_info_url", "starts_at.asc", null),
             "Música" => ("music_items", "id,title,creator,country_code,created_at,item_type,album,genre,release_year,external_url,artwork_url", "created_at.desc", null),
+            "Radios" => ("radio_stations", "id,title,description,country_code,created_at,genre,language_code,logo_url,stream_url,website_url", "created_at.desc", null),
+            "Teatro" => ("theater_events", "id,title,description,country_code,starts_at,venue,genre,poster_url,info_url", "starts_at.asc", null),
             "Guía EPG" => ("epg_programs", "id,title,description,country_code,starts_at,ends_at,category,language_code,channel_external_id", "starts_at.asc", null),
             "Favoritos" => ("tv_channels", "id,title,description,country_code,created_at,category,language_code,access_model,logo_url,official_watch_url,stream_url,playback_type,is_free_to_air,source_status,last_checked_at,last_check_detail", "sort_order.asc,title.asc", null),
             "Configuración" => ("tv_channels", "id,title,description,country_code,created_at,category,language_code,access_model,logo_url,official_watch_url,stream_url,playback_type,is_free_to_air,source_status,last_checked_at,last_check_detail", "sort_order.asc,title.asc", null),
