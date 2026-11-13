@@ -2,7 +2,8 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows;
-using System.Windows.Controls;\nusing Microsoft.Win32;
+using System.Windows.Controls;
+using Microsoft.Win32;
 using LibVLCSharp.Shared;
 
 namespace MILTVPLUS.Desktop;
