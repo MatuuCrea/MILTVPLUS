@@ -212,8 +212,9 @@ private fun PremiumSidebarPromo() {
 }
 
 @Composable
-fun PremiumAppTopBar(activeTab: String, onSearch: (String) -> Unit, onSettings: () -> Unit) {
+fun PremiumAppTopBar(activeTab: String, onSearch: (String) -> Unit, onSettings: () -> Unit, onAccount: () -> Unit) {
     var query by remember { mutableStateOf("") }
+    var showNotifications by remember { mutableStateOf(false) }
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(Unit) {
         while (true) { now = System.currentTimeMillis(); delay(30_000) }
@@ -252,14 +253,22 @@ fun PremiumAppTopBar(activeTab: String, onSearch: (String) -> Unit, onSettings: 
                     focusedLeadingIconColor = PremiumPink, unfocusedLeadingIconColor = Color.LightGray
                 )
             )
-            IconButton(onClick = onSettings, modifier = Modifier.size(38.dp)) {
+            IconButton(onClick = { showNotifications = true }, modifier = Modifier.size(38.dp)) {
                 Icon(Icons.Default.NotificationsNone, "Notificaciones", tint = Color.White)
             }
             IconButton(onClick = onSettings, modifier = Modifier.size(38.dp)) {
                 Icon(Icons.Default.Settings, "Configuración", tint = Color.White)
             }
-            if (!narrow) Icon(Icons.Default.AccountCircle, "Perfil", tint = Color.White, modifier = Modifier.size(25.dp))
+            if (!narrow) IconButton(onClick = onAccount, modifier = Modifier.size(38.dp)) { Icon(Icons.Default.AccountCircle, "Mi perfil", tint = Color.White) }
         }
+    }
+    if (showNotifications) {
+        AlertDialog(
+            onDismissRequest = { showNotifications = false },
+            title = { Text("Notificaciones") },
+            text = { Text("Las notificaciones push y los avisos de programación todavía no están conectados en esta versión. No se muestran contadores ficticios.") },
+            confirmButton = { TextButton(onClick = { showNotifications = false }) { Text("Entendido") } }
+        )
     }
 }
 
