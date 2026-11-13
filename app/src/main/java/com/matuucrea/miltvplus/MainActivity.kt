@@ -175,7 +175,7 @@ class MainActivity:ComponentActivity(){
     Scaffold(containerColor=bg,bottomBar={NavigationBar(containerColor=Color(0xFF080F28)){
         listOf("Inicio","TV","Fuentes","Favoritos","Ajustes").forEach { t ->
             val ico=when(t){"Inicio"->Icons.Default.Home;"TV"->Icons.Default.LiveTv;"Fuentes"->Icons.Default.PlaylistAdd;"Favoritos"->Icons.Default.Favorite;else->Icons.Default.Settings}
-            NavigationBarItem(selected=tab==t || (t=="TV" && tab=="Catálogo" && remoteCategory=="tv_channels"),onClick={if(t=="TV"){remoteCategory="tv_channels";remoteKindFilter=null;tab="Catálogo"}else tab=t},icon={Icon(ico,null)},label={Text(t)},colors=NavigationBarItemDefaults.colors(selectedIconColor=Color(0xFFFF4059),selectedTextColor=Color(0xFFFF4059),indicatorColor=Color(0xFFFF4059).copy(alpha=.16f)))
+            NavigationBarItem(selected=tab==t || (t=="TV" && tab=="Catálogo" && remoteCategory=="tv_channels"),onClick={if(t=="TV"){remoteCategory="tv_channels";remoteKindFilter=null;tab="Catálogo"}else {if(t=="Inicio")remoteCategory="tv_channels";tab=t}},icon={Icon(ico,null)},label={Text(t)},colors=NavigationBarItemDefaults.colors(selectedIconColor=Color(0xFFFF4059),selectedTextColor=Color(0xFFFF4059),indicatorColor=Color(0xFFFF4059).copy(alpha=.16f)))
         }
     }}){pad->Column(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF071638),bg,Color(0xFF100D20)))).padding(pad)){
         Row(Modifier.fillMaxWidth().padding(20.dp),verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text("MILTVPLUS",color=Color.White,fontSize=25.sp,fontWeight=FontWeight.Black,letterSpacing=1.5.sp);Text("ENTRETENIMIENTO • V22.34.9",color=cyan,fontSize=10.sp)};Row(verticalAlignment=Alignment.CenterVertically) {
@@ -275,7 +275,7 @@ class MainActivity:ComponentActivity(){
                     Spacer(Modifier.height(18.dp))
                 }
             }
-            "Catálogo"->{Row(Modifier.fillMaxWidth().padding(end=12.dp),verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Title("Catálogo global","Contenido publicado desde tu backend seguro")};IconButton(onClick={catalogRefresh++},enabled=!remoteLoading){Icon(Icons.Default.Refresh,"Actualizar catálogo",tint=cyan)}};TextButton(onClick={tab="Inicio"},modifier=Modifier.padding(start=12.dp)){Text("← Volver a Inicio")}
+            "Catálogo"->{Row(Modifier.fillMaxWidth().padding(end=12.dp),verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Title("Catálogo global","Contenido publicado desde tu backend seguro")};IconButton(onClick={catalogRefresh++},enabled=!remoteLoading){Icon(Icons.Default.Refresh,"Actualizar catálogo",tint=cyan)}};TextButton(onClick={remoteCategory="tv_channels";tab="Inicio"},modifier=Modifier.padding(start=12.dp)){Text("← Volver a Inicio")}
                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal=12.dp),horizontalArrangement=Arrangement.spacedBy(6.dp)){
                     listOf("tv_channels" to "Canales por país","catalog_items" to "TV / VOD","radio_stations" to "Radios","sports_events" to "Deportes","music_items" to "Música","theater_events" to "Teatro","epg_programs" to "Guía EPG").forEach{(table,label)->
                         FilterChip(selected=remoteCategory==table,onClick={remoteCategory=table;remoteKindFilter=null;channelCategoryFilter=null},label={Text(label)})
