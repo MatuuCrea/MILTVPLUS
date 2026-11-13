@@ -1,9 +1,7 @@
 package com.matuucrea.miltvplus.player
 
 import android.app.Activity
-import android.content.Intent
 import android.content.pm.ActivityInfo
-import android.net.Uri
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
@@ -93,11 +91,9 @@ class OfficialWatchActivity : Activity() {
         controls = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER; setBackgroundColor(0xFF101010.toInt()) }
         previous = Button(this).apply { text = "◀ Canal anterior" }
         next = Button(this).apply { text = "Canal siguiente ▶" }
-        val external = Button(this).apply { text = "Abrir en navegador" }
         val close = Button(this).apply { text = "Cerrar" }
         controls.addView(previous, LinearLayout.LayoutParams(0, -2, 1f))
         controls.addView(next, LinearLayout.LayoutParams(0, -2, 1f))
-        controls.addView(external, LinearLayout.LayoutParams(0, -2, 1f))
         controls.addView(close, LinearLayout.LayoutParams(0, -2, 1f))
         root.addView(channelTitle, LinearLayout.LayoutParams(-1, -2))
         root.addView(webView, LinearLayout.LayoutParams(-1, 0, 1f))
@@ -105,10 +101,6 @@ class OfficialWatchActivity : Activity() {
         setContentView(root)
         previous.setOnClickListener { loadChannel(index - 1) }
         next.setOnClickListener { loadChannel(index + 1) }
-        external.setOnClickListener {
-            val url = channels[index].optString("url")
-            runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
-        }
         close.setOnClickListener { finish() }
         loadChannel(index)
         if (intent.getBooleanExtra(EXTRA_REMOTE_CATALOG, false)) {
