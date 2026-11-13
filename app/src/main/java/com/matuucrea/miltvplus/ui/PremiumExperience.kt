@@ -322,32 +322,51 @@ fun PremiumHomeDashboard(
 @Composable
 private fun HeroPanel(modifier: Modifier, onNavigate: (String) -> Unit) {
     Card(modifier, shape = RoundedCornerShape(20.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF0D2852))) {
-        Box(
-            Modifier.fillMaxWidth().heightIn(min = 270.dp)
-                .background(Brush.linearGradient(listOf(Color(0xFF041A43), Color(0xFF075DB4), Color(0xFF06152F))))
+        BoxWithConstraints(
+            Modifier.fillMaxWidth().heightIn(min = 292.dp)
+                .background(Brush.linearGradient(listOf(Color(0xFF031437), Color(0xFF075DB4), Color(0xFF06152F))))
                 .padding(20.dp)
         ) {
-            Column(Modifier.align(Alignment.CenterStart).fillMaxWidth(.78f), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+            val wide = maxWidth >= 560.dp
+            Box(Modifier.align(Alignment.BottomStart).fillMaxWidth().height(5.dp)
+                .background(Brush.horizontalGradient(listOf(Color(0xFF75D9F5), Color.White, Color(0xFF75D9F5)))))
+            Column(
+                Modifier.align(Alignment.CenterStart).fillMaxWidth(if (wide) .70f else 1f),
+                verticalArrangement = Arrangement.spacedBy(7.dp)
+            ) {
                 Text("🇦🇷  MILTVPLUS · ARGENTINA Y EL MUNDO", color = PremiumCyan, fontSize = 10.sp, fontWeight = FontWeight.ExtraBold)
                 Text("Bienvenido a", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
                 Text("MILTVPLUS", color = Color.White, fontSize = 36.sp, fontWeight = FontWeight.Black)
                 Box(Modifier.width(64.dp).height(4.dp).background(PremiumCyan, RoundedCornerShape(5.dp)))
-                Text("La mejor experiencia de entretenimiento en Argentina y el mundo.", color = Color.White, fontSize = 14.sp)
-                listOf("TV en vivo y señales públicas", "Películas, series y deportes", "Guía de programación y favoritos").forEach {
+                Text("La mejor experiencia IPTV en Argentina y el mundo.", color = Color.White, fontSize = 14.sp)
+                listOf(
+                    "TV en Vivo · Películas · Series",
+                    "Canales públicos de todo el mundo",
+                    "Guía EPG, favoritos y mucho más"
+                ).forEach { line ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.CheckCircle, null, tint = PremiumCyan, modifier = Modifier.size(17.dp))
                         Spacer(Modifier.width(7.dp))
-                        Text(it, color = Color.White, fontSize = 12.sp)
+                        Text(line, color = Color.White, fontSize = 12.sp)
                     }
                 }
-                Button(onClick = { onNavigate("TV en Vivo") }, colors = ButtonDefaults.buttonColors(containerColor = PremiumBlue), shape = RoundedCornerShape(24.dp)) {
-                    Icon(Icons.Default.PlayArrow, null); Spacer(Modifier.width(6.dp)); Text("Ver televisión")
+                Button(onClick = { onNavigate("TV en Vivo") },
+                    colors = ButtonDefaults.buttonColors(containerColor = PremiumBlue),
+                    shape = RoundedCornerShape(24.dp)) {
+                    Icon(Icons.Default.PlayArrow, null); Spacer(Modifier.width(6.dp)); Text("Ver Televisión")
                 }
-                Text("Viva Argentina. Siempre en tu corazón.", color = Color(0xFFFFE5A3), fontSize = 13.sp, fontWeight = FontWeight.Bold)
             }
-            Column(Modifier.align(Alignment.TopEnd), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("☀", color = PremiumGold, fontSize = 48.sp)
-                Text("🇦🇷", fontSize = 42.sp)
+            Column(
+                Modifier.align(if (wide) Alignment.CenterEnd else Alignment.TopEnd),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text("☀", color = PremiumGold, fontSize = if (wide) 54.sp else 35.sp)
+                Text("🇦🇷", fontSize = if (wide) 48.sp else 32.sp)
+                if (wide) {
+                    Icon(Icons.Default.SportsSoccer, null, tint = Color.White.copy(alpha = .88f), modifier = Modifier.size(74.dp))
+                    Text("ARGENTINA · 10", color = Color(0xFFBDEBFF), fontSize = 10.sp, fontWeight = FontWeight.Black)
+                }
             }
         }
     }
