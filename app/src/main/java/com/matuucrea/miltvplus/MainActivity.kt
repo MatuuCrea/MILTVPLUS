@@ -22,6 +22,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.media3.common.MediaItem
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.PlayerView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.matuucrea.miltvplus.data.Channel
 import com.matuucrea.miltvplus.data.M3uParser
@@ -33,8 +37,11 @@ class MainActivity:ComponentActivity(){
 }
 @Composable private fun App(vm:PlayerViewModel=viewModel()){
     val context=LocalContext.current
+    val exoPlayer = remember(context) { ExoPlayer.Builder(context).build() }
+    DisposableEffect(exoPlayer) { onDispose { exoPlayer.release() } }
     var tab by remember { mutableStateOf("Inicio") }; var query by remember { mutableStateOf("") }
     val channels by vm.channels.collectAsState(); val selected by vm.selected.collectAsState(); val errorMessage by vm.error.collectAsState(); val favorites by vm.favorites.collectAsState()
+    LaunchedEffect(selected?.url) { val url = selected?.url; if (url == null) { exoPlayer.stop(); exoPlayer.clearMediaItems() } else { exoPlayer.setMediaItem(MediaItem.fromUri(url)); exoPlayer.prepare(); exoPlayer.playWhenReady = true } }
     val picker=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()){ uri ->
         uri?.let { u -> runCatching { context.contentResolver.openInputStream(u)?.bufferedReader()?.use { M3uParser.parse(it.readText()) } ?: throw IllegalStateException("No se pudo abrir el archivo") }
             .onSuccess { vm.setChannels(it); tab="TV" }.onFailure { vm.setError("No se pudo importar: "+(it.message ?: "archivo inválido")) } }
@@ -50,7 +57,7 @@ class MainActivity:ComponentActivity(){
             "Inicio"->{Card(Modifier.fillMaxWidth().padding(horizontal=16.dp),shape=RoundedCornerShape(26.dp),colors=CardDefaults.cardColors(containerColor=panel)){Column(Modifier.background(Brush.linearGradient(listOf(Color(0xFF082E73),panel,Color(0xFF451B21)))).padding(22.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){Text("TU ENTRETENIMIENTO,\nA TU MANERA",color=Color.White,fontSize=25.sp,fontWeight=FontWeight.ExtraBold);Text(channels.size.toString()+" canales en tu biblioteca",color=cyan);Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){Button(onClick={tab="TV"}){Text("Explorar TV")};OutlinedButton(onClick={tab="Fuentes"}){Text("Agregar fuente")}}}};Title("Tu espacio","Contenido desde fuentes autorizadas");if(channels.isEmpty())Empty("Todavía no agregaste canales","Importá un archivo M3U/M3U8 propio o autorizado.")}
             "Fuentes"->{Title("Fuentes","Importación local controlada");Card(Modifier.fillMaxWidth().padding(16.dp),colors=CardDefaults.cardColors(containerColor=panel)){Column(Modifier.padding(20.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){Icon(Icons.Default.PlaylistAdd,null,tint=cyan);Text("Agregar lista M3U / M3U8",color=Color.White,fontSize=18.sp,fontWeight=FontWeight.Bold);Text("Seleccioná un archivo del dispositivo. Usá solo listas propias, públicas o licenciadas.",color=Color.LightGray);Button(onClick={picker.launch(arrayOf("audio/x-mpegurl","application/vnd.apple.mpegurl","text/plain","*/*"))}){Icon(Icons.Default.FolderOpen,null);Text("Seleccionar archivo")}}};errorMessage?.let{Text(it,Modifier.padding(18.dp),color=orange)}}
             "Ajustes"->{Title("Ajustes","Preferencias y compatibilidad");listOf("Reproducción" to "Motor Media3 · HLS","Privacidad" to "Playlists locales en el dispositivo","Dispositivos" to "Android · Android TV · Google TV","Versión" to "V22.34.9").forEach{(a,b)->Card(Modifier.fillMaxWidth().padding(horizontal=16.dp,vertical=5.dp),colors=CardDefaults.cardColors(containerColor=panel)){Column(Modifier.padding(16.dp)){Text(a,color=Color.White,fontWeight=FontWeight.Bold);Text(b,color=Color.LightGray,fontSize=12.sp)}}}}
-            else->{Title(if(tab=="TV")"Televisión en vivo" else "Tus favoritos","Elegí un canal para reproducir");OutlinedTextField(query,{query=it},Modifier.fillMaxWidth().padding(horizontal=16.dp),placeholder={Text("Buscar canal o categoría")},singleLine=true);val list=channels.filter{(tab!="Favoritos"||it.id in favorites)&&(it.name.contains(query,true)||it.group.contains(query,true))};if(list.isEmpty())Empty("No hay canales para mostrar","Agregá una lista autorizada desde Fuentes.");LazyColumn(contentPadding=PaddingValues(14.dp)){items(list,key={it.id}){c->ChannelItem(c,c.id in favorites,{vm.play(c)},{vm.toggleFavorite(c.id)})}};selected?.let{Card(Modifier.fillMaxWidth().padding(14.dp),colors=CardDefaults.cardColors(containerColor=Color.Black)){Column(Modifier.padding(14.dp)){Text("SELECCIONADO · "+it.name,color=cyan);Text("El motor Media3 está incluido; la superficie de reproducción y el lifecycle requieren integración y QA.",color=Color.LightGray,fontSize=12.sp);TextButton(onClick={vm.stop()}){Text("Detener")}}}};errorMessage?.let{Text(it,color=orange,modifier=Modifier.padding(12.dp))}}
+            else->{Title(if(tab=="TV")"Televisión en vivo" else "Tus favoritos","Elegí un canal para reproducir");OutlinedTextField(query,{query=it},Modifier.fillMaxWidth().padding(horizontal=16.dp),placeholder={Text("Buscar canal o categoría")},singleLine=true);val list=channels.filter{(tab!="Favoritos"||it.id in favorites)&&(it.name.contains(query,true)||it.group.contains(query,true))};if(list.isEmpty())Empty("No hay canales para mostrar","Agregá una lista autorizada desde Fuentes.");LazyColumn(contentPadding=PaddingValues(14.dp)){items(list,key={it.id}){c->ChannelItem(c,c.id in favorites,{vm.play(c)},{vm.toggleFavorite(c.id)})}};selected?.let{channel->Card(Modifier.fillMaxWidth().padding(14.dp),colors=CardDefaults.cardColors(containerColor=Color.Black)){Column(Modifier.padding(12.dp)){Text("REPRODUCIENDO · "+channel.name,color=cyan,fontWeight=FontWeight.Bold);AndroidView(factory={ctx->PlayerView(ctx).apply{player=exoPlayer;useController=true;setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING)}},update={it.player=exoPlayer},modifier=Modifier.fillMaxWidth().height(220.dp));TextButton(onClick={vm.stop()}){Text("Detener reproducción")}}}};errorMessage?.let{Text(it,color=orange,modifier=Modifier.padding(12.dp))}}
         }
     }}
 }
