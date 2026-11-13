@@ -5,7 +5,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.ByteArrayOutputStream
 import java.net.HttpURLConnection
+import java.net.URI
 import java.net.URL
 
 /**
@@ -31,22 +33,28 @@ class SupabaseCatalogRepository {
     suspend fun fetchPublished(table: String): Result<List<RemoteCatalogEntry>> = withContext(Dispatchers.IO) {
         runCatching {
             require(table in PUBLISHED_TABLES) { "Tabla de catálogo no permitida." }
-            require(baseUrl.startsWith("https://")) { "La URL de Supabase debe usar HTTPS." }
+            require(isSafeHttpsUrl(baseUrl)) { "La URL de Supabase debe usar HTTPS y un host válido." }
             require(apiKey.startsWith("sb_publishable_")) { "Falta configurar la clave publishable de Supabase." }
 
-            val endpoint = URL("$baseUrl/rest/v1/$table?select=*&is_published=eq.true&order=created_at.desc&limit=100")
+            // EPG must arrive in schedule order; the other catalog sections show newest publications first.
+            val order = if (table == "epg_programs") "starts_at.asc" else "created_at.desc"
+            val endpoint = URL("$baseUrl/rest/v1/$table?select=*&is_published=eq.true&order=$order&limit=100")
             val connection = (endpoint.openConnection() as HttpURLConnection).apply {
                 requestMethod = "GET"
                 connectTimeout = 12_000
                 readTimeout = 15_000
+                useCaches = false
+                instanceFollowRedirects = false
                 setRequestProperty("apikey", apiKey)
                 setRequestProperty("Authorization", "Bearer $apiKey")
                 setRequestProperty("Accept", "application/json")
+                setRequestProperty("Cache-Control", "no-cache")
             }
             try {
                 val status = connection.responseCode
+                check(isSafeHttpsUrl(connection.url.toString())) { "La conexión intentó salir de HTTPS." }
                 val body = (if (status in 200..299) connection.inputStream else connection.errorStream)
-                    ?.bufferedReader()?.use { it.readText() }.orEmpty()
+                    ?.use { stream -> readLimited(stream, MAX_RESPONSE_BYTES) }.orEmpty()
                 check(status in 200..299) { "Supabase respondió HTTP $status: ${body.take(240)}" }
                 val rows = JSONArray(body)
                 (0 until rows.length()).map { index -> mapEntry(rows.getJSONObject(index), table) }
@@ -67,7 +75,7 @@ class SupabaseCatalogRepository {
         val artwork = listOf("poster_url", "logo_url", "artwork_url", "image_url")
             .firstNotNullOfOrNull { key -> row.optString(key).takeIf(::isSafeHttpsUrl) }
         val action = listOf("stream_url", "authorized_stream_url")
-            .firstNotNullOfOrNull { key -> row.optString(key).takeIf { it.startsWith("https://", true) } }
+            .firstNotNullOfOrNull { key -> row.optString(key).takeIf(::isSafeHttpsUrl) }
         return RemoteCatalogEntry(
             id = row.optString("id").ifBlank { "${table}_${row.hashCode()}" },
             title = title,
@@ -81,7 +89,30 @@ class SupabaseCatalogRepository {
         )
     }
 
+    private fun readLimited(input: java.io.InputStream, maxBytes: Int): String {
+        val output = ByteArrayOutputStream()
+        val buffer = ByteArray(8 * 1024)
+        var total = 0
+        while (true) {
+            val count = input.read(buffer)
+            if (count < 0) break
+            total += count
+            check(total <= maxBytes) { "La respuesta del catálogo supera el límite permitido." }
+            output.write(buffer, 0, count)
+        }
+        return output.toString(Charsets.UTF_8.name())
+    }
+
+    private fun isSafeHttpsUrl(value: String): Boolean =
+        runCatching {
+            val uri = URI(value)
+            uri.scheme.equals("https", ignoreCase = true) &&
+                !uri.host.isNullOrBlank() &&
+                uri.userInfo == null
+        }.getOrDefault(false)
+
     private companion object {
+        const val MAX_RESPONSE_BYTES = 2 * 1024 * 1024
         val PUBLISHED_TABLES = setOf(
             "catalog_items", "radio_stations", "sports_events",
             "music_items", "theater_events", "epg_programs"
