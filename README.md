@@ -12,7 +12,7 @@ Cliente nativo Kotlin, Jetpack Compose y Android Media3.
 - Monitor Supabase automático cada 5 minutos: comprueba hasta 100 canales por ejecución, guarda estado y detalle, y oculta por RLS las fuentes caídas/bloqueadas hasta que se recuperen.
 - Importación M3U/M3U8 local con límite de 5 MB y validación HTTPS.
 - Catálogo Supabase, favoritos, preferencias, Auth y sesión cifrada con Android Keystore.
-- Directorio global de TV por país/categoría (`tv_channels`), con campos para logotipos y procedencia, páginas oficiales, filtros de países y fallback al sitio del canal cuando no existe un stream directo autorizado. Las fichas publicadas ya tienen 35 imágenes de marca obtenidas de avatares oficiales de YouTube o iconos de los sitios oficiales; los iconos del sitio identifican al emisor y no siempre son un logotipo individual de cada canal.
+- Directorio global de TV por país/categoría (`tv_channels`), con campos para logotipos y procedencia, páginas oficiales, filtros de países y fallback al sitio del canal cuando no existe un stream directo autorizado. Las 46 fichas publicadas tienen imágenes de marca obtenidas de avatares oficiales de YouTube o iconos de los sitios oficiales; los iconos del sitio identifican al emisor y no siempre son un logotipo individual de cada canal.
 - Control +18 con PIN PBKDF2 y bloqueo temporal.
 - Icono Android con logotipo MILTVPLUS y banner Android TV.
 - Comprobación automática de releases estables al iniciar y desde Ajustes; descarga APK sólo desde GitHub Releases, verifica SHA-256 y abre el instalador del sistema Android con confirmación del usuario.
@@ -44,7 +44,7 @@ La tabla `tv_channels` contiene 48 registros de 17 países: 46 páginas oficiale
 
 ## Pendientes externos y de producto
 
-- Sustituir los iconos genéricos de sitio por logotipos individuales de canal donde el emisor publique un asset específico; los 35 assets actuales tienen procedencia oficial.
+- Sustituir los iconos genéricos de sitio por logotipos individuales de canal donde el emisor publique un asset específico; los 46 assets actuales tienen procedencia oficial (12 avatares oficiales de canal y 34 iconos de emisores/sitios, no todos logos individuales).
 - Obtener endpoints HLS/DASH autorizados para habilitar reproducción integrada nativa; hoy las señales usan el reproductor oficial del emisor/YouTube y el conteo de streams nativos integrados sigue en cero.
 - Completar la revisión de Diputados TV y del portal de Prasar Bharati; Crónica TV ya quedó publicada mediante su canal oficial de YouTube Live.
 - Incorporar endpoints HLS/DASH realmente en directo y metadatos de proveedores con autorización verificable; el monitor actual no sustituye pruebas de reproducción en dispositivo.
