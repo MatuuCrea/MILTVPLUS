@@ -22,9 +22,9 @@ Actualizada para la entrega integral de noviembre de 2026. “Implementado” de
 | Favoritos | CRUD nube Android/Web para catálogo UUID con RLS | Conflictos offline y favoritos M3U locales |
 | Preferencias | Local y nube Android/Web: tema, región, idioma, audio, subtítulos, preferencia de avisos, autoplay y acento | Entrega push/reminders aún no desplegada; QA multi-dispositivo |
 | Fuentes remotas | CRUD Android/Web por propietario; trigger fuerza disabled/unverified; importación sólo al aprobar | Revisión administrativa y QA de importación remota |
-| Fuentes locales | Importador M3U/M3U8 con límite 5 MB | Más casos de playlists extendidas y QA en archivos grandes |
+| Fuentes locales | Importador M3U/M3U8 con límite 5 MB, BOM UTF-8 y títulos con comas | QA adicional con playlists reales de proveedores autorizados |
 | Android TV / TV Box | Launcher Leanback, banner y agrupación de foco | D-pad, foco visible, banner oficial y QA físico |
-| Web/PWA | Cliente estático, Auth, catálogo, favoritos, preferencias, fuentes, +18 y caché estática | Hosting HTTPS, iconos de marca, QA de navegador y HLS integrado |
+| Web/PWA | Cliente estático, Auth, catálogo, favoritos, preferencias, fuentes, +18 y caché estática; REST público usa sólo la clave publishable en `apikey`, reserva Bearer para sesiones de usuario | Hosting HTTPS, iconos de marca, QA de navegador y HLS integrado |
 | Tizen / webOS | No implementado | Clientes separados con SDKs y pruebas de fabricante |
 | Marca oficial | Pendiente | Incorporar archivo original del logo aprobado |
 | Publicación | Debug CI existente | Firma release, claves privadas, privacidad, derechos y tiendas |
