@@ -170,14 +170,9 @@ public partial class MainWindow : Window
     {
         if (!Uri.TryCreate(item.StreamUrl, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps)
         {
-            if (Uri.TryCreate(item.OfficialWatchUrl, UriKind.Absolute, out var officialUri) && officialUri.Scheme == Uri.UriSchemeHttps)
+            if (IsHttps(item.OfficialWatchUrl))
             {
-                try
-                {
-                    Process.Start(new ProcessStartInfo(officialUri.ToString()) { UseShellExecute = true });
-                    StatusText.Text = "Abriendo la señal en el reproductor oficial: " + item.Title;
-                }
-                catch (Exception ex) { StatusText.Text = "No se pudo abrir el canal oficial: " + ex.Message; }
+                StatusText.Text = "Esta señal debe iniciarse desde el visor integrado de MILTVPLUS.";
                 return;
             }
             StatusText.Text = "Este canal todavía no tiene una señal HTTPS verificada ni una página oficial de visualización.";
