@@ -298,6 +298,39 @@
       "official_watch_url": "https://canalonce.mx/mexico",
       "directory_status": "published_official_web_live_page",
       "integrated_stream_status": "not_authorized_or_not_documented"
+    },
+    {
+      "slug": "cpac-canada-live",
+      "name": "CPAC Canada",
+      "country_code": "CA",
+      "language_code": "en",
+      "category": "news",
+      "access_model": "free_web",
+      "official_watch_url": "https://www.cpac.ca/en",
+      "directory_status": "published_official_web_live_page",
+      "integrated_stream_status": "official_player_only_no_native_hls_dash"
+    },
+    {
+      "slug": "cna-singapore-live",
+      "name": "CNA Live TV",
+      "country_code": "SG",
+      "language_code": "en",
+      "category": "news",
+      "access_model": "free_web",
+      "official_watch_url": "https://www.channelnewsasia.com/watch/live-tv-1441426?view=embed",
+      "directory_status": "published_official_web_live_page",
+      "integrated_stream_status": "official_player_only_no_native_hls_dash"
+    },
+    {
+      "slug": "rai-news-24-italy",
+      "name": "Rai News 24",
+      "country_code": "IT",
+      "language_code": "it",
+      "category": "news",
+      "access_model": "geo_restricted",
+      "official_watch_url": "https://www.raiplay.it/dirette/rainews24?channel=RaiNews",
+      "directory_status": "published_official_web_live_page_geo_restrictions_may_apply",
+      "integrated_stream_status": "official_player_only_no_native_hls_dash"
     }
   ],
   "last_reviewed": "2026-11-13"
