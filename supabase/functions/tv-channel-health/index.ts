@@ -8,6 +8,7 @@ type Channel = {
   is_published: boolean;
   logo_url: string | null;
   logo_source_url: string | null;
+  access_model: string | null;
 };
 
 type CheckResult = {
@@ -205,6 +206,9 @@ async function checkChannel(channel: Channel): Promise<CheckResult> {
     if (finalUrl.protocol !== "https:") {
       return { status: "blocked", detail: "La redirección abandonó HTTPS y se bloqueó por seguridad." };
     }
+    if ([401, 403].includes(response.status) && channel.access_model === "geo_restricted") {
+      return { status: "online", detail: `HTTP ${response.status} desde la región del monitor; la ficha declara restricción geográfica y el proveedor puede permitir la reproducción desde otros países.` };
+    }
     if ([401, 403, 429].includes(response.status)) {
       return { status: "blocked", detail: `HTTP ${response.status}: el titular o CDN rechazó/limitó el chequeo automatizado.` };
     }
@@ -306,7 +310,7 @@ Deno.serve(async (request: Request) => {
 
   try {
     const endpoint = new URL("/rest/v1/tv_channels", SUPABASE_URL);
-    endpoint.searchParams.set("select", "id,title,playback_type,official_watch_url,stream_url,last_checked_at,is_published,logo_url,logo_source_url");
+    endpoint.searchParams.set("select", "id,title,playback_type,official_watch_url,stream_url,last_checked_at,is_published,logo_url,logo_source_url,access_model");
     endpoint.searchParams.set("order", "last_checked_at.asc.nullsfirst,title.asc");
     endpoint.searchParams.set("limit", "100");
     const response = await fetch(endpoint, {
