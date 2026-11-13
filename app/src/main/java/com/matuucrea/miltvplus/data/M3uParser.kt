@@ -21,7 +21,7 @@ object M3uParser {
                 line.isNotBlank() && !line.startsWith("#") -> {
                     val valid=runCatching { URI(line).scheme?.lowercase() in setOf("http","https") }.getOrDefault(false)
                     if(valid && name.isNotBlank()) {
-                        val id=MessageDigest.getInstance("SHA-256").digest("$"+"name|"+line.toByteArray()).take(12).joinToString("") { "%02x".format(it) }
+                        val id=MessageDigest.getInstance("SHA-256").digest("$name|$line".toByteArray()).take(12).joinToString("") { "%02x".format(it) }
                         out+=Channel(id,name,line,group,logo)
                     }
                     name=""; group=""; logo=null
