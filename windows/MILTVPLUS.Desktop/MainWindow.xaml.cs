@@ -26,8 +26,8 @@ public partial class MainWindow : Window
     private readonly MediaPlayer _mediaPlayer;
     private Media? _currentMedia;
     private List<CatalogEntry> entries = [];
-    private string table = "catalog_items";
-    private string select = "title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url";
+    private string table = "tv_channels";
+    private string select = "id,title,description,country_code,created_at,category,language_code,access_model,logo_url,official_watch_url,stream_url,playback_type,is_free_to_air,source_status,last_checked_at,last_check_detail";
     private string order = "created_at.desc";
     private string? kind;
     private UpdateRelease? _availableUpdate;
