@@ -188,6 +188,7 @@ class MainActivity:ComponentActivity(){
                 "Países" -> tab="Países"
                 "EPG" -> { remoteCategory="epg_programs"; tab="Catálogo" }
                 "Adultos 18+" -> tab="Adultos"
+                "Favoritos" -> tab="Favoritos"
                 "Configuración" -> tab="Ajustes"
             }
         }
