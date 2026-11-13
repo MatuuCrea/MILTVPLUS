@@ -200,7 +200,7 @@ class MainActivity:ComponentActivity(){
             }
         }
         Column(Modifier.weight(1f).fillMaxHeight().background(Brush.verticalGradient(listOf(Color(0xFF08080A),Color(0xFF0B0B0E),Color(0xFF08080A))))) {
-            PremiumAppTopBar(tab,onSearch={query=it},onSettings={tab="Ajustes"})
+            PremiumAppTopBar(tab,onSearch={value -> query=value; if(value.isNotBlank() && tab=="Inicio") tab="Catálogo"},onSettings={tab="Ajustes"})
 
         updateNotice?.let { version -> TextButton(onClick={tab="Ajustes"}) { Text("ACTUALIZACIÓN DISPONIBLE · $version",color=orange,fontSize=10.sp) } }
         when(tab){
@@ -299,7 +299,7 @@ class MainActivity:ComponentActivity(){
                                 }
                             }
                         } else {
-                            LazyColumn(contentPadding=PaddingValues(14.dp)){items(publicItems.filter { (remoteKindFilter==null || it.kind==remoteKindFilter) && (remoteCategory!="tv_channels" || ((channelCategoryFilter==null || it.category==channelCategoryFilter) && (selectedChannelCountry==null || it.countryCode==selectedChannelCountry))) },key={it.id}){item->
+                            LazyColumn(contentPadding=PaddingValues(14.dp)){items(publicItems.filter { (query.isBlank() || it.title.contains(query,true) || it.subtitle.contains(query,true) || it.category.contains(query,true)) && (remoteKindFilter==null || it.kind==remoteKindFilter) && (remoteCategory!="tv_channels" || ((channelCategoryFilter==null || it.category==channelCategoryFilter) && (selectedChannelCountry==null || it.countryCode==selectedChannelCountry))) },key={it.id}){item->
                                 Card(Modifier.fillMaxWidth().padding(vertical=5.dp),colors=CardDefaults.cardColors(containerColor=panel)){
                                     Row(Modifier.padding(14.dp),verticalAlignment=Alignment.CenterVertically){
                                         if(item.artworkUrl!=null) AsyncImage(
