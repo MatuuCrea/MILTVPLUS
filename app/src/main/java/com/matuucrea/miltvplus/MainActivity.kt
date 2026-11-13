@@ -305,7 +305,7 @@ class MainActivity:ComponentActivity(){
                                             if(remoteCategory=="tv_channels") {
                                                 val watchable = remoteItems.filter { it.infoUrl != null && (selectedChannelCountry==null || it.countryCode==selectedChannelCountry) && (channelCategoryFilter==null || it.category==channelCategoryFilter) }
                                                 val start = watchable.indexOfFirst { it.id==item.id }
-                                                if(start>=0) launchOfficialWatch(context,watchable,start)
+                                                if(start>=0) launchOfficialWatch(context,watchable,start,selectedChannelCountry,channelCategoryFilter)
                                             } else runCatching { context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(item.infoUrl))) }.onFailure { remoteError="No se pudo abrir el enlace oficial." }
                                         }){Text(if(remoteCategory=="tv_channels") "Ver señal oficial" else "Información")}
                                     }
@@ -391,7 +391,7 @@ private fun launchChannelPlayer(context: android.content.Context, channels: List
     )
 }
 
-private fun launchOfficialWatch(context: android.content.Context, entries: List<RemoteCatalogEntry>, startIndex: Int) {
+private fun launchOfficialWatch(context: android.content.Context, entries: List<RemoteCatalogEntry>, startIndex: Int, countryCode: String? = null, category: String? = null) {
     val watchable = entries.filter { it.infoUrl?.startsWith("https://", true) == true }
     if (watchable.isEmpty()) return
     val selected = entries.getOrNull(startIndex)
@@ -403,6 +403,9 @@ private fun launchOfficialWatch(context: android.content.Context, entries: List<
     context.startActivity(
         Intent(context, com.matuucrea.miltvplus.player.OfficialWatchActivity::class.java)
             .putExtra(com.matuucrea.miltvplus.player.OfficialWatchActivity.EXTRA_CHANNELS,payload.toString())
-            .putExtra(com.matuucrea.miltvplus.player.OfficialWatchActivity.EXTRA_START_INDEX,index)
+             .putExtra(com.matuucrea.miltvplus.player.OfficialWatchActivity.EXTRA_START_INDEX,index)
+            .putExtra(com.matuucrea.miltvplus.player.OfficialWatchActivity.EXTRA_REMOTE_CATALOG,true)
+            .putExtra(com.matuucrea.miltvplus.player.OfficialWatchActivity.EXTRA_COUNTRY_CODE,countryCode ?: "")
+            .putExtra(com.matuucrea.miltvplus.player.OfficialWatchActivity.EXTRA_CATEGORY,category ?: "")
     )
 }
