@@ -82,7 +82,7 @@ class SupabaseCatalogRepository {
         val endsAt = row.optString("ends_at").takeIf { it.isNotBlank() && it != "null" }
         val schedule = listOfNotNull(startsAt, endsAt).joinToString(" – ")
         val subtitle = (subtitleParts + listOfNotNull(schedule)).distinct().joinToString(" · ")
-        val artwork = listOf("poster_url", "backdrop_url", "logo_url", "artwork_url", "image_url")
+        val artwork = listOf("logo_url", "poster_url", "backdrop_url", "artwork_url", "image_url")
             .firstNotNullOfOrNull { key -> row.optString(key).takeIf(::isSafeHttpsUrl) }
         val action = listOf("stream_url", "authorized_stream_url")
             .firstNotNullOfOrNull { key -> row.optString(key).takeIf(::isSafeHttpsUrl) }
@@ -99,7 +99,7 @@ class SupabaseCatalogRepository {
             kind = row.optString("kind").takeIf { it.isNotBlank() && it != "null" },
             countryCode = row.optString("country_code").takeIf { it.isNotBlank() && it != "null" },
             ageRating = row.optString("age_rating").takeIf { it.isNotBlank() && it != "null" },
-            infoUrl = listOf("official_info_url", "info_url", "website_url", "external_url")
+            infoUrl = listOf("official_watch_url", "official_info_url", "info_url", "website_url", "external_url")
                 .firstNotNullOfOrNull { key -> row.optString(key).takeIf(::isSafeHttpsUrl) }
         )
     }
@@ -129,7 +129,7 @@ class SupabaseCatalogRepository {
     private companion object {
         const val MAX_RESPONSE_BYTES = 2 * 1024 * 1024
         val PUBLISHED_TABLES = setOf(
-            "catalog_items", "radio_stations", "sports_events",
+            "catalog_items", "tv_channels", "radio_stations", "sports_events",
             "music_items", "theater_events", "epg_programs"
         )
     }
