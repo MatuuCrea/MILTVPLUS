@@ -36,7 +36,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         Core.Initialize();
-        _libVlc = new LibVLC("--no-video-title-show", "--network-caching=1500");
+        _libVlc = new LibVLC("--no-video-title-show", "--network-caching=2000", "--live-caching=1500", "--http-reconnect", "--avcodec-hw=any");
         _mediaPlayer = new MediaPlayer(_libVlc);
         InitializeComponent();
         VideoSurface.MediaPlayer = _mediaPlayer;
