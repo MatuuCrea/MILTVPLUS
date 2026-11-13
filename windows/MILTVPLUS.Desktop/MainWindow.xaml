@@ -102,7 +102,7 @@
      </StackPanel>
     </StackPanel>
     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-     <Button Content="♧" ToolTip="Notificaciones" Padding="10,7"/>
+     <Button Content="♧" ToolTip="Notificaciones" Click="OpenNotifications_Click" Padding="10,7"/>
      <Button Content="⚙" ToolTip="Configuración" Click="OpenSettings_Click" Padding="10,7"/>
      <Button Content="◉" ToolTip="Mi perfil" Click="OpenAccount_Click" Padding="10,7"/>
      <Button Content="Importar M3U/M3U8" Click="ImportM3u_Click" Background="#26365D"/>
