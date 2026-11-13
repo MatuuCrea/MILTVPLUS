@@ -30,9 +30,11 @@
 - Stream sólo con autorización explícita.
 
 ## 8. +18
-- Sección separada y excluida de listados generales.
+- Sección visual independiente con identidad nocturna negro/berenjena, acentos magenta/rosa, banner 18+, tarjetas y categorías Recomendados, Romance, Parejas, Pasión, Hot, Premium y Solo adultos; entrada directa desde la cabecera principal.
+- Las categorías filtran metadatos reales del catálogo; no crean títulos ni enlaces de relleno. Las tarjetas sólo habilitan Reproducir cuando existe una URL directa publicada.
 - Declaración, PIN PBKDF2 con sal y bloqueo tras cinco intentos fallidos.
-- Catálogo +18 consultado sólo tras desbloquear. No reemplaza verificación legal de edad.
+- Catálogo +18 consultado sólo tras desbloquear y filtrado por clasificación 18+. En esta revisión se reutiliza `catalog_items`; todavía no existe una tabla/ingesta dedicada de contenido adulto, ni un inventario de URLs adultas verificadas. No se deben insertar URLs de terceros sin permiso explícito del titular, verificación de edad/procedencia y derechos territoriales.
+- El aviso de mayoría de edad y el PIN son controles de producto, no sustituyen verificación legal de edad ni controles de cumplimiento exigibles por jurisdicción.
 
 ## 9. Ajustes
 - Tema, acento, idioma, país, audio preferido, subtítulos, preferencia de avisos y autoplay.
