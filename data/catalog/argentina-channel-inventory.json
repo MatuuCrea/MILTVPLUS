@@ -2,7 +2,7 @@
   "country_code": "AR",
   "country_name": "Argentina",
   "status": "discovery_inventory_not_published",
-  "note": "Inventario de Argentina actualizado. C5N, Crónica TV, TN, A24, Canal 26, Televisión Pública y América TV usan páginas oficiales YouTube Live con marcador de emisión actual confirmado por el monitor; El Nueve y Senado TV abren sus páginas oficiales de señal. No hay streams HLS/DASH nativos ni logos aprobados cargados. Diputados TV permanece en revisión.",
+  "note": "Inventario de Argentina actualizado. C5N, Crónica TV, TN, A24, Canal 26, Televisión Pública y América TV usan páginas oficiales YouTube Live con marcador de emisión actual confirmado por el monitor; El Nueve y Senado TV abren sus páginas oficiales de señal. Las 9 fichas publicadas tienen imágenes de marca de fuentes oficiales (avatares de canal o iconos del emisor); no hay streams HLS/DASH nativos ni derechos de retransmisión verificados. Diputados TV permanece en revisión.",
   "required_news_channels": [
     {
       "slug": "c5n",
