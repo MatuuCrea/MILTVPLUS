@@ -19,6 +19,9 @@ const legacyServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 const secretKeysRaw = Deno.env.get("SUPABASE_SECRET_KEYS");
 const secretKeys = secretKeysRaw ? JSON.parse(secretKeysRaw) as Record<string, string> : {};
 const serviceKey = legacyServiceKey ?? secretKeys.default;
+const publishableKeysRaw = Deno.env.get("SUPABASE_PUBLISHABLE_KEYS");
+const publishableKeys = publishableKeysRaw ? JSON.parse(publishableKeysRaw) as Record<string, string> : {};
+const expectedPublishableKey = publishableKeys.default ?? Deno.env.get("SUPABASE_ANON_KEY");
 const serviceHeaders: HeadersInit = {
   apikey: serviceKey ?? "",
   ...(legacyServiceKey ? { Authorization: `Bearer ${legacyServiceKey}` } : {}),
@@ -159,6 +162,14 @@ Deno.serve(async (request: Request) => {
   if (request.method !== "POST") {
     return new Response(JSON.stringify({ error: "POST requerido" }), {
       status: 405,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+  // The new publishable key is public by design; rate limiting below prevents repeated checks.
+  // verify_jwt is disabled for this function because publishable keys are not JWTs.
+  if (!expectedPublishableKey || request.headers.get("apikey") !== expectedPublishableKey) {
+    return new Response(JSON.stringify({ error: "API key pública no válida." }), {
+      status: 401,
       headers: { "Content-Type": "application/json" },
     });
   }
