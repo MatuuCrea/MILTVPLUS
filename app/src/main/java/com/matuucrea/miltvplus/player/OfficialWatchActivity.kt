@@ -72,16 +72,7 @@ class OfficialWatchActivity : Activity() {
                     root.addView(view, 0, LinearLayout.LayoutParams(-1, 0, 1f))
                     hideSystemBars()
                 }
-                override fun onHideCustomView() {
-                    customView?.let { root.removeView(it) }
-                    customView = null
-                    customViewCallback?.onCustomViewHidden()
-                    customViewCallback = null
-                    webView.visibility = View.VISIBLE
-                    title.visibility = View.VISIBLE
-                    controls.visibility = View.VISIBLE
-                    hideSystemBars()
-                }
+                override fun onHideCustomView() { restoreWebViewFromCustomView() }
             }
         }
         controls = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER; setBackgroundColor(0xFF101010.toInt()) }
@@ -107,6 +98,17 @@ class OfficialWatchActivity : Activity() {
         loadChannel(index)
     }
 
+    private fun restoreWebViewFromCustomView() {
+        customView?.let { root.removeView(it) }
+        customView = null
+        customViewCallback?.onCustomViewHidden()
+        customViewCallback = null
+        webView.visibility = View.VISIBLE
+        title.visibility = View.VISIBLE
+        controls.visibility = View.VISIBLE
+        hideSystemBars()
+    }
+
     private fun loadChannel(newIndex: Int) {
         index = (newIndex + channels.size) % channels.size
         val channel = channels[index]
@@ -126,15 +128,15 @@ class OfficialWatchActivity : Activity() {
     override fun onWindowFocusChanged(hasFocus: Boolean) { super.onWindowFocusChanged(hasFocus); if (hasFocus) hideSystemBars() }
     @Deprecated("Deprecated in Android API; retained for WebView back navigation")
     override fun onBackPressed() {
-        if (customView != null) { webView.webChromeClient?.onHideCustomView(); return }
+        if (customView != null) { restoreWebViewFromCustomView(); return }
         if (webView.canGoBack()) webView.goBack() else finish()
     }
 
     override fun onDestroy() {
         customViewCallback?.onCustomViewHidden()
         webView.stopLoading()
-        webView.webChromeClient = null
-        webView.webViewClient = WebViewClient()
+        webView.setWebChromeClient(null)
+        webView.setWebViewClient(WebViewClient())
         webView.destroy()
         window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         super.onDestroy()
