@@ -101,8 +101,17 @@ class SupabaseCatalogRepository {
         val subtitle = (subtitleParts + listOfNotNull(schedule, accessModelLabel)).distinct().joinToString(" · ")
         val artwork = listOf("logo_url", "poster_url", "backdrop_url", "artwork_url", "image_url")
             .firstNotNullOfOrNull { key -> row.optString(key).takeIf(::isSafeHttpsUrl) }
-        val action = listOf("stream_url", "authorized_stream_url")
+        val youtubeLive = table == "tv_channels" &&
+            row.optString("playback_type").equals("youtube_live", ignoreCase = true)
+        // YouTube Live pages must use the broadcaster's official web player, not ExoPlayer/Media3.
+        // Keep their URL in infoUrl so the app opens it in the immersive official-player view.
+        val action = if (youtubeLive) null else listOf("stream_url", "authorized_stream_url")
             .firstNotNullOfOrNull { key -> row.optString(key).takeIf(::isSafeHttpsUrl) }
+        val infoUrlKeys = if (youtubeLive) {
+            listOf("stream_url", "official_watch_url", "official_info_url", "info_url", "website_url", "external_url")
+        } else {
+            listOf("official_watch_url", "official_info_url", "info_url", "website_url", "external_url")
+        }
         return RemoteCatalogEntry(
             id = row.optString("id").ifBlank { "${table}_${row.hashCode()}" },
             title = title,
@@ -116,8 +125,7 @@ class SupabaseCatalogRepository {
             kind = row.optString("kind").takeIf { it.isNotBlank() && it != "null" },
             countryCode = row.optString("country_code").takeIf { it.isNotBlank() && it != "null" },
             ageRating = row.optString("age_rating").takeIf { it.isNotBlank() && it != "null" },
-            infoUrl = listOf("official_watch_url", "official_info_url", "info_url", "website_url", "external_url")
-                .firstNotNullOfOrNull { key -> row.optString(key).takeIf(::isSafeHttpsUrl) }
+            infoUrl = infoUrlKeys.firstNotNullOfOrNull { key -> row.optString(key).takeIf(::isSafeHttpsUrl) }
         )
     }
 
