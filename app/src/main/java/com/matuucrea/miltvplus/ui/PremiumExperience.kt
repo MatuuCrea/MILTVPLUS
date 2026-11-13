@@ -50,7 +50,7 @@ fun PremiumSidebar(activeTab: String, onNavigate: (String) -> Unit) {
             NavDestination("Documentales", Icons.Default.MenuBook),
             NavDestination("Música", Icons.Default.MusicNote),
             NavDestination("Países", Icons.Default.Public),
-            NavDestination("Adultos 18+", Icons.Default.NoAdultContent),
+            NavDestination("Adultos 18+", Icons.Default.Lock),
             NavDestination("Favoritos", Icons.Default.Star),
             NavDestination("Configuración", Icons.Default.Settings)
         )
