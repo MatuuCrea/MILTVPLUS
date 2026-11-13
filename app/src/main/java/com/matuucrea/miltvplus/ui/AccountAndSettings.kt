@@ -19,6 +19,8 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -460,12 +462,25 @@ fun AdultAccessScreen(
                     items(categorizedItems, key = { it.id }) { item ->
                         Card(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
                             Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                item.artworkUrl?.takeIf { isSafeAdultArtworkUrl(it) }?.let { artwork ->
+                                    AsyncImage(
+                                        model = artwork,
+                                        contentDescription = "Imagen de ${item.title}",
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier.size(width = 76.dp, height = 104.dp)
+                                    )
+                                    Spacer(Modifier.width(12.dp))
+                                }
                                 Column(Modifier.weight(1f)) {
                                     Text(item.title, style = MaterialTheme.typography.titleMedium)
-                                    Text(item.subtitle, style = MaterialTheme.typography.bodySmall)
+                                    if (item.subtitle.isNotBlank()) Text(item.subtitle, style = MaterialTheme.typography.bodySmall)
                                     Text(item.ageRating ?: "18+", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                                 }
-                                if (item.actionUrl != null) TextButton(onClick = { onPlay(item) }) { Text("Reproducir") }
+                                if (item.actionUrl?.let(::isSafeAdultArtworkUrl) == true) {
+                                    TextButton(onClick = { onPlay(item) }) { Text("Reproducir") }
+                                } else {
+                                    Text("No disponible", style = MaterialTheme.typography.labelSmall, color = Color(0xFFFF9CCB))
+                                }
                             }
                         }
                     }
@@ -580,3 +595,9 @@ fun RemoteSourcesScreen(repository: SupabaseUserRepository, isSignedIn: Boolean,
         message?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary) }
     }
 }
+
+
+private fun isSafeAdultArtworkUrl(value:String):Boolean = runCatching {
+    val uri=java.net.URI(value)
+    uri.scheme.equals("https",true) && !uri.host.isNullOrBlank() && uri.userInfo==null
+}.getOrDefault(false)
