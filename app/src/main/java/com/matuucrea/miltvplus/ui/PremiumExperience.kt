@@ -57,7 +57,9 @@ fun PremiumSidebar(activeTab: String, onNavigate: (String) -> Unit) {
         val extras = listOf(
             NavDestination("Apps", Icons.Default.Apps),
             NavDestination("Fuentes", Icons.Default.PlaylistAdd),
-            NavDestination("Cuenta", Icons.Default.AccountCircle)
+            NavDestination("Cuenta", Icons.Default.AccountCircle),
+            NavDestination("Radios", Icons.Default.Radio),
+            NavDestination("Teatro", Icons.Default.TheaterComedy)
         )
         Column(
             Modifier.width(if (expanded) 218.dp else 64.dp).fillMaxHeight()
