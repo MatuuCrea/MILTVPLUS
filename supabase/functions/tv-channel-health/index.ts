@@ -95,13 +95,13 @@ async function checkChannel(channel: Channel): Promise<CheckResult> {
       redirect: "follow",
       headers: {
         "User-Agent": "MILTVPLUS-TV-Health/1.0",
-        Range: youtubePage ? "bytes=0-65535" : "bytes=0-8191",
+        Range: youtubePage ? "bytes=0-1048575" : "bytes=0-8191",
         Accept: "*/*",
       },
       signal: AbortSignal.timeout(9000),
     });
     const finalUrl = new URL(response.url);
-    const sample = await readSample(response, youtubePage ? 65536 : 8192);
+    const sample = await readSample(response, youtubePage ? 1048576 : 8192);
     if (finalUrl.protocol !== "https:") {
       return { status: "blocked", detail: "La redirección abandonó HTTPS y se bloqueó por seguridad." };
     }
