@@ -37,6 +37,7 @@ class SupabaseCatalogRepository {
                 connectTimeout = 12_000
                 readTimeout = 15_000
                 setRequestProperty("apikey", apiKey)
+                setRequestProperty("Authorization", "Bearer $apiKey")
                 setRequestProperty("Accept", "application/json")
             }
             try {
@@ -54,11 +55,15 @@ class SupabaseCatalogRepository {
 
     private fun mapEntry(row: JSONObject, table: String): RemoteCatalogEntry {
         val title = row.optString("title").ifBlank { row.optString("name").ifBlank { "Sin título" } }
-        val subtitle = listOf("sport", "competition", "creator", "genre", "venue", "description")
-            .firstNotNullOfOrNull { key -> row.optString(key).takeIf { it.isNotBlank() && it != "null" } }.orEmpty()
+        val subtitleParts = listOf("kind", "sport", "competition", "creator", "genre", "venue", "description")
+            .mapNotNull { key -> row.optString(key).takeIf { it.isNotBlank() && it != "null" } }
+        val startsAt = row.optString("starts_at").takeIf { it.isNotBlank() && it != "null" }
+        val endsAt = row.optString("ends_at").takeIf { it.isNotBlank() && it != "null" }
+        val schedule = listOfNotNull(startsAt, endsAt).joinToString(" – ")
+        val subtitle = (subtitleParts + listOfNotNull(schedule)).distinct().joinToString(" · ")
         val artwork = listOf("poster_url", "logo_url", "artwork_url", "image_url")
             .firstNotNullOfOrNull { key -> row.optString(key).takeIf { it.startsWith("https://", true) } }
-        val action = listOf("stream_url", "authorized_stream_url", "external_url", "info_url", "official_info_url")
+        val action = listOf("stream_url", "authorized_stream_url")
             .firstNotNullOfOrNull { key -> row.optString(key).takeIf { it.startsWith("https://", true) } }
         return RemoteCatalogEntry(
             id = row.optString("id").ifBlank { "${table}_${row.hashCode()}" },
