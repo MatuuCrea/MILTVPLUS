@@ -59,7 +59,7 @@ La misma taxonomía soporta todos los países y territorios con código ISO de d
 - 12 de las fichas publicadas mostraron un marcador de emisión en directo actual en el reproductor/página oficial de YouTube durante el último chequeo: Argentina (A24, América TV, C5N, Canal 26, Crónica TV, Televisión Pública y TN), Australia (ABC News Australia), Francia (France 24 English y France 24 Español) e India (DD India y DD News).
 - Las otras 23 fichas publicadas son páginas oficiales de señal accesibles. Su respuesta HTTP no demuestra por sí sola que el player interno esté emitiendo en ese instante; el detalle del chequeo lo indica y el emisor conserva control de disponibilidad, geobloqueo y DRM.
 - Las 2 fichas pendientes son Diputados TV y el portal de Prasar Bharati, que no se cuenta como canal individual.
-- No hay URLs HLS/DASH directas integradas, no hay logotipos cargados y no se ha marcado ningún derecho de redistribución como verificado. Los 12 casos YouTube usan el reproductor oficial del titular, no una retransmisión nativa de MILTVPLUS.
+- No hay URLs HLS/DASH directas integradas y no se ha marcado ningún derecho de redistribución como verificado. Las 35 fichas publicadas tienen imágenes de marca con procedencia oficial: 12 avatares de canales YouTube y 23 iconos de sitios/emisores; estos últimos identifican al emisor y no siempre son logos individuales de canal. Los 12 casos YouTube usan el reproductor oficial del titular, no una retransmisión nativa de MILTVPLUS.
 - Android y Windows consultan el catálogo global y filtran localmente por país/categoría. La lectura pública sólo devuelve filas publicadas con `source_status='online'`.
 
 ## Monitor de disponibilidad
