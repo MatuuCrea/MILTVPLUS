@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -63,8 +64,8 @@ class MainActivity:ComponentActivity(){
         Row(Modifier.fillMaxWidth().padding(20.dp),verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text("MILTVPLUS",color=Color.White,fontSize=25.sp,fontWeight=FontWeight.Black,letterSpacing=1.5.sp);Text("ENTRETENIMIENTO • V22.34.9",color=cyan,fontSize=10.sp)};Text("● LOCAL",color=cyan,fontSize=10.sp)}
         when(tab){
             "Inicio"->{Card(Modifier.fillMaxWidth().padding(horizontal=16.dp),shape=RoundedCornerShape(26.dp),colors=CardDefaults.cardColors(containerColor=panel)){Column(Modifier.background(Brush.linearGradient(listOf(Color(0xFF082E73),panel,Color(0xFF451B21)))).padding(22.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){Text("TU ENTRETENIMIENTO,\nA TU MANERA",color=Color.White,fontSize=25.sp,fontWeight=FontWeight.ExtraBold);Text(channels.size.toString()+" canales en tu biblioteca",color=cyan);Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){Button(onClick={tab="Catálogo"}){Text("Explorar catálogo")};OutlinedButton(onClick={tab="Fuentes"}){Text("Agregar fuente")};TextButton(onClick={tab="TV"}){Text("Mi TV local")}}}};Title("Tu espacio","Contenido desde fuentes autorizadas");if(channels.isEmpty())Empty("Todavía no agregaste canales","Importá un archivo M3U/M3U8 propio o autorizado.")}
-            "Catálogo"->{Title("Catálogo global","Contenido publicado desde tu backend seguro")
-                Row(Modifier.fillMaxWidth().padding(horizontal=12.dp),horizontalArrangement=Arrangement.spacedBy(6.dp)){
+            "Catálogo"->{Title("Catálogo global","Contenido publicado desde tu backend seguro");TextButton(onClick={tab="Inicio"},modifier=Modifier.padding(start=12.dp)){Text("← Volver a Inicio")}
+                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal=12.dp),horizontalArrangement=Arrangement.spacedBy(6.dp)){
                     listOf("catalog_items" to "TV / VOD","radio_stations" to "Radios","sports_events" to "Deportes","music_items" to "Música","theater_events" to "Teatro","epg_programs" to "Guía EPG").forEach{(table,label)->
                         FilterChip(selected=remoteCategory==table,onClick={remoteCategory=table},label={Text(label)})
                     }
