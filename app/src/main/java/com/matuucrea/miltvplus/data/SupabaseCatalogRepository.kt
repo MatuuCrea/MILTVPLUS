@@ -42,7 +42,7 @@ class SupabaseCatalogRepository {
             require(apiKey.startsWith("sb_publishable_")) { "Falta configurar la clave publishable de Supabase." }
 
             // EPG must arrive in schedule order; the other catalog sections show newest publications first.
-            val order = if (table in setOf("epg_programs", "sports_events", "theater_events")) "starts_at.asc" else "created_at.desc"
+            val order = when (table) { "tv_channels" -> "sort_order.asc,title.asc"; "epg_programs", "sports_events", "theater_events" -> "starts_at.asc"; else -> "created_at.desc" }
             require(countryCode == null || countryCode.matches(Regex("^[A-Z]{2}$"))) { "Código de país inválido." }
             val countryFilter = countryCode?.let { code ->
                 val predicate = "(country_code.eq.$code,country_code.is.null,rights_regions.cs.{$code})"
