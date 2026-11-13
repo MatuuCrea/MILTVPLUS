@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -74,7 +75,7 @@ fun PremiumNavigationHeader(activeTab: String, onNavigate: (String) -> Unit) {
             // Reserve room for the Más control on narrow phones so it is reachable without horizontal scrolling.
             val visible = if (compact) destinations.take(3) else destinations
             Row(
-                Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 9.dp, vertical = 2.dp),
+                Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).focusGroup().padding(horizontal = 9.dp, vertical = 2.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 visible.forEach { destination ->
@@ -106,7 +107,7 @@ fun PremiumNavigationHeader(activeTab: String, onNavigate: (String) -> Unit) {
         AnimatedVisibility(menuExpanded) {
             Column(
                 Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp)
-                    .background(PremiumPanel, RoundedCornerShape(16.dp)).padding(8.dp),
+                    .background(PremiumPanel, RoundedCornerShape(16.dp)).focusGroup().padding(8.dp),
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 destinations.forEach { destination ->
