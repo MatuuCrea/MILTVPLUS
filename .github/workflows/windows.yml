@@ -1,0 +1,30 @@
+name: Windows Desktop
+on:
+  push:
+    branches: [main]
+    paths: ['windows/**', '.github/workflows/windows.yml']
+  pull_request:
+    branches: [main]
+    paths: ['windows/**', '.github/workflows/windows.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build-installer:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Publish native Windows application
+        run: dotnet publish windows/MILTVPLUS.Desktop/MILTVPLUS.Desktop.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o windows/publish
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+      - name: Build Windows installer
+        run: iscc windows/installer/MILTVPLUS.iss
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MILTVPLUS-Windows-Setup-x64
+          path: dist/MILTVPLUS-Setup-x64.exe
+          if-no-files-found: error
