@@ -8,6 +8,7 @@ type Channel = {
   stream_url: string | null;
   last_checked_at: string | null;
   is_published: boolean;
+  logo_url: string | null;
 };
 
 type CheckResult = {
@@ -76,6 +77,46 @@ async function readSample(response: Response, maxBytes = 8192): Promise<string> 
     offset += chunk.length;
   }
   return new TextDecoder().decode(merged);
+}
+
+async function fetchYoutubeLogo(channelUrl: string | null): Promise<{ url: string; sourceUrl: string } | null> {
+  if (!isYoutubeLivePage(channelUrl)) return null;
+  try {
+    const source = new URL(channelUrl!);
+    source.pathname = source.pathname.replace(/\\/live\\/?$/i, "");
+    const sourceUrl = source.toString().replace(/\\/$/, "");
+    const response = await fetch(sourceUrl, {
+      method: "GET",
+      redirect: "follow",
+      headers: {
+        "User-Agent": "Mozilla/5.0 MILTVPLUS official logo lookup",
+        Range: "bytes=0-1048575",
+        Accept: "text/html",
+      },
+      signal: AbortSignal.timeout(9000),
+    });
+    if (!response.ok || new URL(response.url).protocol !== "https:") return null;
+    const sample = await readSample(response, 1048576);
+    const marker = 'property="og:image"';
+    const markerIndex = sample.indexOf(marker);
+    if (markerIndex < 0) return null;
+    const tagStart = sample.lastIndexOf("<meta", markerIndex);
+    const tagEnd = sample.indexOf(">", markerIndex);
+    if (tagStart < 0 || tagEnd < 0) return null;
+    const tag = sample.slice(tagStart, tagEnd + 1);
+    const contentMarker = 'content="';
+    const contentIndex = tag.indexOf(contentMarker);
+    if (contentIndex < 0) return null;
+    const valueStart = contentIndex + contentMarker.length;
+    const valueEnd = tag.indexOf('"', valueStart);
+    if (valueEnd < 0) return null;
+    const logoUrl = tag.slice(valueStart, valueEnd);
+    const logo = new URL(logoUrl);
+    if (logo.protocol !== "https:" || !/(^|\\.)yt3\\.(googleusercontent|ggpht)\\.com$/i.test(logo.hostname)) return null;
+    return { url: logo.toString(), sourceUrl };
+  } catch {
+    return null;
+  }
 }
 
 async function checkChannel(channel: Channel): Promise<CheckResult> {
@@ -160,7 +201,7 @@ async function checkChannel(channel: Channel): Promise<CheckResult> {
   }
 }
 
-async function patchStatus(id: string, result: CheckResult, checkedAt: string, publishCandidate = false): Promise<void> {
+async function patchStatus(id: string, result: CheckResult, checkedAt: string, publishCandidate = false, logo: { url: string; sourceUrl: string } | null = null): Promise<void> {
   const endpoint = new URL("/rest/v1/tv_channels", SUPABASE_URL);
   endpoint.searchParams.set("id", `eq.${id}`);
   const response = await fetch(endpoint, {
@@ -171,6 +212,7 @@ async function patchStatus(id: string, result: CheckResult, checkedAt: string, p
       last_checked_at: checkedAt,
       last_check_detail: result.detail.slice(0, 500),
       ...(publishCandidate ? { is_published: true } : {}),
+      ...(logo ? { logo_url: logo.url, logo_source_url: logo.sourceUrl } : {}),
     }),
     signal: AbortSignal.timeout(9000),
   });
@@ -204,7 +246,7 @@ Deno.serve(async (request: Request) => {
 
   try {
     const endpoint = new URL("/rest/v1/tv_channels", SUPABASE_URL);
-    endpoint.searchParams.set("select", "id,title,playback_type,official_watch_url,stream_url,last_checked_at,is_published");
+    endpoint.searchParams.set("select", "id,title,playback_type,official_watch_url,stream_url,last_checked_at,is_published,logo_url");
     endpoint.searchParams.set("order", "last_checked_at.asc.nullsfirst,title.asc");
     endpoint.searchParams.set("limit", "100");
     const response = await fetch(endpoint, {
@@ -244,13 +286,14 @@ Deno.serve(async (request: Request) => {
             return;
           }
           const result = await checkChannel(channel);
+          const logo = channel.logo_url ? null : await fetchYoutubeLogo(channel.official_watch_url);
           const publishCandidate = !channel.is_published &&
             result.status === "online" &&
             result.detail.startsWith("YouTube confirma una emisión en directo ahora");
           const effectiveResult = !channel.is_published && !publishCandidate
             ? { status: "pending_review" as const, detail: result.detail }
             : result;
-          await patchStatus(channel.id, effectiveResult, checkedAt, publishCandidate);
+          await patchStatus(channel.id, effectiveResult, checkedAt, publishCandidate, logo);
           summary.checked++;
           summary[effectiveResult.status]++;
           if (publishCandidate) summary.published++;
