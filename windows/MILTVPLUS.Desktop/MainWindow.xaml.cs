@@ -1,6 +1,7 @@
 using System.Net.Http;
 using System.Reflection;
 using System.IO;
+using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows;
@@ -25,6 +26,7 @@ public partial class MainWindow : Window
     private string order = "created_at.desc";
     private string? kind;
     private UpdateRelease? _availableUpdate;
+    private bool _updatingFilters;
 
     public MainWindow()
     {
@@ -54,7 +56,7 @@ public partial class MainWindow : Window
             }
             await using var stream = await response.Content.ReadAsStreamAsync();
             entries = await JsonSerializer.DeserializeAsync<List<CatalogEntry>>(stream, JsonOptions) ?? [];
-            ApplySearch();
+            UpdateFilterOptions();
             StatusText.Text = entries.Count == 0
                 ? "Todavía no hay contenido autorizado publicado en esta sección."
                 : $"{entries.Count} publicaciones · Contenido publicado";
@@ -67,12 +69,42 @@ public partial class MainWindow : Window
         }
     }
 
+    private void UpdateFilterOptions()
+    {
+        _updatingFilters = true;
+        var previousCountry = CountryFilter.SelectedItem?.ToString() ?? "Todos";
+        var previousCategory = CategoryFilter.SelectedItem?.ToString() ?? "Todas";
+        var countries = new[] { "Todos" }.Concat(entries.Select(x => x.CountryCode)
+            .Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)!).ToList();
+        var categories = new[] { "Todas" }.Concat(entries.Select(x => x.Category)
+            .Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(x => x, StringComparer.OrdinalIgnoreCase)!).ToList();
+        CountryFilter.ItemsSource = countries;
+        CategoryFilter.ItemsSource = categories;
+        CountryFilter.SelectedItem = countries.Contains(previousCountry) ? previousCountry : "Todos";
+        CategoryFilter.SelectedItem = categories.Contains(previousCategory) ? previousCategory : "Todas";
+        _updatingFilters = false;
+        ApplySearch();
+    }
+
     private void ApplySearch()
     {
         var term = SearchBox.Text.Trim();
-        Catalog.ItemsSource = entries.Where(x => string.IsNullOrEmpty(term) ||
-            (x.Title + " " + x.Description + " " + x.Genre + " " + x.Creator + " " + x.CountryCode)
-            .Contains(term, StringComparison.OrdinalIgnoreCase)).ToList();
+        var country = CountryFilter.SelectedItem?.ToString();
+        var category = CategoryFilter.SelectedItem?.ToString();
+        Catalog.ItemsSource = entries.Where(x =>
+            (string.IsNullOrEmpty(term) ||
+                (x.Title + " " + x.Description + " " + x.Genre + " " + x.Creator + " " + x.CountryCode + " " + x.Category + " " + x.LanguageCode + " " + x.SourceStatus + " " + x.AccessModel)
+                .Contains(term, StringComparison.OrdinalIgnoreCase)) &&
+            (string.IsNullOrEmpty(country) || country == "Todos" || string.Equals(x.CountryCode, country, StringComparison.OrdinalIgnoreCase)) &&
+            (string.IsNullOrEmpty(category) || category == "Todas" || string.Equals(x.Category, category, StringComparison.OrdinalIgnoreCase))
+        ).ToList();
+    }
+
+    private void Filter_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (IsLoaded && !_updatingFilters) ApplySearch();
     }
 
     private async void Refresh_Click(object sender, RoutedEventArgs e) => await LoadCatalog();
@@ -113,11 +145,24 @@ public partial class MainWindow : Window
 
     private void Play_Click(object sender, RoutedEventArgs e)
     {
-        if ((sender as FrameworkElement)?.DataContext is not CatalogEntry item ||
-            !Uri.TryCreate(item.StreamUrl, UriKind.Absolute, out var uri) ||
+        if ((sender as FrameworkElement)?.DataContext is not CatalogEntry item)
+            return;
+
+        if (!Uri.TryCreate(item.StreamUrl, UriKind.Absolute, out var uri) ||
             uri.Scheme != Uri.UriSchemeHttps)
         {
-            StatusText.Text = "Este contenido no tiene una dirección HTTPS autorizada para reproducir.";
+            if (Uri.TryCreate(item.OfficialWatchUrl, UriKind.Absolute, out var officialUri) &&
+                officialUri.Scheme == Uri.UriSchemeHttps)
+            {
+                try
+                {
+                    Process.Start(new ProcessStartInfo(officialUri.ToString()) { UseShellExecute = true });
+                    StatusText.Text = "Abriendo la señal en el reproductor oficial: " + item.Title;
+                }
+                catch (Exception ex) { StatusText.Text = "No se pudo abrir el canal oficial: " + ex.Message; }
+                return;
+            }
+            StatusText.Text = "Este canal todavía no tiene una señal HTTPS verificada ni una página oficial de visualización.";
             return;
         }
 
@@ -171,7 +216,7 @@ public partial class MainWindow : Window
             }
 
             entries = imported;
-            Catalog.ItemsSource = entries;
+            UpdateFilterOptions();
             PageTitle.Text = "Lista local importada";
             StatusText.Text = imported.Count == 0
                 ? "No se encontraron enlaces HTTPS válidos en la lista."
@@ -205,6 +250,7 @@ public partial class MainWindow : Window
         var section = item.Content?.ToString();
         (table, select, order, kind) = section switch
         {
+            "Canales por país" => ("tv_channels", "title,description,country_code,created_at,category,language_code,access_model,logo_url,official_watch_url,stream_url,playback_type,is_free_to_air,source_status", "sort_order.asc,title.asc", null),
             "TV en vivo" => ("catalog_items", "title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url", "created_at.desc", "live"),
             "Películas" => ("catalog_items", "title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url", "created_at.desc", "movie"),
             "Series" => ("catalog_items", "title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url", "created_at.desc", "series"),
@@ -237,6 +283,23 @@ public partial class MainWindow : Window
         [JsonPropertyName("ends_at")] public DateTimeOffset? EndsAt { get; set; }
         [JsonPropertyName("channel_external_id")] public string? ChannelExternalId { get; set; }
         [JsonPropertyName("stream_url")] public string? StreamUrl { get; set; }
-        public string Metadata => string.Join(" · ", new[] { Kind ?? ItemType ?? Sport, Genre ?? Competition ?? Creator, CountryCode, ReleaseYear?.ToString(), AgeRating, StartsAt?.ToLocalTime().ToString("g") }.Where(x => !string.IsNullOrWhiteSpace(x)));
+        [JsonPropertyName("official_watch_url")] public string? OfficialWatchUrl { get; set; }
+        [JsonPropertyName("logo_url")] public string? LogoUrl { get; set; }
+        public string? Category { get; set; }
+        [JsonPropertyName("language_code")] public string? LanguageCode { get; set; }
+        [JsonPropertyName("playback_type")] public string? PlaybackType { get; set; }
+        [JsonPropertyName("is_free_to_air")] public bool? IsFreeToAir { get; set; }
+        [JsonPropertyName("source_status")] public string? SourceStatus { get; set; }
+        [JsonPropertyName("access_model")] public string? AccessModel { get; set; }
+        private string? AccessModelLabel => AccessModel switch
+        {
+            "free_web" => "Acceso web gratuito",
+            "free_to_air" => "Televisión abierta",
+            "free_with_ads" => "Gratis con anuncios",
+            "subscription" => "Suscripción",
+            "geo_restricted" => "Con restricción geográfica",
+            _ => null
+        };
+        public string Metadata => string.Join(" · ", new[] { Category ?? Kind ?? ItemType ?? Sport, Genre ?? Competition ?? Creator, CountryCode, LanguageCode, AccessModelLabel, PlaybackType, SourceStatus, ReleaseYear?.ToString(), AgeRating, StartsAt?.ToLocalTime().ToString("g") }.Where(x => !string.IsNullOrWhiteSpace(x)));
     }
 }

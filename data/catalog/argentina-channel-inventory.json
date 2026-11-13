@@ -1,0 +1,127 @@
+{
+  "country_code": "AR",
+  "country_name": "Argentina",
+  "status": "discovery_inventory_not_published",
+  "note": "Inventario de descubrimiento. C5N, Canal 26 y Senado TV están publicados sólo como enlaces a páginas oficiales; Crónica TV y Diputados TV tienen páginas oficiales registradas pero permanecen en revisión. Ninguno tiene stream integrado ni logo aprobado cargado.",
+  "required_news_channels": [
+    {
+      "slug": "c5n",
+      "name": "C5N",
+      "category": "news",
+      "priority": 1,
+      "required": true,
+      "official_watch_url": "https://www.c5n.com/vivo",
+      "directory_status": "published_official_web",
+      "integrated_stream_status": "not_authorized_or_not_documented",
+      "access_model": "free_web"
+    },
+    {
+      "slug": "cronica-tv",
+      "name": "Crónica TV",
+      "category": "news",
+      "priority": 2,
+      "required": true,
+      "official_watch_url": "https://www.cronica.com.ar/cronica-en-vivo/",
+      "directory_status": "pending_manual_check",
+      "integrated_stream_status": "not_authorized_or_not_documented",
+      "access_model": "unknown"
+    },
+    {
+      "slug": "tn",
+      "name": "Todo Noticias (TN)",
+      "category": "news",
+      "priority": 3,
+      "required": false,
+      "access_model": "unknown"
+    },
+    {
+      "slug": "a24",
+      "name": "A24",
+      "category": "news",
+      "priority": 4,
+      "required": false,
+      "access_model": "unknown"
+    },
+    {
+      "slug": "ln-mas",
+      "name": "LN+",
+      "category": "news",
+      "priority": 5,
+      "required": false,
+      "access_model": "unknown"
+    },
+    {
+      "slug": "canal-26",
+      "name": "Canal 26",
+      "category": "news",
+      "priority": 6,
+      "required": false,
+      "official_watch_url": "https://www.canal26.com/canal26-en-vivo/",
+      "directory_status": "published_official_web",
+      "integrated_stream_status": "not_authorized_or_not_documented",
+      "access_model": "free_web"
+    },
+    {
+      "slug": "argentina-12",
+      "name": "Argentina 12 / IP Noticias",
+      "category": "news",
+      "priority": 7,
+      "required": false,
+      "access_model": "unknown"
+    },
+    {
+      "slug": "canal-e",
+      "name": "Canal E",
+      "category": "news",
+      "priority": 8,
+      "required": false,
+      "access_model": "unknown"
+    },
+    {
+      "slug": "senado-tv",
+      "name": "Senado TV",
+      "category": "public",
+      "priority": 9,
+      "required": false,
+      "official_watch_url": "https://www.senado.gob.ar/parlamentario/sesiones/enVivo",
+      "directory_status": "published_official_web",
+      "integrated_stream_status": "not_authorized_or_not_documented",
+      "access_model": "free_web"
+    },
+    {
+      "slug": "diputados-tv",
+      "name": "Diputados TV",
+      "category": "public",
+      "priority": 10,
+      "required": false,
+      "official_watch_url": "https://www.hcdn.gob.ar/dtv/index.html",
+      "directory_status": "pending_manual_check",
+      "integrated_stream_status": "not_authorized_or_not_documented",
+      "access_model": "unknown"
+    }
+  ],
+  "other_categories": [
+    "general",
+    "public",
+    "sports",
+    "education",
+    "culture",
+    "music",
+    "regional",
+    "international",
+    "radio-video"
+  ],
+  "publication_fields_required": [
+    "logo_url",
+    "logo_source_url",
+    "official_watch_url",
+    "rights_holder",
+    "rights_reference",
+    "rights_regions",
+    "rights_valid_from",
+    "rights_verified",
+    "source_status"
+  ],
+  "default_state": "unverified",
+  "publish_only_after_owner_and_stream_verification": true
+}

@@ -1,0 +1,28 @@
+{
+  "inventory_status": "official_page_directory_inventory",
+  "scope": "official_web_links_only_no_embedded_streams",
+  "channels": [
+    {
+      "slug": "al-jazeera-english",
+      "name": "Al Jazeera English",
+      "country_code": "QA",
+      "language_code": "en",
+      "category": "international",
+      "official_watch_url": "https://www.aljazeera.com/video/live",
+      "directory_status": "published_official_web",
+      "access_model": "free_web",
+      "integrated_stream_status": "not_authorized_or_not_documented"
+    },
+    {
+      "slug": "trt-world",
+      "name": "TRT World",
+      "country_code": "TR",
+      "language_code": "en",
+      "category": "international",
+      "official_watch_url": "https://www.trtworld.com/video/tv",
+      "directory_status": "published_official_web",
+      "access_model": "free_web",
+      "integrated_stream_status": "not_authorized_or_not_documented"
+    }
+  ]
+}

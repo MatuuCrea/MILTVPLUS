@@ -42,7 +42,7 @@ class SupabaseCatalogRepository {
             require(apiKey.startsWith("sb_publishable_")) { "Falta configurar la clave publishable de Supabase." }
 
             // EPG must arrive in schedule order; the other catalog sections show newest publications first.
-            val order = if (table in setOf("epg_programs", "sports_events", "theater_events")) "starts_at.asc" else "created_at.desc"
+            val order = when (table) { "tv_channels" -> "sort_order.asc,title.asc"; "epg_programs", "sports_events", "theater_events" -> "starts_at.asc"; else -> "created_at.desc" }
             require(countryCode == null || countryCode.matches(Regex("^[A-Z]{2}$"))) { "Código de país inválido." }
             val countryFilter = countryCode?.let { code ->
                 val predicate = "(country_code.eq.$code,country_code.is.null,rights_regions.cs.{$code})"
@@ -81,8 +81,16 @@ class SupabaseCatalogRepository {
         val startsAt = row.optString("starts_at").takeIf { it.isNotBlank() && it != "null" }
         val endsAt = row.optString("ends_at").takeIf { it.isNotBlank() && it != "null" }
         val schedule = listOfNotNull(startsAt, endsAt).joinToString(" – ")
-        val subtitle = (subtitleParts + listOfNotNull(schedule)).distinct().joinToString(" · ")
-        val artwork = listOf("poster_url", "backdrop_url", "logo_url", "artwork_url", "image_url")
+        val accessModelLabel = when (row.optString("access_model")) {
+            "free_web" -> "Acceso web gratuito"
+            "free_to_air" -> "Televisión abierta"
+            "free_with_ads" -> "Gratis con anuncios"
+            "subscription" -> "Suscripción"
+            "geo_restricted" -> "Con restricción geográfica"
+            else -> null
+        }
+        val subtitle = (subtitleParts + listOfNotNull(schedule, accessModelLabel)).distinct().joinToString(" · ")
+        val artwork = listOf("logo_url", "poster_url", "backdrop_url", "artwork_url", "image_url")
             .firstNotNullOfOrNull { key -> row.optString(key).takeIf(::isSafeHttpsUrl) }
         val action = listOf("stream_url", "authorized_stream_url")
             .firstNotNullOfOrNull { key -> row.optString(key).takeIf(::isSafeHttpsUrl) }
@@ -92,14 +100,14 @@ class SupabaseCatalogRepository {
             subtitle = subtitle,
             artworkUrl = artwork,
             actionUrl = action,
-            category = table,
+            category = if (table == "tv_channels") row.optString("category").ifBlank { "other" } else table,
             channelExternalId = row.optString("channel_external_id").takeIf { it.isNotBlank() && it != "null" },
             startsAt = startsAt,
             endsAt = endsAt,
             kind = row.optString("kind").takeIf { it.isNotBlank() && it != "null" },
             countryCode = row.optString("country_code").takeIf { it.isNotBlank() && it != "null" },
             ageRating = row.optString("age_rating").takeIf { it.isNotBlank() && it != "null" },
-            infoUrl = listOf("official_info_url", "info_url", "website_url", "external_url")
+            infoUrl = listOf("official_watch_url", "official_info_url", "info_url", "website_url", "external_url")
                 .firstNotNullOfOrNull { key -> row.optString(key).takeIf(::isSafeHttpsUrl) }
         )
     }
@@ -129,7 +137,7 @@ class SupabaseCatalogRepository {
     private companion object {
         const val MAX_RESPONSE_BYTES = 2 * 1024 * 1024
         val PUBLISHED_TABLES = setOf(
-            "catalog_items", "radio_stations", "sports_events",
+            "catalog_items", "tv_channels", "radio_stations", "sports_events",
             "music_items", "theater_events", "epg_programs"
         )
     }
