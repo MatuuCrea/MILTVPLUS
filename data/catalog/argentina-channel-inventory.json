@@ -27,12 +27,15 @@
       "access_model": "free_web"
     },
     {
-      "slug": "tn",
+      "slug": "tn-todo-noticias",
       "name": "Todo Noticias (TN)",
       "category": "news",
       "priority": 3,
       "required": false,
-      "access_model": "unknown"
+      "access_model": "free_web",
+      "official_watch_url": "https://www.youtube.com/@todonoticias/live",
+      "directory_status": "published_official_youtube_live_marker_confirmed",
+      "integrated_stream_status": "official_player_only_no_native_hls_dash"
     },
     {
       "slug": "a24",
