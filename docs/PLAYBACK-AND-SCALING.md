@@ -14,9 +14,9 @@
 
 ### Windows
 - LibVLC con decodificación por hardware automática, caché de red/live y opción de reconexión HTTP para endpoints HTTPS directos.
-- Microsoft Edge WebView2 integrado para abrir dentro del reproductor las páginas HTTPS oficiales cuando la ficha no tiene stream directo; no se extraen URLs internas ni se eluden DRM o controles del emisor.
+- Microsoft Edge WebView2 integrado para abrir dentro del reproductor las páginas HTTPS oficiales cuando la ficha no tiene stream directo. Las filas `youtube_live` también se enrutan al reproductor web oficial y nunca a LibVLC/Media3; no se extraen URLs internas ni se eluden DRM o controles del emisor.
 - Al seleccionar una señal directa o una página oficial se entra automáticamente en pantalla completa. Botón, doble clic o F11 también permiten alternarla; Escape vuelve a ventana.
-- Canal anterior/siguiente entre las señales reproducibles y páginas oficiales que aparecen en el filtro actual; refresco de catálogo cada 60 segundos mientras se navega por canales.
+- Canal anterior/siguiente entre las señales reproducibles y páginas oficiales que aparecen en el filtro actual; el catálogo se consulta cada 60 segundos y la cola de reproducción se sincroniza automáticamente con las fichas actualizadas.
 - Requiere WebView2 Runtime Evergreen. Si falta, la aplicación informa del problema y ofrece abrir el sitio oficial en el navegador predeterminado.
 
 ## Catálogo y actualizaciones
