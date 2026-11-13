@@ -23,7 +23,7 @@ APK: `app/build/outputs/apk/debug/app-debug.apk`. La APK debug se firma con la c
 
 Cliente de escritorio nativo WPF/.NET 8 en `windows/MILTVPLUS.Desktop`. No utiliza navegador ni WebView. Incluye navegación de secciones, búsqueda, consulta por tabla con proyecciones compatibles con el esquema real de Supabase y generación automática del icono Windows desde el logotipo de marca para el ejecutable y el instalador.
 
-El workflow `.github/workflows/windows.yml` publica la aplicación x64 autocontenida y construye un instalador `MILTVPLUS-Setup-x64.exe` con Inno Setup. Esta primera base Windows todavía no iguala todas las funciones del cliente Android; reproducción, cuenta completa, protección +18, importación M3U y QA están pendientes de implementación.
+El workflow `.github/workflows/windows.yml` publica la aplicación x64 autocontenida y construye un instalador `MILTVPLUS-Setup-x64.exe` con Inno Setup. El workflow `.github/workflows/release-native.yml` prepara APK y EXE como activos directos de una GitHub Release al etiquetar `v*`; el APK generado actualmente es debug-signed y no debe tratarse como versión comercial. El cliente Windows incorpora reproducción nativa mediante LibVLC (incluido soporte HLS según el formato y códec del proveedor), validación HTTPS antes de iniciar un flujo e importación local M3U/M3U8 con límite de 5 MB. La lista local no se sincroniza con la nube ni se considera verificada por el mero hecho de usar HTTPS. Todavía faltan Auth, favoritos, control +18, preferencias, EPG/series completas y QA físico; no se declara paridad funcional con Android.
 
 ## Catálogo y derechos
 
