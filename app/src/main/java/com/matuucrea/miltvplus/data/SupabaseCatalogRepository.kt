@@ -92,7 +92,7 @@ class SupabaseCatalogRepository {
             subtitle = subtitle,
             artworkUrl = artwork,
             actionUrl = action,
-            category = table,
+            category = if (table == "tv_channels") row.optString("category").ifBlank { "other" } else table,
             channelExternalId = row.optString("channel_external_id").takeIf { it.isNotBlank() && it != "null" },
             startsAt = startsAt,
             endsAt = endsAt,
