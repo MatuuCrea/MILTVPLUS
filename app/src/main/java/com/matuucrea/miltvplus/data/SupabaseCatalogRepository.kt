@@ -98,7 +98,18 @@ class SupabaseCatalogRepository {
             "geo_restricted" -> "Con restricción geográfica"
             else -> null
         }
-        val subtitle = (subtitleParts + listOfNotNull(schedule, accessModelLabel)).distinct().joinToString(" · ")
+        val sourceStatusLabel = when (row.optString("source_status")) {
+            "online" -> "Fuente accesible"
+            "offline" -> "Fuente sin respuesta"
+            "blocked" -> "Acceso bloqueado"
+            "pending_review" -> "En revisión"
+            "geo_restricted" -> "Restricción geográfica"
+            else -> null
+        }
+        val healthDetail = row.optString("last_check_detail")
+            .takeIf { it.isNotBlank() && it != "null" }
+            ?.take(150)
+        val subtitle = (subtitleParts + listOfNotNull(schedule, accessModelLabel, sourceStatusLabel, healthDetail)).distinct().joinToString(" · ")
         val artwork = listOf("logo_url", "poster_url", "backdrop_url", "artwork_url", "image_url")
             .firstNotNullOfOrNull { key -> row.optString(key).takeIf(::isSafeHttpsUrl) }
         val youtubeLive = table == "tv_channels" &&
