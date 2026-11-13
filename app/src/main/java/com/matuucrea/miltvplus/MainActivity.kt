@@ -44,6 +44,7 @@ import com.matuucrea.miltvplus.ui.CountryPickerScreen
 import com.matuucrea.miltvplus.ui.AdultAccessScreen
 import com.matuucrea.miltvplus.ui.RemoteSourcesScreen
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import android.content.Intent
 import android.net.Uri
 import java.io.ByteArrayOutputStream
@@ -88,6 +89,7 @@ class MainActivity:ComponentActivity(){
     val uiScope = rememberCoroutineScope()
     var remoteKindFilter by remember { mutableStateOf<String?>(null) }
     var channelCategoryFilter by remember { mutableStateOf<String?>(null) }
+    var selectedChannelCountry by remember { mutableStateOf<String?>(null) }
     var countryCode by remember { mutableStateOf(context.getSharedPreferences("miltvplus_preferences",0).getString("country_code","AR") ?: "AR") }
     LaunchedEffect(Unit) {
         val callback = authCallback ?: (context as? MainActivity)?.intent?.data
@@ -128,7 +130,20 @@ class MainActivity:ComponentActivity(){
     var remoteLoading by remember { mutableStateOf(false) }
     var catalogRefresh by remember { mutableIntStateOf(0) }
     var remoteError by remember { mutableStateOf<String?>(null) }
-    LaunchedEffect(tab, remoteCategory, catalogRefresh, countryCode) { if (tab == "Catálogo") { remoteLoading = true; remoteError = null; val result = remoteRepository.fetchPublished(remoteCategory,countryCode); result.onSuccess { remoteItems = it }.onFailure { remoteItems = emptyList(); remoteError = it.message ?: "No se pudo consultar el catálogo." }; remoteLoading = false } }
+    LaunchedEffect(tab, remoteCategory, catalogRefresh, countryCode) {
+        if (tab == "Catálogo") {
+            remoteError = null
+            while (true) {
+                if (remoteItems.isEmpty()) remoteLoading = true
+                val result = remoteRepository.fetchPublished(remoteCategory, if (remoteCategory == "tv_channels") null else countryCode)
+                result.onSuccess { remoteItems = it }
+                    .onFailure { if (remoteItems.isEmpty()) remoteError = it.message ?: "No se pudo consultar el catálogo." }
+                remoteLoading = false
+                if (remoteCategory != "tv_channels") break
+                delay(60_000)
+            }
+        }
+    }
     val channels by vm.channels.collectAsState(); val selected by vm.selected.collectAsState(); val errorMessage by vm.error.collectAsState(); val favorites by vm.favorites.collectAsState()
     LaunchedEffect(selected?.url) {
         val url = selected?.url
@@ -203,6 +218,14 @@ class MainActivity:ComponentActivity(){
                         }
                     }
                 }
+                if(remoteCategory=="tv_channels" && remoteItems.isNotEmpty()) {
+                    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal=12.dp),horizontalArrangement=Arrangement.spacedBy(6.dp)) {
+                        FilterChip(selected=selectedChannelCountry==null,onClick={selectedChannelCountry=null},label={Text("Todos los países")})
+                        remoteItems.mapNotNull { it.countryCode }.distinct().sorted().forEach { code ->
+                            FilterChip(selected=selectedChannelCountry==code,onClick={selectedChannelCountry=code},label={Text(code)})
+                        }
+                    }
+                }
                 if(remoteCategory=="catalog_items") {
                     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal=12.dp),horizontalArrangement=Arrangement.spacedBy(6.dp)) {
                         listOf(null to "Todos", "live" to "En vivo", "movie" to "Películas", "series" to "Series").forEach { (kind,label) ->
@@ -251,7 +274,7 @@ class MainActivity:ComponentActivity(){
                                 }
                             }
                         } else {
-                            LazyColumn(contentPadding=PaddingValues(14.dp)){items(publicItems.filter { (remoteKindFilter==null || it.kind==remoteKindFilter) && (remoteCategory!="tv_channels" || channelCategoryFilter==null || it.category==channelCategoryFilter) },key={it.id}){item->
+                            LazyColumn(contentPadding=PaddingValues(14.dp)){items(publicItems.filter { (remoteKindFilter==null || it.kind==remoteKindFilter) && (remoteCategory!="tv_channels" || ((channelCategoryFilter==null || it.category==channelCategoryFilter) && (selectedChannelCountry==null || it.countryCode==selectedChannelCountry))) },key={it.id}){item->
                                 Card(Modifier.fillMaxWidth().padding(vertical=5.dp),colors=CardDefaults.cardColors(containerColor=panel)){
                                     Row(Modifier.padding(14.dp),verticalAlignment=Alignment.CenterVertically){
                                         if(item.artworkUrl!=null) AsyncImage(
@@ -272,6 +295,11 @@ class MainActivity:ComponentActivity(){
                                                 }
                                             }) { Icon(if(item.id in cloudFavorites) Icons.Default.Favorite else Icons.Default.FavoriteBorder,"Favorito en la nube",tint=cyan) }
                                         }
+                                        if(item.actionUrl!=null && remoteCategory=="tv_channels") TextButton(onClick={
+                                            val playable = remoteItems.filter { it.actionUrl != null }.map { Channel(it.id,it.title,it.actionUrl!!,it.countryCode ?: "",it.artworkUrl) }
+                                            val start = playable.indexOfFirst { it.id == item.id }
+                                            if(start >= 0) launchChannelPlayer(context, playable, start)
+                                        }){Text("Ver en pantalla completa")}
                                         if(item.actionUrl!=null && remoteCategory in setOf("radio_stations","catalog_items","sports_events","theater_events")) TextButton(onClick={vm.play(Channel(item.id,item.title,item.actionUrl,item.subtitle,item.artworkUrl))}){Text("Reproducir")}
                                         if(item.infoUrl!=null && remoteCategory in setOf("sports_events","theater_events","music_items","radio_stations","tv_channels")) TextButton(onClick={runCatching { context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(item.infoUrl))) }.onFailure { remoteError="No se pudo abrir el enlace oficial." }}){Text(if(remoteCategory=="tv_channels") "Ver canal oficial" else "Información")}
                                     }
@@ -300,7 +328,7 @@ class MainActivity:ComponentActivity(){
                 Text("La conexión con Spotify abre su servicio oficial. El inicio de sesión OAuth y la reproducción integrada requieren una aplicación Spotify registrada y aprobada.",Modifier.padding(16.dp),color=MaterialTheme.colorScheme.onSurfaceVariant)
                 TextButton(onClick={remoteCategory="music_items";tab="Catálogo"}){Text("Ver música publicada en MILTVPLUS")}
             }
-            else->{Title(if(tab=="TV")"Televisión en vivo" else "Tus favoritos","Elegí un canal para reproducir");OutlinedTextField(query,{query=it},Modifier.fillMaxWidth().padding(horizontal=16.dp),placeholder={Text("Buscar canal o categoría")},singleLine=true);val list=channels.filter{(tab!="Favoritos"||it.id in favorites)&&(it.name.contains(query,true)||it.group.contains(query,true))};if(list.isEmpty())Empty("No hay canales para mostrar","Agregá una lista autorizada desde Fuentes.");LazyColumn(contentPadding=PaddingValues(14.dp)){items(list,key={it.id}){c->ChannelItem(c,c.id in favorites,{vm.play(c)},{vm.toggleFavorite(c.id)})}};selected?.let{channel->Card(Modifier.fillMaxWidth().padding(14.dp),colors=CardDefaults.cardColors(containerColor=Color.Black)){Column(Modifier.padding(12.dp)){Text("REPRODUCIENDO · "+channel.name,color=cyan,fontWeight=FontWeight.Bold);AndroidView(factory={ctx->PlayerView(ctx).apply{player=exoPlayer;useController=true;setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING)}},update={it.player=exoPlayer},modifier=Modifier.fillMaxWidth().height(220.dp));TextButton(onClick={vm.stop()}){Text("Detener reproducción")}}}};errorMessage?.let{Text(it,color=orange,modifier=Modifier.padding(12.dp))}}
+            else->{Title(if(tab=="TV")"Televisión en vivo" else "Tus favoritos","Elegí un canal para reproducir");OutlinedTextField(query,{query=it},Modifier.fillMaxWidth().padding(horizontal=16.dp),placeholder={Text("Buscar canal o categoría")},singleLine=true);val list=channels.filter{(tab!="Favoritos"||it.id in favorites)&&(it.name.contains(query,true)||it.group.contains(query,true))};if(list.isEmpty())Empty("No hay canales para mostrar","Agregá una lista autorizada desde Fuentes.");LazyColumn(contentPadding=PaddingValues(14.dp)){items(list,key={it.id}){c->ChannelItem(c,c.id in favorites,{vm.play(c)},{vm.toggleFavorite(c.id)})}};selected?.let{channel->Card(Modifier.fillMaxWidth().padding(14.dp),colors=CardDefaults.cardColors(containerColor=Color.Black)){Column(Modifier.padding(12.dp)){Text("REPRODUCIENDO · "+channel.name,color=cyan,fontWeight=FontWeight.Bold);AndroidView(factory={ctx->PlayerView(ctx).apply{player=exoPlayer;useController=true;setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING)}},update={it.player=exoPlayer},modifier=Modifier.fillMaxWidth().height(220.dp));Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){TextButton(onClick={launchChannelPlayer(context,channels,channels.indexOfFirst { it.id==channel.id }.coerceAtLeast(0))}){Text("Pantalla completa")};TextButton(onClick={vm.stop()}){Text("Detener reproducción")}}}}};errorMessage?.let{Text(it,color=orange,modifier=Modifier.padding(12.dp))}}
         }
     }}
 }
@@ -337,3 +365,19 @@ private fun isAdultRating(rating:String?):Boolean {
 @Composable private fun Title(a:String,b:String){Column(Modifier.padding(start=20.dp,end=20.dp,top=22.dp,bottom=10.dp)){Text(a,color=MaterialTheme.colorScheme.onBackground,fontSize=20.sp,fontWeight=FontWeight.Bold);Text(b,color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=12.sp)}}
 @Composable private fun Empty(a:String,b:String){Column(Modifier.fillMaxWidth().padding(28.dp),horizontalAlignment=Alignment.CenterHorizontally){Icon(Icons.Default.TvOff,null,tint=cyan,modifier=Modifier.size(36.dp));Text(a,color=MaterialTheme.colorScheme.onSurface,fontWeight=FontWeight.Bold);Text(b,color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=12.sp)}}
 @Composable private fun ChannelItem(c:Channel,f:Boolean,play:()->Unit,fav:()->Unit){Card(onClick=play,Modifier.fillMaxWidth().padding(vertical=4.dp),colors=CardDefaults.cardColors(containerColor=panel)){Row(Modifier.padding(12.dp),verticalAlignment=Alignment.CenterVertically){Icon(Icons.Default.LiveTv,null,tint=cyan);Column(Modifier.weight(1f).padding(horizontal=12.dp)){Text(c.name,color=MaterialTheme.colorScheme.onSurface,fontWeight=FontWeight.SemiBold);Text(c.group.ifBlank{"Sin categoría"},color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=11.sp)};IconButton(onClick=fav){Icon(if(f)Icons.Default.Favorite else Icons.Default.FavoriteBorder,null,tint=if(f)orange else Color.LightGray)}}}}
+
+private fun launchChannelPlayer(context: android.content.Context, channels: List<Channel>, startIndex: Int) {
+    val playable = channels.filter { it.url.startsWith("https://", true) }
+    if (playable.isEmpty()) return
+    val selected = channels.getOrNull(startIndex)
+    val index = playable.indexOfFirst { selected != null && it.id == selected.id }.coerceAtLeast(0)
+    val payload = org.json.JSONArray()
+    playable.forEach { channel ->
+        payload.put(org.json.JSONObject().put("id",channel.id).put("name",channel.name).put("url",channel.url))
+    }
+    context.startActivity(
+        Intent(context, com.matuucrea.miltvplus.player.ChannelPlayerActivity::class.java)
+            .putExtra(com.matuucrea.miltvplus.player.ChannelPlayerActivity.EXTRA_CHANNELS,payload.toString())
+            .putExtra(com.matuucrea.miltvplus.player.ChannelPlayerActivity.EXTRA_START_INDEX,index)
+    )
+}
