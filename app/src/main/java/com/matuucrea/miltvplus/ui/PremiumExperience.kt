@@ -95,7 +95,6 @@ fun PremiumSidebar(activeTab: String, onNavigate: (String) -> Unit) {
                 entries.forEach { item ->
                     val selected = activeTab == item.label ||
                         (item.label == "TV en Vivo" && activeTab in setOf("Catálogo", "TV")) ||
-                        (item.label == "Guía EPG" && activeTab == "Catálogo") ||
                         (item.label == "Configuración" && activeTab == "Ajustes") ||
                         (item.label == "Adultos 18+" && activeTab == "Adultos")
                     Row(
