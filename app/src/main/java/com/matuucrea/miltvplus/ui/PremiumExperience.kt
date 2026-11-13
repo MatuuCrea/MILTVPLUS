@@ -255,7 +255,7 @@ private fun CountryPanel(modifier: Modifier, countryName: String, countryFlag: S
                 Text(countryFlag, fontSize = 26.sp)
                 Column(Modifier.weight(1f).padding(start = 9.dp)) {
                     Text(countryName, color = Color.White, fontWeight = FontWeight.Bold)
-                    Text(if (loading) "Actualizando catálogo…" else "$channelCount publicaciones en catálogo", color = PremiumCyan, fontSize = 10.sp)
+                    Text(if (loading) "Actualizando catálogo…" else "$channelCount enlaces HTTPS publicados", color = PremiumCyan, fontSize = 10.sp)
                 }
                 Icon(Icons.Default.CheckCircle, null, tint = PremiumBlue)
             }
@@ -295,7 +295,7 @@ private fun LivePreview(modifier: Modifier, country: String, count: Int, feature
                 Spacer(Modifier.width(7.dp))
                 Text("TV en Vivo", color = Color.White, fontWeight = FontWeight.ExtraBold)
                 Spacer(Modifier.weight(1f))
-                Text("$count", color = PremiumCyan, fontSize = 11.sp)
+                Text("$count enlaces HTTPS", color = PremiumCyan, fontSize = 10.sp)
             }
             Text(country.uppercase(), color = PremiumCyan, fontSize = 10.sp, fontWeight = FontWeight.Bold)
             Text(featured ?: if (loading) "Conectando al catálogo…" else "Señales públicas y autorizadas", color = Color.LightGray, fontSize = 12.sp)
