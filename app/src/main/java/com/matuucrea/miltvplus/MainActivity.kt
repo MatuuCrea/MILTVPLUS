@@ -298,7 +298,7 @@ class MainActivity:ComponentActivity(){
                                         if(item.actionUrl!=null && remoteCategory=="tv_channels") TextButton(onClick={
                                             val playable = remoteItems.filter { it.actionUrl != null && (selectedChannelCountry==null || it.countryCode==selectedChannelCountry) && (channelCategoryFilter==null || it.category==channelCategoryFilter) }.map { Channel(it.id,it.title,it.actionUrl!!,it.countryCode ?: "",it.artworkUrl) }
                                             val start = playable.indexOfFirst { it.id == item.id }
-                                            if(start >= 0) launchChannelPlayer(context, playable, start)
+                                            if(start >= 0) launchChannelPlayer(context, playable, start, remoteCatalog=true, countryCode=selectedChannelCountry, category=channelCategoryFilter)
                                         }){Text("Ver en pantalla completa")}
                                         if(item.actionUrl!=null && remoteCategory in setOf("radio_stations","catalog_items","sports_events","theater_events")) TextButton(onClick={vm.play(Channel(item.id,item.title,item.actionUrl,item.subtitle,item.artworkUrl))}){Text("Reproducir")}
                                         if(item.infoUrl!=null && remoteCategory in setOf("sports_events","theater_events","music_items","radio_stations","tv_channels")) TextButton(onClick={runCatching { context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse(item.infoUrl))) }.onFailure { remoteError="No se pudo abrir el enlace oficial." }}){Text(if(remoteCategory=="tv_channels") "Ver canal oficial" else "Información")}
@@ -366,7 +366,7 @@ private fun isAdultRating(rating:String?):Boolean {
 @Composable private fun Empty(a:String,b:String){Column(Modifier.fillMaxWidth().padding(28.dp),horizontalAlignment=Alignment.CenterHorizontally){Icon(Icons.Default.TvOff,null,tint=cyan,modifier=Modifier.size(36.dp));Text(a,color=MaterialTheme.colorScheme.onSurface,fontWeight=FontWeight.Bold);Text(b,color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=12.sp)}}
 @Composable private fun ChannelItem(c:Channel,f:Boolean,play:()->Unit,fav:()->Unit){Card(onClick=play,Modifier.fillMaxWidth().padding(vertical=4.dp),colors=CardDefaults.cardColors(containerColor=panel)){Row(Modifier.padding(12.dp),verticalAlignment=Alignment.CenterVertically){Icon(Icons.Default.LiveTv,null,tint=cyan);Column(Modifier.weight(1f).padding(horizontal=12.dp)){Text(c.name,color=MaterialTheme.colorScheme.onSurface,fontWeight=FontWeight.SemiBold);Text(c.group.ifBlank{"Sin categoría"},color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=11.sp)};IconButton(onClick=fav){Icon(if(f)Icons.Default.Favorite else Icons.Default.FavoriteBorder,null,tint=if(f)orange else Color.LightGray)}}}}
 
-private fun launchChannelPlayer(context: android.content.Context, channels: List<Channel>, startIndex: Int) {
+private fun launchChannelPlayer(context: android.content.Context, channels: List<Channel>, startIndex: Int, remoteCatalog: Boolean = false, countryCode: String? = null, category: String? = null) {
     val playable = channels.filter { it.url.startsWith("https://", true) }
     if (playable.isEmpty()) return
     val selected = channels.getOrNull(startIndex)
@@ -378,6 +378,9 @@ private fun launchChannelPlayer(context: android.content.Context, channels: List
     context.startActivity(
         Intent(context, com.matuucrea.miltvplus.player.ChannelPlayerActivity::class.java)
             .putExtra(com.matuucrea.miltvplus.player.ChannelPlayerActivity.EXTRA_CHANNELS,payload.toString())
-            .putExtra(com.matuucrea.miltvplus.player.ChannelPlayerActivity.EXTRA_START_INDEX,index)
+             .putExtra(com.matuucrea.miltvplus.player.ChannelPlayerActivity.EXTRA_START_INDEX,index)
+            .putExtra(com.matuucrea.miltvplus.player.ChannelPlayerActivity.EXTRA_REMOTE_CATALOG,remoteCatalog)
+            .putExtra(com.matuucrea.miltvplus.player.ChannelPlayerActivity.EXTRA_COUNTRY_CODE,countryCode ?: "")
+            .putExtra(com.matuucrea.miltvplus.player.ChannelPlayerActivity.EXTRA_CATEGORY,category ?: "")
     )
 }
