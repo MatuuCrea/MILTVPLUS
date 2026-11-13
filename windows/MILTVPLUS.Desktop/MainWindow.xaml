@@ -1,0 +1,37 @@
+<Window x:Class="MILTVPLUS.Desktop.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="MILTVPLUS" Height="760" Width="1280" MinHeight="600" MinWidth="980" Background="#07132D" Foreground="#F5F8FF" WindowStartupLocation="CenterScreen">
+ <Grid>
+  <Grid.ColumnDefinitions><ColumnDefinition Width="250"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+  <Border Grid.Column="0" Background="#0B1835" Padding="22">
+   <DockPanel LastChildFill="True">
+    <StackPanel DockPanel.Dock="Top">
+     <TextBlock Text="MILTVPLUS" FontSize="26" FontWeight="Bold" Foreground="#00D9F5" Margin="0,8,0,4"/>
+     <TextBlock Text="ENTRETENIMIENTO" FontSize="10" Foreground="#AAB6CE" Margin="0,0,0,24"/>
+     <ListBox x:Name="Sections" Background="Transparent" BorderThickness="0" Foreground="White" SelectionChanged="Sections_SelectionChanged">
+      <ListBoxItem Content="Inicio" IsSelected="True" Padding="10"/>
+      <ListBoxItem Content="TV en vivo" Padding="10"/><ListBoxItem Content="Películas" Padding="10"/>
+      <ListBoxItem Content="Series" Padding="10"/><ListBoxItem Content="Deportes" Padding="10"/>
+      <ListBoxItem Content="Radios" Padding="10"/><ListBoxItem Content="Música" Padding="10"/>
+      <ListBoxItem Content="Teatro" Padding="10"/><ListBoxItem Content="Guía EPG" Padding="10"/>
+     </ListBox>
+    </StackPanel>
+    <TextBlock DockPanel.Dock="Bottom" Text="Fuentes autorizadas · MILTVPLUS" Foreground="#8192B3" FontSize="10" TextWrapping="Wrap" Margin="0,20,0,0"/>
+   </DockPanel>
+  </Border>
+  <Grid Grid.Column="1" Margin="28">
+   <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+   <DockPanel Grid.Row="0" Margin="0,0,0,22">
+    <StackPanel DockPanel.Dock="Left"><TextBlock x:Name="PageTitle" Text="Tu entretenimiento, en un solo lugar" FontSize="28" FontWeight="Bold"/><TextBlock Text="Aplicación de escritorio nativa para Windows" Foreground="#AAB6CE" Margin="0,5,0,0"/></StackPanel>
+    <Button DockPanel.Dock="Right" Content="Actualizar" Click="Refresh_Click" Padding="18,10" Background="#087BFF" Foreground="White" BorderThickness="0"/>
+   </DockPanel>
+   <DockPanel Grid.Row="1" Margin="0,0,0,16">
+    <TextBox x:Name="SearchBox" Width="300" Height="38" VerticalContentAlignment="Center" Background="#101E3D" Foreground="White" BorderBrush="#26365D" TextChanged="SearchBox_TextChanged"/>
+    <TextBlock x:Name="StatusText" Text="Listo" Foreground="#00D9F5" VerticalAlignment="Center" Margin="16,0"/>
+   </DockPanel>
+   <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto"><ItemsControl x:Name="Catalog"><ItemsControl.ItemTemplate><DataTemplate>
+    <Border Background="#101E3D" BorderBrush="#26365D" BorderThickness="1" CornerRadius="14" Padding="18" Margin="0,0,0,12">
+     <StackPanel><TextBlock Text="{Binding Title}" FontSize="18" FontWeight="Bold"/><TextBlock Text="{Binding Description}" Foreground="#AAB6CE" TextWrapping="Wrap" Margin="0,7,0,0"/><TextBlock Text="{Binding Metadata}" Foreground="#00D9F5" Margin="0,8,0,0"/></StackPanel>
+    </Border>
+   </DataTemplate></ItemsControl.ItemTemplate></ItemsControl></ScrollViewer>
+  </Grid>
+ </Grid>
+</Window>
