@@ -191,6 +191,7 @@ class MainActivity:ComponentActivity(){
                 "Música" -> { remoteKindFilter=null; tab="Música" }
                 "Cuenta" -> { remoteKindFilter=null; tab="Cuenta" }
                 "Países" -> { remoteKindFilter=null; tab="Países" }
+                "Guía EPG" -> { remoteCategory="epg_programs"; remoteKindFilter=null; tab="Catálogo" }
                 "EPG" -> { remoteCategory="epg_programs"; remoteKindFilter=null; tab="Catálogo" }
                 "Adultos 18+" -> tab="Adultos"
                 "Favoritos" -> { remoteKindFilter=null; tab="Favoritos" }
