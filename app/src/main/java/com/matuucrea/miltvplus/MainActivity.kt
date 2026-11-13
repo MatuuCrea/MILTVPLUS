@@ -179,18 +179,18 @@ class MainActivity:ComponentActivity(){
     Scaffold(containerColor=bg){pad->Column(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF08080A),Color(0xFF0B0B0E),Color(0xFF08080A)))).padding(pad)){
         PremiumNavigationHeader(tab) { destination ->
             when(destination) {
-                "Inicio" -> { remoteCategory="tv_channels"; tab="Inicio" }
+                "Inicio" -> { remoteCategory="tv_channels"; remoteKindFilter=null; tab="Inicio" }
                 "TV en Vivo" -> { remoteCategory="tv_channels"; remoteKindFilter=null; tab="Catálogo" }
                 "Películas" -> { remoteCategory="catalog_items"; remoteKindFilter="movie"; tab="Catálogo" }
                 "Series" -> { remoteCategory="catalog_items"; remoteKindFilter="series"; tab="Catálogo" }
-                "Deportes" -> { remoteCategory="sports_events"; tab="Catálogo" }
+                "Deportes" -> { remoteCategory="sports_events"; remoteKindFilter=null; tab="Catálogo" }
                 "Infantil" -> { remoteCategory="catalog_items"; remoteKindFilter="kids"; tab="Catálogo" }
-                "Apps" -> tab="Apps"
-                "Países" -> tab="Países"
-                "EPG" -> { remoteCategory="epg_programs"; tab="Catálogo" }
+                "Apps" -> { remoteKindFilter=null; tab="Apps" }
+                "Países" -> { remoteKindFilter=null; tab="Países" }
+                "EPG" -> { remoteCategory="epg_programs"; remoteKindFilter=null; tab="Catálogo" }
                 "Adultos 18+" -> tab="Adultos"
-                "Favoritos" -> tab="Favoritos"
-                "Configuración" -> tab="Ajustes"
+                "Favoritos" -> { remoteKindFilter=null; tab="Favoritos" }
+                "Configuración" -> { remoteKindFilter=null; tab="Ajustes" }
             }
         }
         updateNotice?.let { version -> TextButton(onClick={tab="Ajustes"}) { Text("ACTUALIZACIÓN DISPONIBLE · $version",color=orange,fontSize=10.sp) } }
@@ -211,11 +211,11 @@ class MainActivity:ComponentActivity(){
                         "TV en Vivo" -> { remoteCategory="tv_channels"; remoteKindFilter=null; tab="Catálogo" }
                         "Películas" -> { remoteCategory="catalog_items"; remoteKindFilter="movie"; tab="Catálogo" }
                         "Series" -> { remoteCategory="catalog_items"; remoteKindFilter="series"; tab="Catálogo" }
-                        "Deportes" -> { remoteCategory="sports_events"; tab="Catálogo" }
+                        "Deportes" -> { remoteCategory="sports_events"; remoteKindFilter=null; tab="Catálogo" }
                         "Infantil" -> { remoteCategory="catalog_items"; remoteKindFilter="kids"; tab="Catálogo" }
-                        "Países" -> tab="Países"
-                        "EPG" -> { remoteCategory="epg_programs"; tab="Catálogo" }
-                        "Configuración" -> tab="Ajustes"
+                        "Países" -> { remoteKindFilter=null; tab="Países" }
+                        "EPG" -> { remoteCategory="epg_programs"; remoteKindFilter=null; tab="Catálogo" }
+                        "Configuración" -> { remoteKindFilter=null; tab="Ajustes" }
                     }
                 }
             }
@@ -336,16 +336,16 @@ class MainActivity:ComponentActivity(){
                 PremiumAdultWorkspace(
                     onNavigate = { destination ->
                         when(destination) {
-                            "Inicio" -> { remoteCategory="tv_channels"; tab="Inicio" }
+                            "Inicio" -> { remoteCategory="tv_channels"; remoteKindFilter=null; tab="Inicio" }
                             "TV en Vivo" -> { remoteCategory="tv_channels"; remoteKindFilter=null; tab="Catálogo" }
                             "Películas" -> { remoteCategory="catalog_items"; remoteKindFilter="movie"; tab="Catálogo" }
                             "Series" -> { remoteCategory="catalog_items"; remoteKindFilter="series"; tab="Catálogo" }
-                            "Deportes" -> { remoteCategory="sports_events"; tab="Catálogo" }
+                            "Deportes" -> { remoteCategory="sports_events"; remoteKindFilter=null; tab="Catálogo" }
                             "Infantil" -> { remoteCategory="catalog_items"; remoteKindFilter="kids"; tab="Catálogo" }
                             "Documentales" -> { remoteCategory="catalog_items"; remoteKindFilter="documentary"; tab="Catálogo" }
-                            "Música" -> tab="Música"
-                            "Favoritos" -> tab="Favoritos"
-                            "Configuración" -> tab="Ajustes"
+                            "Música" -> { remoteKindFilter=null; tab="Música" }
+                            "Favoritos" -> { remoteKindFilter=null; tab="Favoritos" }
+                            "Configuración" -> { remoteKindFilter=null; tab="Ajustes" }
                         }
                     },
                     content = {
