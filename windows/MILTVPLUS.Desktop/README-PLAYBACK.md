@@ -12,7 +12,7 @@ Al seleccionar cualquiera de esos dos tipos de ficha, la ventana pasa a pantalla
 - Windows 10/11 x64 compatible.
 - Microsoft Edge WebView2 Evergreen Runtime instalado.
 - Conexión HTTPS al dominio oficial del canal.
-- Cookies, DRM, región y política de autoplay pueden depender del emisor y de su plataforma. Algunos sitios pueden rechazar la vista embebida; en ese caso MILTVPLUS muestra el error y ofrece abrir la página oficial en el navegador predeterminado.
+- Cookies, DRM, región y política de autoplay pueden depender del emisor y de su plataforma. Algunos sitios pueden rechazar la vista embebida; en ese caso MILTVPLUS muestra el error dentro de la aplicación y permanece abierta; no lanza el navegador predeterminado desde la reproducción de TV.
 
 La aplicación no descarga ni distribuye el video del emisor cuando usa este modo.
 
@@ -23,7 +23,7 @@ La aplicación no descarga ni distribuye el video del emisor cuando usa este mod
 - Probar al menos un stream HLS/DASH autorizado con LibVLC.
 - Probar páginas oficiales en WebView2, navegación HTTPS, pantalla completa y salida.
 - Probar cambio anterior/siguiente entre una mezcla de streams directos y páginas oficiales.
-- Verificar que un error del sitio no deja el reproductor bloqueado y que el fallback externo se puede abrir.
+- Verificar que un error del sitio no deja el reproductor bloqueado, mantiene MILTVPLUS abierta y permite cambiar de canal o salir del modo pantalla completa.
 - Confirmar con hardware real la decodificación, sincronización y escalado; CI no sustituye esa prueba.
 
 ## Límites de catálogo
