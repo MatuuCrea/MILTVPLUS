@@ -9,6 +9,7 @@ type Channel = {
   last_checked_at: string | null;
   is_published: boolean;
   logo_url: string | null;
+  logo_source_url: string | null;
 };
 
 type CheckResult = {
@@ -155,6 +156,27 @@ function extractOfficialFavicon(sample: string, pageUrl: string): { url: string;
   return null;
 }
 
+async function fetchOfficialFaviconPage(pageUrl: string | null): Promise<{ url: string; sourceUrl: string } | null> {
+  if (!safeHttps(pageUrl)) return null;
+  try {
+    const response = await fetch(pageUrl, {
+      method: "GET",
+      redirect: "follow",
+      headers: {
+        "User-Agent": "Mozilla/5.0 MILTVPLUS official logo lookup",
+        Range: "bytes=0-65535",
+        Accept: "text/html",
+      },
+      signal: AbortSignal.timeout(9000),
+    });
+    if (!response.ok || new URL(response.url).protocol !== "https:") return null;
+    const sample = await readSample(response, 65536);
+    return extractOfficialFavicon(sample, response.url);
+  } catch {
+    return null;
+  }
+}
+
 
 async function checkChannel(channel: Channel): Promise<CheckResult> {
   const url = channel.playback_type === "official_web"
@@ -287,7 +309,7 @@ Deno.serve(async (request: Request) => {
 
   try {
     const endpoint = new URL("/rest/v1/tv_channels", SUPABASE_URL);
-    endpoint.searchParams.set("select", "id,title,playback_type,official_watch_url,stream_url,last_checked_at,is_published,logo_url");
+    endpoint.searchParams.set("select", "id,title,playback_type,official_watch_url,stream_url,last_checked_at,is_published,logo_url,logo_source_url");
     endpoint.searchParams.set("order", "last_checked_at.asc.nullsfirst,title.asc");
     endpoint.searchParams.set("limit", "100");
     const response = await fetch(endpoint, {
@@ -327,7 +349,12 @@ Deno.serve(async (request: Request) => {
             return;
           }
           const result = await checkChannel(channel);
-          const logo = channel.logo_url ? null : (result.logo ?? await fetchYoutubeLogo(channel.official_watch_url));
+          let logo = channel.logo_url ? null : (result.logo ?? null);
+          if (!channel.logo_url && !logo) {
+            logo = isYoutubeLivePage(channel.official_watch_url)
+              ? await fetchYoutubeLogo(channel.official_watch_url)
+              : await fetchOfficialFaviconPage(channel.logo_source_url ?? channel.official_watch_url);
+          }
           const publishCandidate = !channel.is_published &&
             result.status === "online" &&
             result.detail.startsWith("YouTube confirma una emisión en directo ahora");
