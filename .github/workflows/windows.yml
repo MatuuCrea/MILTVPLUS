@@ -17,6 +17,9 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
+      - name: Generate Windows icon from approved brand asset
+        shell: pwsh
+        run: ./windows/scripts/prepare-icon.ps1
       - name: Publish native Windows application
         run: dotnet publish windows/MILTVPLUS.Desktop/MILTVPLUS.Desktop.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o windows/publish
       - name: Install Inno Setup
