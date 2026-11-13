@@ -7,7 +7,7 @@ permissions:
   contents: write
 jobs:
   android:
-    name: Build Android APK (debug-signed)
+    name: Build signed Android release APK
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,14 +18,36 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.9
-      - name: Run JVM unit tests
-        run: gradle :app:testDebugUnitTest
-      - name: Build installable APK
-        run: gradle :app:assembleDebug
+      - name: Validate protected Android signing secrets
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for name in ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::Missing required protected secret: $name"
+              exit 1
+            fi
+          done
+          KEYSTORE_PATH="$RUNNER_TEMP/miltvplus-release.jks"
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE_PATH"
+          test -s "$KEYSTORE_PATH"
+          echo "ANDROID_KEYSTORE_PATH=$KEYSTORE_PATH" >> "$GITHUB_ENV"
+      - name: Run JVM tests and build signed release APK
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          gradle :app:testDebugUnitTest
+          gradle :app:assembleRelease
       - uses: actions/upload-artifact@v4
         with:
-          name: android-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: android-release-apk
+          path: app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
   windows:
     name: Build native Windows installer
@@ -50,7 +72,7 @@ jobs:
           path: dist/MILTVPLUS-Setup-x64.exe
           if-no-files-found: error
   publish:
-    name: Attach direct installer files to GitHub Release
+    name: Attach verified platform installers to GitHub Release
     needs: [android, windows]
     runs-on: ubuntu-latest
     steps:
@@ -59,11 +81,11 @@ jobs:
           pattern: '*'
           merge-multiple: true
           path: release-assets
-      - name: Publish APK and EXE as direct release assets
+      - name: Publish signed APK and Windows installer
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           files: |
-            release-assets/app-debug.apk
+            release-assets/app-release.apk
             release-assets/MILTVPLUS-Setup-x64.exe
           fail_on_unmatched_files: true
