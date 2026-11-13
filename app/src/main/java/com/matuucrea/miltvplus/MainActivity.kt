@@ -45,9 +45,9 @@ import com.matuucrea.miltvplus.ui.SettingsScreen
 import com.matuucrea.miltvplus.ui.CountryPickerScreen
 import com.matuucrea.miltvplus.ui.AdultAccessScreen
 import com.matuucrea.miltvplus.ui.RemoteSourcesScreen
-import com.matuucrea.miltvplus.ui.PremiumNavigationHeader
 import com.matuucrea.miltvplus.ui.PremiumHomeDashboard
-import com.matuucrea.miltvplus.ui.PremiumAdultWorkspace
+import com.matuucrea.miltvplus.ui.PremiumSidebar
+import com.matuucrea.miltvplus.ui.PremiumAppTopBar
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import android.content.Intent
