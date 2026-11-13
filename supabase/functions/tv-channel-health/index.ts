@@ -7,6 +7,7 @@ type Channel = {
   official_watch_url: string | null;
   stream_url: string | null;
   last_checked_at: string | null;
+  is_published: boolean;
 };
 
 type CheckResult = {
@@ -28,6 +29,18 @@ const serviceHeaders: HeadersInit = {
   "Content-Type": "application/json",
   Accept: "application/json",
 };
+
+function isYoutubeLivePage(value: string | null): boolean {
+  if (!value) return false;
+  try {
+    const url = new URL(value);
+    return url.hostname === "youtube.com" || url.hostname === "www.youtube.com"
+      ? /\/(?:@[^/]+|channel\/[^/]+|c\/[^/]+)\/live\/?$/i.test(url.pathname)
+      : false;
+  } catch {
+    return false;
+  }
+}
 
 function safeHttps(value: string | null): value is string {
   if (!value) return false;
@@ -75,18 +88,20 @@ async function checkChannel(channel: Channel): Promise<CheckResult> {
   }
 
   try {
+    const requestUrl = new URL(url);
+    const youtubePage = requestUrl.hostname === "youtube.com" || requestUrl.hostname === "www.youtube.com";
     const response = await fetch(url, {
       method: "GET",
       redirect: "follow",
       headers: {
         "User-Agent": "MILTVPLUS-TV-Health/1.0",
-        Range: "bytes=0-8191",
+        Range: youtubePage ? "bytes=0-65535" : "bytes=0-8191",
         Accept: "*/*",
       },
       signal: AbortSignal.timeout(9000),
     });
     const finalUrl = new URL(response.url);
-    const sample = await readSample(response);
+    const sample = await readSample(response, youtubePage ? 65536 : 8192);
     if (finalUrl.protocol !== "https:") {
       return { status: "blocked", detail: "La redirección abandonó HTTPS y se bloqueó por seguridad." };
     }
@@ -139,7 +154,7 @@ async function checkChannel(channel: Channel): Promise<CheckResult> {
   }
 }
 
-async function patchStatus(id: string, result: CheckResult, checkedAt: string): Promise<void> {
+async function patchStatus(id: string, result: CheckResult, checkedAt: string, publishCandidate = false): Promise<void> {
   const endpoint = new URL("/rest/v1/tv_channels", SUPABASE_URL);
   endpoint.searchParams.set("id", `eq.${id}`);
   const response = await fetch(endpoint, {
@@ -149,6 +164,7 @@ async function patchStatus(id: string, result: CheckResult, checkedAt: string): 
       source_status: result.status,
       last_checked_at: checkedAt,
       last_check_detail: result.detail.slice(0, 500),
+      ...(publishCandidate ? { is_published: true } : {}),
     }),
     signal: AbortSignal.timeout(9000),
   });
@@ -182,8 +198,7 @@ Deno.serve(async (request: Request) => {
 
   try {
     const endpoint = new URL("/rest/v1/tv_channels", SUPABASE_URL);
-    endpoint.searchParams.set("select", "id,title,playback_type,official_watch_url,stream_url,last_checked_at");
-    endpoint.searchParams.set("is_published", "eq.true");
+    endpoint.searchParams.set("select", "id,title,playback_type,official_watch_url,stream_url,last_checked_at,is_published");
     endpoint.searchParams.set("order", "last_checked_at.asc.nullsfirst,title.asc");
     endpoint.searchParams.set("limit", "100");
     const response = await fetch(endpoint, {
@@ -207,15 +222,32 @@ Deno.serve(async (request: Request) => {
     }
 
     const checkedAt = new Date().toISOString();
-    const summary = { checked: 0, online: 0, offline: 0, blocked: 0, pending_review: 0, errors: [] as string[] };
+    const summary = { checked: 0, online: 0, offline: 0, blocked: 0, pending_review: 0, published: 0, errors: [] as string[] };
     for (let offset = 0; offset < channels.length; offset += 10) {
       const batch = channels.slice(offset, offset + 10);
       await Promise.all(batch.map(async (channel) => {
-        const result = await checkChannel(channel);
         try {
-          await patchStatus(channel.id, result, checkedAt);
+          if (!channel.is_published && !isYoutubeLivePage(channel.official_watch_url)) {
+            const manualReview: CheckResult = {
+              status: "pending_review",
+              detail: "Pendiente de revisión manual; no se publica automáticamente porque no es una ruta oficial de YouTube Live verificable.",
+            };
+            await patchStatus(channel.id, manualReview, checkedAt);
+            summary.checked++;
+            summary.pending_review++;
+            return;
+          }
+          const result = await checkChannel(channel);
+          const publishCandidate = !channel.is_published &&
+            result.status === "online" &&
+            result.detail.startsWith("YouTube confirma una emisión en directo ahora");
+          const effectiveResult = !channel.is_published && !publishCandidate
+            ? { status: "pending_review" as const, detail: result.detail }
+            : result;
+          await patchStatus(channel.id, effectiveResult, checkedAt, publishCandidate);
           summary.checked++;
-          summary[result.status]++;
+          summary[effectiveResult.status]++;
+          if (publishCandidate) summary.published++;
         } catch (error) {
           summary.errors.push(error instanceof Error ? error.message : String(error));
         }
