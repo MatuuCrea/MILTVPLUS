@@ -36,7 +36,7 @@ Actualizada para la entrega integral de noviembre de 2026. “Implementado” de
 - Una fila no puede publicarse sin titular, referencia de derechos, regiones y fecha de inicio.
 - Un trigger bloquea publicaciones antes del inicio y después del vencimiento de derechos.
 - RLS define el acceso por fila; grants SQL limitan además por rol.
-- Los usuarios no pueden aprobar ni habilitar sus propias fuentes M3U.
+- Los usuarios no pueden aprobar ni habilitar sus propias fuentes M3U. Los favoritos sólo aceptan contenido publicado.
 - Ninguna clave privilegiada se incluye en Android o Web.
 - Una URL HTTPS no demuestra derecho de retransmisión.
 - Un enlace informativo oficial no equivale a una transmisión.

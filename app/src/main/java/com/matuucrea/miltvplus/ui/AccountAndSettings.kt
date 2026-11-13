@@ -228,6 +228,11 @@ fun SettingsScreen(
         }
         Text("La preferencia de notificaciones se sincroniza; la entrega de avisos push/reminders requiere un servicio de eventos aún no desplegado. Las pistas de audio y subtítulos dependen de cada proveedor. Estos ajustes seleccionan la preferencia; no crean pistas que el stream no incluya.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         message?.let { Text(it, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall) }
+        HorizontalDivider()
+        Text("Privacidad y seguridad", style = MaterialTheme.typography.titleMedium)
+        Text("Las sesiones Android se cifran con Android Keystore; los datos de cuenta se aíslan con RLS. No se integra publicidad ni analítica de terceros en esta versión. Podés cerrar sesión desde Cuenta y administrar el acceso +18 desde su sección.", style = MaterialTheme.typography.bodySmall)
+        Text("Accesibilidad", style = MaterialTheme.typography.titleMedium)
+        Text("Se respeta la escala de fuente y las opciones de accesibilidad del sistema Android. La navegación por control remoto usa grupos de foco Compose; requiere pruebas físicas en Android TV.", style = MaterialTheme.typography.bodySmall)
         Text("Android móvil, Android TV y TV Box Android comparten este cliente. Web/PWA se mantiene como cliente independiente.", style = MaterialTheme.typography.bodySmall)
     }
 }

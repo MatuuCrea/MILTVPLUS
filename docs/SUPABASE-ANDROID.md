@@ -14,7 +14,7 @@ Proyecto: `rbnuxapfsnaabrzuxvdy` · API URL `https://rbnuxapfsnaabrzuxvdy.supaba
 
 ## Sincronización
 
-- `user_favorites`: lectura, inserción idempotente y eliminación con JWT; sólo UUID de `catalog_items`.
+- `user_favorites`: lectura, inserción idempotente y eliminación con JWT; sólo UUID de `catalog_items` publicados. La política INSERT comprueba `is_published=true`.
 - `user_preferences`: upsert por `user_id` con tema, país, idioma, subtítulos, notificaciones, autoplay, acento e idioma de audio.
 - `media_sources`: alta, listado y eliminación por propietario. El rol authenticated tiene SELECT/INSERT/DELETE, no UPDATE. Un trigger fuerza `is_enabled=false` y `is_verified=false` al insertar; sólo el administrador puede aprobar y activar. Android descarga la lista únicamente si ambos flags son true.
 - `age_access_consents`: declaración +18 por cuenta. El PIN no se sube; se deriva localmente con PBKDF2 y sal.
@@ -33,7 +33,7 @@ Radio, deportes, música, teatro y EPG incluyen metadatos descriptivos y procede
 - Perfiles, favoritos, fuentes, preferencias y consentimientos son sólo para usuarios autenticados y sus políticas restringen al propietario.
 - Asesor de seguridad: sin lints en la última comprobación.
 - El asesor de rendimiento sólo informa índices aún no utilizados; las tablas siguen vacías, por lo que no se eliminan índices preventivamente.
-- Migraciones registradas: inicial, catálogo extendido, grants públicos mínimos, experiencia de producto, bootstrap de preferencias, ventana de derechos y protección de aprobación de fuentes.
+- Migraciones registradas: inicial, catálogo extendido, grants públicos mínimos, experiencia de producto, bootstrap de preferencias, ventana de derechos y protección de aprobación de fuentes y favoritos sólo publicados.
 - El catálogo sigue vacío: no hay canales, películas, series, eventos, radios, música, teatro ni EPG publicados.
 
 ## Límites

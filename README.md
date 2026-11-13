@@ -26,7 +26,7 @@ El cliente independiente está en [web/](web/). Incluye navegación de catálogo
 Proyecto: `rbnuxapfsnaabrzuxvdy`.
 
 - Los clientes usan exclusivamente la clave publishable. Nunca incluir `service_role`, secret keys ni contraseñas de base de datos.
-- Las tablas privadas usan RLS y políticas por propietario.
+- Las tablas privadas usan RLS y políticas por propietario. Los favoritos sólo pueden referenciar filas del catálogo que estén publicadas.
 - El rol de usuario puede enviar y eliminar fuentes propias, pero no puede aprobarlas ni habilitarlas; un trigger obliga flags de verificación a false al insertar.
 - Las tablas editoriales sólo permiten publicar con derechos verificados, titular, referencia, región y ventana de vigencia activa.
 - El trigger de perfil/preferencias vive en el esquema no expuesto `app_private`.
