@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Threading;
 using Microsoft.Web.WebView2.Core;
 
 namespace MILTVPLUS.Desktop;
@@ -11,6 +12,7 @@ public partial class MainWindow
     private readonly List<CatalogEntry> _watchQueue = [];
     private int _watchQueueIndex = -1;
     private bool _officialWebViewReady;
+    private DispatcherTimer? _watchQueueRefreshTimer;
 
     private async void Watch_Click(object sender, RoutedEventArgs e)
     {
@@ -21,6 +23,7 @@ public partial class MainWindow
         if (!_watchQueue.Any(x => ReferenceEquals(x, selected) || x.Title == selected.Title))
             _watchQueue.Add(selected);
         _watchQueueIndex = _watchQueue.FindIndex(x => ReferenceEquals(x, selected) || x.Title == selected.Title);
+        StartWatchQueueRefresh();
         await WatchEntryAsync(selected);
     }
 
@@ -32,6 +35,36 @@ public partial class MainWindow
         uri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) &&
         !string.IsNullOrWhiteSpace(uri.Host) &&
         string.IsNullOrEmpty(uri.UserInfo);
+
+    private void StartWatchQueueRefresh()
+    {
+        if (_watchQueueRefreshTimer is null)
+        {
+            _watchQueueRefreshTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(65) };
+            _watchQueueRefreshTimer.Tick += (_, _) => SyncWatchQueueWithCatalog();
+        }
+        _watchQueueRefreshTimer.Start();
+    }
+
+    private void SyncWatchQueueWithCatalog()
+    {
+        if (Catalog.ItemsSource is not IEnumerable<CatalogEntry> visible) return;
+        var refreshed = visible.Where(IsWatchable).ToList();
+        if (refreshed.Count == 0) return;
+        var currentTitle = _currentEntry?.Title;
+        var updatedCurrent = currentTitle is null
+            ? null
+            : refreshed.FirstOrDefault(x => string.Equals(x.Title, currentTitle, StringComparison.OrdinalIgnoreCase));
+        _watchQueue.Clear();
+        _watchQueue.AddRange(refreshed);
+        _watchQueueIndex = updatedCurrent is null ? -1 : _watchQueue.IndexOf(updatedCurrent);
+        if (updatedCurrent is not null && _currentEntry is not null &&
+            (!string.Equals(updatedCurrent.StreamUrl, _currentEntry.StreamUrl, StringComparison.Ordinal) ||
+             !string.Equals(updatedCurrent.OfficialWatchUrl, _currentEntry.OfficialWatchUrl, StringComparison.Ordinal)))
+        {
+            _ = WatchEntryAsync(updatedCurrent);
+        }
+    }
 
     private async Task EnsureOfficialWebViewAsync()
     {
@@ -68,7 +101,9 @@ public partial class MainWindow
 
     private async Task WatchEntryAsync(CatalogEntry entry)
     {
-        if (IsHttps(entry.StreamUrl))
+        var isYouTubeLive = string.Equals(entry.PlaybackType, "youtube_live", StringComparison.OrdinalIgnoreCase);
+        var officialUrl = isYouTubeLive ? entry.StreamUrl : entry.OfficialWatchUrl;
+        if (!isYouTubeLive && IsHttps(entry.StreamUrl))
         {
             OfficialWebView.Visibility = Visibility.Collapsed;
             VideoSurface.Visibility = Visibility.Visible;
@@ -77,7 +112,7 @@ public partial class MainWindow
             return;
         }
 
-        if (!IsHttps(entry.OfficialWatchUrl))
+        if (!IsHttps(officialUrl))
         {
             StatusText.Text = "Esta ficha no tiene una señal directa ni una página HTTPS oficial.";
             return;
@@ -93,7 +128,7 @@ public partial class MainWindow
             OfficialWebView.Visibility = Visibility.Visible;
             StatusText.Text = "Preparando el reproductor oficial de " + entry.Title + "…";
             await EnsureOfficialWebViewAsync();
-            OfficialWebView.CoreWebView2.Navigate(entry.OfficialWatchUrl!);
+            OfficialWebView.CoreWebView2.Navigate(officialUrl!);
             if (!_isFullscreen) ToggleFullscreen();
         }
         catch (Exception ex)
@@ -103,7 +138,7 @@ public partial class MainWindow
             StatusText.Text = "No se pudo iniciar el visor integrado: " + ex.Message;
             try
             {
-                Process.Start(new ProcessStartInfo(entry.OfficialWatchUrl!) { UseShellExecute = true });
+                Process.Start(new ProcessStartInfo(officialUrl!) { UseShellExecute = true });
                 StatusText.Text += " Se abrió la página oficial en el navegador externo.";
             }
             catch (Exception browserError)
@@ -139,6 +174,7 @@ public partial class MainWindow
 
     private void StopAny_Click(object sender, RoutedEventArgs e)
     {
+        _watchQueueRefreshTimer?.Stop();
         Stop_Click(sender, e);
         if (_officialWebViewReady) OfficialWebView.CoreWebView2.Stop();
         OfficialWebView.Visibility = Visibility.Collapsed;
