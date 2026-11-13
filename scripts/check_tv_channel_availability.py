@@ -59,6 +59,9 @@ def check_official_page(url: str) -> dict:
     if final and (final.scheme != "https" or not final.hostname):
         return {"status": "blocked", "http_status": status, "final_url": final_url,
                 "detail": "El destino redirigido dejó HTTPS; se bloqueó por seguridad."}
+    if final and final.hostname.lower().removeprefix("www.") != parsed.hostname.lower().removeprefix("www."):
+        return {"status": "blocked", "http_status": status, "final_url": final_url,
+                "detail": "La página redirigió a otro dominio; requiere validación manual."}
 
     state, detail = classify(status, error)
     return {"status": state, "http_status": status, "final_url": final_url, "detail": detail}
