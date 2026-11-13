@@ -16,7 +16,13 @@ android {
         buildConfigField("String", "SUPABASE_URL", "\"https://rbnuxapfsnaabrzuxvdy.supabase.co\"")
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"sb_publishable_tmBU-IB7P0db0w7RG9TMEw_GD754hb7\"")
     }
-    buildFeatures { compose = true; buildConfig = true }
+    // SupabaseCatalogRepository reads SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY
+    // from the generated com.matuucrea.miltvplus.BuildConfig class.
+    // Keep this enabled explicitly: AGP 8+ does not generate BuildConfig by default.
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
