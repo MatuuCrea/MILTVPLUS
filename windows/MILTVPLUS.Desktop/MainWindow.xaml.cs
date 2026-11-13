@@ -280,6 +280,7 @@ public partial class MainWindow : Window
         if (item is not null) Sections.SelectedItem = item;
     }
 
+    private void OpenNotifications_Click(object sender, RoutedEventArgs e) => StatusText.Text = "No hay un servicio de notificaciones push conectado en esta compilación.";
     private void OpenSettings_Click(object sender, RoutedEventArgs e) => QuickSelect("Configuración");
     private void OpenAccount_Click(object sender, RoutedEventArgs e) =>
         MessageBox.Show(this, "La gestión de cuenta y sincronización está disponible en el cliente Android. Esta compilación de escritorio usa el catálogo público y fuentes locales.", "MILTVPLUS · Cuenta", MessageBoxButton.OK, MessageBoxImage.Information);
