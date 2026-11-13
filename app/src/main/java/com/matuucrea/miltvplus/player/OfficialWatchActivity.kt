@@ -146,7 +146,7 @@ class OfficialWatchActivity : Activity() {
         customViewCallback?.onCustomViewHidden()
         customViewCallback = null
         webView.visibility = View.VISIBLE
-        title.visibility = View.VISIBLE
+        channelTitle.visibility = View.VISIBLE
         controls.visibility = View.VISIBLE
         hideSystemBars()
     }
@@ -154,7 +154,7 @@ class OfficialWatchActivity : Activity() {
     private fun loadChannel(newIndex: Int) {
         index = (newIndex + channels.size) % channels.size
         val channel = channels[index]
-        title.text = channel.optString("name", "Canal oficial")
+        channelTitle.text = channel.optString("name", "Canal oficial")
         previous.isEnabled = channels.size > 1
         next.isEnabled = channels.size > 1
         webView.loadUrl(channel.optString("url"))
