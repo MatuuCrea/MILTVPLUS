@@ -74,15 +74,49 @@ class MainActivity:ComponentActivity(){
                 when { remoteLoading -> Box(Modifier.fillMaxWidth().padding(30.dp),contentAlignment=Alignment.Center){CircularProgressIndicator(color=cyan)}
                     remoteError!=null -> Empty("No se pudo conectar",remoteError ?: "Error de conexión")
                     remoteItems.isEmpty() -> Empty("Catálogo sin publicaciones","La conexión responde, pero esta sección todavía no tiene registros publicados.")
-                    else -> LazyColumn(contentPadding=PaddingValues(14.dp)){items(remoteItems,key={it.id}){item->
-                        Card(Modifier.fillMaxWidth().padding(vertical=5.dp),colors=CardDefaults.cardColors(containerColor=panel)){
-                            Row(Modifier.padding(14.dp),verticalAlignment=Alignment.CenterVertically){
-                                Icon(when(remoteCategory){"radio_stations"->Icons.Default.Radio; "sports_events"->Icons.Default.SportsSoccer; "music_items"->Icons.Default.MusicNote; "theater_events"->Icons.Default.TheaterComedy; "epg_programs"->Icons.Default.Schedule; else->Icons.Default.LiveTv},null,tint=cyan)
-                                Column(Modifier.weight(1f).padding(horizontal=12.dp)){Text(item.title,color=Color.White,fontWeight=FontWeight.Bold);if(item.subtitle.isNotBlank())Text(item.subtitle,color=Color.LightGray,fontSize=12.sp)}
-                                if(item.actionUrl!=null && (remoteCategory=="radio_stations" || remoteCategory=="catalog_items")) TextButton(onClick={vm.play(Channel(item.id,item.title,item.actionUrl,item.subtitle,item.artworkUrl))}){Text("Reproducir")}
+                    else -> {
+                        if (remoteCategory == "epg_programs") {
+                            val schedule = remoteItems
+                                .filter { !it.channelExternalId.isNullOrBlank() && !it.startsAt.isNullOrBlank() }
+                                .groupBy { it.channelExternalId!! }
+                                .toSortedMap()
+                            if (schedule.isEmpty()) {
+                                Empty("Guía sin horarios válidos","Las publicaciones EPG necesitan channel_external_id, starts_at y ends_at.")
+                            } else {
+                                LazyColumn(contentPadding=PaddingValues(14.dp)) {
+                                    schedule.forEach { (channelId, programs) ->
+                                        item(key="channel_$channelId") {
+                                            Text("CANAL · $channelId",Modifier.padding(top=12.dp,bottom=5.dp),color=cyan,fontWeight=FontWeight.Bold)
+                                        }
+                                        items(programs.sortedBy { it.startsAt },key={it.id}) { program ->
+                                            val start = program.startsAt?.substringAfter('T')?.take(5).orEmpty()
+                                            val end = program.endsAt?.substringAfter('T')?.take(5).orEmpty()
+                                            Card(Modifier.fillMaxWidth().padding(vertical=4.dp),colors=CardDefaults.cardColors(containerColor=panel)) {
+                                                Row(Modifier.padding(12.dp),verticalAlignment=Alignment.CenterVertically) {
+                                                    Icon(Icons.Default.Schedule,null,tint=cyan)
+                                                    Column(Modifier.weight(1f).padding(horizontal=12.dp)) {
+                                                        Text(program.title,color=Color.White,fontWeight=FontWeight.Bold)
+                                                        Text("$start – $end",color=cyan,fontSize=12.sp)
+                                                        if(program.subtitle.isNotBlank()) Text(program.subtitle,color=Color.LightGray,fontSize=12.sp)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
+                        } else {
+                            LazyColumn(contentPadding=PaddingValues(14.dp)){items(remoteItems,key={it.id}){item->
+                                Card(Modifier.fillMaxWidth().padding(vertical=5.dp),colors=CardDefaults.cardColors(containerColor=panel)){
+                                    Row(Modifier.padding(14.dp),verticalAlignment=Alignment.CenterVertically){
+                                        Icon(when(remoteCategory){"radio_stations"->Icons.Default.Radio; "sports_events"->Icons.Default.SportsSoccer; "music_items"->Icons.Default.MusicNote; "theater_events"->Icons.Default.TheaterComedy; else->Icons.Default.LiveTv},null,tint=cyan)
+                                        Column(Modifier.weight(1f).padding(horizontal=12.dp)){Text(item.title,color=Color.White,fontWeight=FontWeight.Bold);if(item.subtitle.isNotBlank())Text(item.subtitle,color=Color.LightGray,fontSize=12.sp)}
+                                        if(item.actionUrl!=null && (remoteCategory=="radio_stations" || remoteCategory=="catalog_items")) TextButton(onClick={vm.play(Channel(item.id,item.title,item.actionUrl,item.subtitle,item.artworkUrl))}){Text("Reproducir")}
+                                    }
+                                }
+                            }}
                         }
-                    }}
+                    }
                 }
             }
             "Fuentes"->{Title("Fuentes","Importación local controlada");Card(Modifier.fillMaxWidth().padding(16.dp),colors=CardDefaults.cardColors(containerColor=panel)){Column(Modifier.padding(20.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){Icon(Icons.Default.PlaylistAdd,null,tint=cyan);Text("Agregar lista M3U / M3U8",color=Color.White,fontSize=18.sp,fontWeight=FontWeight.Bold);Text("Seleccioná un archivo del dispositivo. Usá solo listas propias, públicas o licenciadas.",color=Color.LightGray);Button(onClick={picker.launch(arrayOf("audio/x-mpegurl","application/vnd.apple.mpegurl","text/plain","*/*"))}){Icon(Icons.Default.FolderOpen,null);Text("Seleccionar archivo")}}};errorMessage?.let{Text(it,Modifier.padding(18.dp),color=orange)}}
