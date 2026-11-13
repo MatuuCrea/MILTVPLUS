@@ -59,6 +59,14 @@ La misma taxonomía soporta todos los países y territorios con código ISO de d
 - Android ordena por prioridad y filtra por país y categoría; Windows ofrece filtros dinámicos por país y categoría sobre los registros recibidos.
 - Migración adicional: `supabase/migrations/20261113193000_official_web_directory_links.sql`.
 
+## Monitor de disponibilidad
+
+- `scripts/check_tv_channel_availability.py` consulta únicamente las páginas oficiales registradas en el inventario; no intenta extraer reproductores ni URLs de streaming.
+- `.github/workflows/tv-channel-availability.yml` ejecuta pruebas de clasificación en cada PR y programa comprobaciones reales cada seis horas una vez integrado en la rama por defecto. También admite ejecución manual.
+- Cada ejecución genera un informe JSON como artefacto de GitHub Actions y un resumen por canal.
+- HTTP 403/429 se clasifica como `blocked` (el robot fue rechazado o limitado), no como señal caída. Un estado HTTP 2xx/3xx sólo confirma que la página web responde; no demuestra que el stream esté al aire, que funcione en todos los países ni que exista licencia para retransmitir.
+- El monitor no actualiza automáticamente Supabase: esa sincronización queda pendiente de habilitar un mecanismo servidor seguro para escribir estados, sin exponer claves privilegiadas en los clientes.
+
 ## Fuera de alcance de esta fase
 
 Películas y series permanecen sin implementación de catálogo/contenido. No importar ni publicar VOD hasta que el propietario habilite expresamente esa fase y se acrediten los derechos correspondientes.
