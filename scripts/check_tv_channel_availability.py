@@ -11,7 +11,10 @@ from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[1]
-INVENTORY = ROOT / "data" / "catalog" / "argentina-channel-inventory.json"
+INVENTORIES = [
+    ROOT / "data" / "catalog" / "argentina-channel-inventory.json",
+    ROOT / "data" / "catalog" / "international-channel-inventory.json",
+]
 REPORT = ROOT / "artifacts" / "tv-channel-availability.json"
 TIMEOUT_SECONDS = 15
 
@@ -68,21 +71,25 @@ def check_official_page(url: str) -> dict:
 
 
 def main() -> int:
-    inventory = json.loads(INVENTORY.read_text(encoding="utf-8"))
     checked_at = datetime.now(timezone.utc).isoformat()
     results = []
-    for channel in inventory.get("required_news_channels", []):
-        url = channel.get("official_watch_url")
-        if not url:
+    for inventory_path in INVENTORIES:
+        if not inventory_path.exists():
             continue
-        result = check_official_page(url)
-        results.append({
-            "slug": channel["slug"],
-            "name": channel["name"],
-            "country_code": inventory["country_code"],
-            "official_watch_url": url,
-            **result
-        })
+        inventory = json.loads(inventory_path.read_text(encoding="utf-8"))
+        channels = inventory.get("required_news_channels", inventory.get("channels", []))
+        for channel in channels:
+            url = channel.get("official_watch_url")
+            if not url:
+                continue
+            result = check_official_page(url)
+            results.append({
+                "slug": channel["slug"],
+                "name": channel["name"],
+                "country_code": channel.get("country_code", inventory.get("country_code", "??")),
+                "official_watch_url": url,
+                **result
+            })
 
     REPORT.parent.mkdir(parents=True, exist_ok=True)
     REPORT.write_text(json.dumps({
