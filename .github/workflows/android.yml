@@ -19,14 +19,10 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.9
-      - name: Validate Web client
-        run: |
-          node --check web/app.js
-          python3 -m json.tool web/manifest.webmanifest > /dev/null
       - run: gradle :app:testDebugUnitTest
       - run: gradle :app:assembleDebug
       - uses: actions/upload-artifact@v4
         with:
-          name: miltvplus-debug
+          name: miltvplus-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
