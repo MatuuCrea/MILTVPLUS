@@ -176,8 +176,186 @@ class MainActivity:ComponentActivity(){
         uri?.let { u -> runCatching { context.contentResolver.openInputStream(u)?.use { M3uParser.parse(readM3uLimited(it)) } ?: throw IllegalStateException("No se pudo abrir el archivo") }
             .onSuccess { vm.setChannels(it); tab="TV" }.onFailure { vm.setError("No se pudo importar: "+(it.message ?: "archivo inválido")) } }
     }
-    Scaffold(containerColor=bg){pad->Column(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF08080A),Color(0xFF0B0B0E),Color(0xFF08080A)))).padding(pad)){
-        PremiumNavigationHeader(tab) { destination ->
+    package com.matuucrea.miltvplus
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.focusGroup
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.media3.common.MediaItem
+import androidx.media3.common.C
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.PlayerView
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.matuucrea.miltvplus.data.Channel
+import com.matuucrea.miltvplus.auth.AuthSession
+import com.matuucrea.miltvplus.auth.SupabaseAuthRepository
+import com.matuucrea.miltvplus.data.SupabaseUserRepository
+import com.matuucrea.miltvplus.ui.AccountScreen
+import com.matuucrea.miltvplus.ui.SettingsScreen
+import com.matuucrea.miltvplus.ui.CountryPickerScreen
+import com.matuucrea.miltvplus.ui.AdultAccessScreen
+import com.matuucrea.miltvplus.ui.RemoteSourcesScreen
+import com.matuucrea.miltvplus.ui.PremiumNavigationHeader
+import com.matuucrea.miltvplus.ui.PremiumHomeDashboard
+import com.matuucrea.miltvplus.ui.PremiumAdultWorkspace
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
+import android.content.Intent
+import android.net.Uri
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import com.matuucrea.miltvplus.data.M3uParser
+import com.matuucrea.miltvplus.data.RemoteCatalogEntry
+import com.matuucrea.miltvplus.data.SupabaseCatalogRepository
+import com.matuucrea.miltvplus.player.PlayerViewModel
+import com.matuucrea.miltvplus.update.AppUpdateRepository
+
+private val bg: Color
+    @Composable get() = MaterialTheme.colorScheme.background
+private val panel: Color
+    @Composable get() = MaterialTheme.colorScheme.surface
+private val cyan=Color(0xFF00D9F5); private val blue=Color(0xFF087BFF); private val orange=Color(0xFFFF7900)
+class MainActivity:ComponentActivity(){
+    override fun onCreate(savedInstanceState:Bundle?){super.onCreate(savedInstanceState);window.statusBarColor=android.graphics.Color.rgb(5,9,27);window.navigationBarColor=android.graphics.Color.rgb(5,9,27);setContent {
+        var themeMode by remember { mutableStateOf(getSharedPreferences("miltvplus_preferences",0).getString("theme","dark") ?: "dark") }
+        var accentColor by remember { mutableStateOf(getSharedPreferences("miltvplus_preferences",0).getString("accent_color","electric-blue") ?: "electric-blue") }
+        val accent = when(accentColor) { "violet" -> Color(0xFF9B6BFF); "emerald" -> Color(0xFF20C997); else -> cyan }
+        val scheme = when(themeMode) {
+            "light" -> lightColorScheme(primary=blue,secondary=orange,background=Color(0xFFF3F6FC),surface=Color.White,onBackground=Color(0xFF101A38),onSurface=Color(0xFF101A38),onSurfaceVariant=Color(0xFF526078))
+            "system" -> if (isSystemInDarkTheme()) darkColorScheme(primary=cyan,secondary=orange,background=Color(0xFF05091B),surface=Color(0xFF101A38)) else lightColorScheme(primary=blue,secondary=orange,background=Color(0xFFF3F6FC),surface=Color.White,onBackground=Color(0xFF101A38),onSurface=Color(0xFF101A38),onSurfaceVariant=Color(0xFF526078))
+            else -> darkColorScheme(primary=cyan,secondary=orange,background=Color(0xFF05091B),surface=Color(0xFF101A38))
+        }
+        MaterialTheme(colorScheme=scheme.copy(primary=accent)){ App(onThemeChanged={mode,color->themeMode=mode;accentColor=color},authCallback=intent?.data) }
+    } }
+}
+@Composable private fun App(onThemeChanged:(String,String)->Unit, authCallback:Uri?=null, vm:PlayerViewModel=viewModel()){
+    val context=LocalContext.current
+    val exoPlayer = remember(context) { ExoPlayer.Builder(context).build() }
+    DisposableEffect(exoPlayer) { onDispose { exoPlayer.release() } }
+    var tab by remember { mutableStateOf("Inicio") }; var query by remember { mutableStateOf("") }; var updateNotice by remember { mutableStateOf<String?>(null) }
+    val remoteRepository = remember { SupabaseCatalogRepository() }
+    val authRepository = remember(context) { SupabaseAuthRepository(context) }
+    val userRepository = remember { SupabaseUserRepository { authRepository.restoreSession() } }
+    var authSession by remember { mutableStateOf<AuthSession?>(authRepository.currentSession()) }
+    var cloudFavorites by remember { mutableStateOf<Set<String>>(emptySet()) }
+    val uiScope = rememberCoroutineScope()
+    var remoteKindFilter by remember { mutableStateOf<String?>(null) }
+    var channelCategoryFilter by remember { mutableStateOf<String?>(null) }
+    var selectedChannelCountry by remember { mutableStateOf<String?>(null) }
+    var countryCode by remember { mutableStateOf(context.getSharedPreferences("miltvplus_preferences",0).getString("country_code","AR") ?: "AR") }
+    LaunchedEffect(Unit) {
+        val callback = authCallback ?: (context as? MainActivity)?.intent?.data
+        authSession = if (callback != null) runCatching { authRepository.acceptCallback(callback) }.getOrNull() ?: authRepository.restoreSession()
+            else authRepository.restoreSession()
+        runCatching { AppUpdateRepository.checkForUpdate().getOrThrow() }.onSuccess { release ->
+            updateNotice = release?.versionName
+            context.getSharedPreferences("miltvplus_preferences", 0).edit()
+                .putString("pending_update_version", release?.versionName)
+                .putString("pending_update_url", release?.releaseUrl)
+                .apply()
+        }
+    }
+    LaunchedEffect(authSession?.userId) {
+        if (authSession == null) {
+            cloudFavorites = emptySet()
+        } else {
+            cloudFavorites = runCatching { userRepository.favoriteIds() }.getOrDefault(emptySet())
+            runCatching { userRepository.fetchPreferences() }.getOrNull()?.let { remotePrefs ->
+                val prefs = context.getSharedPreferences("miltvplus_preferences",0)
+                val theme = remotePrefs.optString("theme","dark")
+                val accent = remotePrefs.optString("accent_color","electric-blue")
+                val country = remotePrefs.optString("country_code").takeIf { it.matches(Regex("^[A-Z]{2}$")) } ?: "AR"
+                prefs.edit()
+                    .putString("theme",theme).putString("accent_color",accent).putString("country_code",country)
+                    .putString("language",remotePrefs.optString("language_code","es"))
+                    .putString("audio_language",remotePrefs.optString("preferred_audio_language").takeIf { it.isNotBlank() && it != "null" } ?: "original")
+                    .putBoolean("subtitles",remotePrefs.optBoolean("subtitles_enabled",true))
+                    .putBoolean("notifications",remotePrefs.optBoolean("notifications_enabled",true))
+                    .putBoolean("autoplay",remotePrefs.optBoolean("autoplay_enabled",false)).apply()
+                countryCode = country
+                onThemeChanged(theme,accent)
+            }
+        }
+    }
+    var remoteCategory by remember { mutableStateOf("tv_channels") }
+    var remoteItems by remember { mutableStateOf<List<RemoteCatalogEntry>>(emptyList()) }
+    var remoteLoading by remember { mutableStateOf(false) }
+    var catalogRefresh by remember { mutableIntStateOf(0) }
+    var remoteError by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(tab, remoteCategory, catalogRefresh, countryCode) {
+        if (tab == "Catálogo" || (tab == "Inicio" && remoteCategory == "tv_channels")) {
+            remoteError = null
+            while (true) {
+                if (remoteItems.isEmpty()) remoteLoading = true
+                val result = remoteRepository.fetchPublished(remoteCategory, if (remoteCategory == "tv_channels") null else countryCode)
+                result.onSuccess { remoteItems = it }
+                    .onFailure { if (remoteItems.isEmpty()) remoteError = it.message ?: "No se pudo consultar el catálogo." }
+                remoteLoading = false
+                if (remoteCategory != "tv_channels") break
+                delay(60_000)
+            }
+        }
+    }
+    val channels by vm.channels.collectAsState(); val selected by vm.selected.collectAsState(); val errorMessage by vm.error.collectAsState(); val favorites by vm.favorites.collectAsState()
+    LaunchedEffect(selected?.url) {
+        val url = selected?.url
+        if (url == null) {
+            exoPlayer.stop()
+            exoPlayer.clearMediaItems()
+        } else {
+            val prefs = context.getSharedPreferences("miltvplus_preferences",0)
+            val audioLanguage = prefs.getString("audio_language","original")
+            val subtitleLanguage = prefs.getString("language","es")
+            val subtitlesEnabled = prefs.getBoolean("subtitles",true)
+            val trackParameters = exoPlayer.trackSelectionParameters.buildUpon()
+                .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, !subtitlesEnabled)
+                .apply {
+                    if (!audioLanguage.isNullOrBlank() && audioLanguage != "original") setPreferredAudioLanguage(audioLanguage)
+                    if (subtitlesEnabled && !subtitleLanguage.isNullOrBlank()) setPreferredTextLanguage(subtitleLanguage)
+                }.build()
+            exoPlayer.trackSelectionParameters = trackParameters
+            exoPlayer.setMediaItem(MediaItem.fromUri(url))
+            exoPlayer.prepare()
+            exoPlayer.playWhenReady = true
+        }
+    }
+    val picker=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()){ uri ->
+        uri?.let { u -> runCatching { context.contentResolver.openInputStream(u)?.use { M3uParser.parse(readM3uLimited(it)) } ?: throw IllegalStateException("No se pudo abrir el archivo") }
+            .onSuccess { vm.setChannels(it); tab="TV" }.onFailure { vm.setError("No se pudo importar: "+(it.message ?: "archivo inválido")) } }
+    }
+    Scaffold(containerColor=bg){pad->Row(Modifier.fillMaxSize().padding(pad)) {
+        PremiumSidebar(tab) { destination ->
             when(destination) {
                 "Inicio" -> { remoteCategory="tv_channels"; remoteKindFilter=null; tab="Inicio" }
                 "TV en Vivo" -> { remoteCategory="tv_channels"; remoteKindFilter=null; tab="Catálogo" }
@@ -185,6 +363,7 @@ class MainActivity:ComponentActivity(){
                 "Series" -> { remoteCategory="catalog_items"; remoteKindFilter="series"; tab="Catálogo" }
                 "Deportes" -> { remoteCategory="sports_events"; remoteKindFilter=null; tab="Catálogo" }
                 "Infantil" -> { remoteCategory="catalog_items"; remoteKindFilter="kids"; tab="Catálogo" }
+                "Documentales" -> { remoteCategory="catalog_items"; remoteKindFilter="documentary"; tab="Catálogo" }
                 "Apps" -> { remoteKindFilter=null; tab="Apps" }
                 "Fuentes" -> { remoteKindFilter=null; tab="Fuentes" }
                 "Música" -> { remoteKindFilter=null; tab="Música" }
@@ -194,8 +373,12 @@ class MainActivity:ComponentActivity(){
                 "Adultos 18+" -> tab="Adultos"
                 "Favoritos" -> { remoteKindFilter=null; tab="Favoritos" }
                 "Configuración" -> { remoteKindFilter=null; tab="Ajustes" }
+                "Más Opciones" -> { remoteKindFilter=null; tab="Apps" }
             }
         }
+        Column(Modifier.weight(1f).fillMaxHeight().background(Brush.verticalGradient(listOf(Color(0xFF08080A),Color(0xFF0B0B0E),Color(0xFF08080A))))) {
+            PremiumAppTopBar(tab,onSearch={query=it},onSettings={tab="Ajustes"})
+
         updateNotice?.let { version -> TextButton(onClick={tab="Ajustes"}) { Text("ACTUALIZACIÓN DISPONIBLE · $version",color=orange,fontSize=10.sp) } }
         when(tab){
             "Inicio"->{
@@ -337,27 +520,9 @@ class MainActivity:ComponentActivity(){
             "Fuentes"->{Title("Fuentes","Importación local y listas sincronizadas");Card(Modifier.fillMaxWidth().padding(16.dp),colors=CardDefaults.cardColors(containerColor=panel)){Column(Modifier.padding(20.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){Icon(Icons.Default.PlaylistAdd,null,tint=cyan);Text("Agregar lista M3U / M3U8",color=MaterialTheme.colorScheme.onSurface,fontSize=18.sp,fontWeight=FontWeight.Bold);Text("Seleccioná un archivo del dispositivo. Usá solo listas propias, públicas o licenciadas.",color=MaterialTheme.colorScheme.onSurfaceVariant);Button(onClick={picker.launch(arrayOf("audio/x-mpegurl","application/vnd.apple.mpegurl","text/plain","*/*"))}){Icon(Icons.Default.FolderOpen,null);Text("Seleccionar archivo")}}};errorMessage?.let{Text(it,Modifier.padding(18.dp),color=orange)};RemoteSourcesScreen(userRepository,authSession!=null,countryCode){ imported -> vm.setChannels(imported); tab="TV" }}
             "Cuenta"->{Title("Cuenta","Acceso y sincronización entre dispositivos");AccountScreen(authRepository,userRepository){authSession=it}}
             "Adultos"->{
-                PremiumAdultWorkspace(
-                    onNavigate = { destination ->
-                        when(destination) {
-                            "Inicio" -> { remoteCategory="tv_channels"; remoteKindFilter=null; tab="Inicio" }
-                            "TV en Vivo" -> { remoteCategory="tv_channels"; remoteKindFilter=null; tab="Catálogo" }
-                            "Películas" -> { remoteCategory="catalog_items"; remoteKindFilter="movie"; tab="Catálogo" }
-                            "Series" -> { remoteCategory="catalog_items"; remoteKindFilter="series"; tab="Catálogo" }
-                            "Deportes" -> { remoteCategory="sports_events"; remoteKindFilter=null; tab="Catálogo" }
-                            "Infantil" -> { remoteCategory="catalog_items"; remoteKindFilter="kids"; tab="Catálogo" }
-                            "Documentales" -> { remoteCategory="catalog_items"; remoteKindFilter="documentary"; tab="Catálogo" }
-                            "Música" -> { remoteKindFilter=null; tab="Música" }
-                            "Favoritos" -> { remoteKindFilter=null; tab="Favoritos" }
-                            "Configuración" -> { remoteKindFilter=null; tab="Ajustes" }
-                        }
-                    },
-                    content = {
-                        AdultAccessScreen(userRepository,authSession!=null,countryCode) { item ->
-                            item.actionUrl?.let { vm.play(Channel(item.id,item.title,it,item.subtitle,item.artworkUrl)) }
-                        }
-                    }
-                )
+                AdultAccessScreen(userRepository,authSession!=null,countryCode) { item ->
+                    item.actionUrl?.let { vm.play(Channel(item.id,item.title,it,item.subtitle,item.artworkUrl)) }
+                }
             }
             "Países"->{CountryPickerScreen { country ->
                 countryCode=country.code
@@ -390,7 +555,8 @@ class MainActivity:ComponentActivity(){
             }
             else->{Title(if(tab=="TV")"Televisión en vivo" else "Tus favoritos","Elegí un canal para reproducir");OutlinedTextField(query,{query=it},Modifier.fillMaxWidth().padding(horizontal=16.dp),placeholder={Text("Buscar canal o categoría")},singleLine=true);val list=channels.filter{(tab!="Favoritos"||it.id in favorites)&&(it.name.contains(query,true)||it.group.contains(query,true))};if(list.isEmpty())Empty("No hay canales para mostrar","Agregá una lista autorizada desde Fuentes.");LazyColumn(contentPadding=PaddingValues(14.dp)){items(list,key={it.id}){c->ChannelItem(c,c.id in favorites,{launchChannelPlayer(context,channels,channels.indexOfFirst { it.id==c.id })},{vm.toggleFavorite(c.id)})}};selected?.let{channel->Card(Modifier.fillMaxWidth().padding(14.dp),colors=CardDefaults.cardColors(containerColor=Color.Black)){Column(Modifier.padding(12.dp)){Text("REPRODUCIENDO · "+channel.name,color=cyan,fontWeight=FontWeight.Bold);AndroidView(factory={ctx->PlayerView(ctx).apply{player=exoPlayer;useController=true;setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING)}},update={it.player=exoPlayer},modifier=Modifier.fillMaxWidth().height(220.dp));Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){TextButton(onClick={launchChannelPlayer(context,channels,channels.indexOfFirst { it.id==channel.id }.coerceAtLeast(0))}){Text("Pantalla completa")};TextButton(onClick={vm.stop()}){Text("Detener reproducción")}}}}};errorMessage?.let{Text(it,color=orange,modifier=Modifier.padding(12.dp))}}
         }
-    }}
+    }}}
+
 }
 private fun readM3uLimited(input:InputStream):String {
     val output=ByteArrayOutputStream()
