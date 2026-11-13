@@ -313,19 +313,33 @@ fun AdultAccessScreen(
                 .onFailure { message = "La confirmación local está guardada; no se pudo sincronizar: ${it.message}" }
         }
     }
-    LaunchedEffect(unlocked, countryCode) {
+    var catalogRefresh by remember { mutableIntStateOf(0) }
+    LaunchedEffect(unlocked, countryCode, catalogRefresh) {
         if (unlocked) {
-            loading = true
-            catalog.fetchPublished("catalog_items", countryCode)
-                .onSuccess { rows ->
-                    adultItems = rows.filter {
-                        val rating = it.ageRating?.trim()?.uppercase().orEmpty()
-                        rating.contains("18") || rating in setOf("NC-17","R18","TV-MA","MA","AO","ADULT","ADULTS ONLY")
+            var firstLoad = true
+            while (true) {
+                // Keep existing cards visible during background refreshes; show the spinner
+                // only on the first load or when the catalog is currently empty.
+                if (firstLoad || adultItems.isEmpty()) loading = true
+                catalog.fetchPublished("catalog_items", countryCode)
+                    .onSuccess { rows ->
+                        adultItems = rows.filter {
+                            val rating = it.ageRating?.trim()?.uppercase().orEmpty()
+                            rating.contains("18") || rating in setOf("NC-17","R18","TV-MA","MA","AO","ADULT","ADULTS ONLY")
+                        }
+                        if (adultItems.none { it.id == unavailableCategory }) unavailableCategory = null
+                        message = null
                     }
-                }
-                .onFailure { message = "No se pudo cargar el catálogo +18: ${it.message}" }
+                    .onFailure { message = "No se pudo actualizar el catálogo +18. Se conserva el contenido anterior si estaba disponible: ${it.message}" }
+                loading = false
+                firstLoad = false
+                // Refresh every five minutes while the protected section remains unlocked.
+                kotlinx.coroutines.delay(5 * 60 * 1000L)
+            }
+        } else {
+            adultItems = emptyList()
             loading = false
-        } else adultItems = emptyList()
+        }
     }
 
     Column(
@@ -444,7 +458,10 @@ fun AdultAccessScreen(
             else -> {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.VerifiedUser, null, tint = MaterialTheme.colorScheme.primary)
-                    Text("Sección desbloqueada · Catálogo clasificado +18", modifier = Modifier.padding(start = 8.dp))
+                    Text("Sección desbloqueada · Catálogo clasificado +18", modifier = Modifier.weight(1f).padding(start = 8.dp))
+                    IconButton(onClick = { catalogRefresh++ }, enabled = !loading) {
+                        Icon(Icons.Default.Refresh, contentDescription = "Actualizar catálogo +18", tint = Color(0xFFFF9CCB))
+                    }
                 }
                 if (loading) CircularProgressIndicator()
                 else {
