@@ -133,6 +133,7 @@ class OfficialWatchActivity : Activity() {
                     channels.clear()
                     channels.addAll(newRows)
                     index = newIndex
+                    title.text = channels.getOrNull(index)?.optString("name") ?: "Canal oficial"
                     if (oldUrls != newUrls) loadChannel(index)
                 }
             }
