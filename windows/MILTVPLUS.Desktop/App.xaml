@@ -1,0 +1,10 @@
+<Application x:Class="MILTVPLUS.Desktop.App" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" StartupUri="MainWindow.xaml">
+  <Application.Resources>
+    <Color x:Key="Navy">#07132D</Color>
+    <Color x:Key="Panel">#101E3D</Color>
+    <Color x:Key="Cyan">#00D9F5</Color>
+    <SolidColorBrush x:Key="NavyBrush" Color="{StaticResource Navy}"/>
+    <SolidColorBrush x:Key="PanelBrush" Color="{StaticResource Panel}"/>
+    <SolidColorBrush x:Key="CyanBrush" Color="{StaticResource Cyan}"/>
+  </Application.Resources>
+</Application>
