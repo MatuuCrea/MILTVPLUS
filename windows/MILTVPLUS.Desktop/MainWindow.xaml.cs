@@ -334,7 +334,7 @@ public partial class MainWindow : Window
         _localPlaylistLoaded = false;
         (table, select, order, kind) = section switch
         {
-            "Canales por país" => ("tv_channels", "title,description,country_code,created_at,category,language_code,access_model,logo_url,official_watch_url,stream_url,playback_type,is_free_to_air,source_status", "sort_order.asc,title.asc", null),
+            "Canales por país" => ("tv_channels", "title,description,country_code,created_at,category,language_code,access_model,logo_url,official_watch_url,stream_url,playback_type,is_free_to_air,source_status,last_checked_at,last_check_detail", "sort_order.asc,title.asc", null),
             "TV en vivo" => ("catalog_items", "title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url", "created_at.desc", "live"),
             "Películas" => ("catalog_items", "title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url", "created_at.desc", "movie"),
             "Series" => ("catalog_items", "title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url", "created_at.desc", "series"),
@@ -374,6 +374,9 @@ public partial class MainWindow : Window
         [JsonPropertyName("playback_type")] public string? PlaybackType { get; set; }
         [JsonPropertyName("is_free_to_air")] public bool? IsFreeToAir { get; set; }
         [JsonPropertyName("source_status")] public string? SourceStatus { get; set; }
+        [JsonPropertyName("last_checked_at")] public DateTimeOffset? LastCheckedAt { get; set; }
+        [JsonPropertyName("last_check_detail")] public string? LastCheckDetail { get; set; }
+        private string? LastCheckSummary => LastCheckDetail is { Length: > 150 } ? LastCheckDetail[..150] : LastCheckDetail;
         [JsonPropertyName("access_model")] public string? AccessModel { get; set; }
         private string? AccessModelLabel => AccessModel switch
         {
@@ -384,6 +387,6 @@ public partial class MainWindow : Window
             "geo_restricted" => "Con restricción geográfica",
             _ => null
         };
-        public string Metadata => string.Join(" · ", new[] { Category ?? Kind ?? ItemType ?? Sport, Genre ?? Competition ?? Creator, CountryCode, LanguageCode, AccessModelLabel, PlaybackType, SourceStatus, ReleaseYear?.ToString(), AgeRating, StartsAt?.ToLocalTime().ToString("g") }.Where(x => !string.IsNullOrWhiteSpace(x)));
+        public string Metadata => string.Join(" · ", new[] { Category ?? Kind ?? ItemType ?? Sport, Genre ?? Competition ?? Creator, CountryCode, LanguageCode, AccessModelLabel, PlaybackType, SourceStatus, LastCheckSummary, LastCheckedAt?.ToLocalTime().ToString("g"), ReleaseYear?.ToString(), AgeRating, StartsAt?.ToLocalTime().ToString("g") }.Where(x => !string.IsNullOrWhiteSpace(x)));
     }
 }
