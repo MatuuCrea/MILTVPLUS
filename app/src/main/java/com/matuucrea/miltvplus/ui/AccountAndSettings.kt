@@ -302,6 +302,7 @@ fun AdultAccessScreen(
     var loading by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
     var selectedAdultCategory by remember { mutableStateOf("Todos") }
+    var unavailableCategory by remember { mutableStateOf<String?>(null) }
     val adultCategories = listOf("Todos", "Romance", "Eróticos", "Parejas", "Hot", "Premium", "Solo Adultos")
 
     LaunchedEffect(ageConfirmed, isSignedIn) {
@@ -358,7 +359,18 @@ fun AdultAccessScreen(
             adultCategories.forEach { category ->
                 FilterChip(
                     selected = selectedAdultCategory == category,
-                    onClick = { selectedAdultCategory = category },
+                    onClick = {
+                        selectedAdultCategory = category
+                        if (unlocked && category != "Todos" && category != "Solo Adultos") {
+                            val available = adultItems.any {
+                                it.category.contains(category, ignoreCase = true) ||
+                                    it.title.contains(category, ignoreCase = true)
+                            }
+                            if (!available) unavailableCategory = category
+                        } else if (unlocked && adultItems.isEmpty() && category != "Todos") {
+                            unavailableCategory = category
+                        }
+                    },
                     label = { Text(category) },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = Color(0xFFB30B64),
@@ -433,6 +445,24 @@ fun AdultAccessScreen(
         }
         message?.let { Text(it, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall) }
         if (!isSignedIn) Text("Iniciá sesión para sincronizar la constancia de edad con tu cuenta.", style = MaterialTheme.typography.bodySmall)
+    }
+    unavailableCategory?.let { category ->
+        AlertDialog(
+            onDismissRequest = { unavailableCategory = null },
+            icon = { Icon(Icons.Default.Favorite, null, tint = Color(0xFFFF4D9D)) },
+            title = { Text("$category · Próximamente") },
+            text = {
+                Text(
+                    "Estamos preparando esta categoría para MILTVPLUS. Por ahora no hay contenido publicado y verificado disponible aquí. Volvé pronto: queremos ofrecerte una experiencia cuidada y segura."
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { unavailableCategory = null }) { Text("Entendido") }
+            },
+            containerColor = Color(0xFF210619),
+            titleContentColor = Color.White,
+            textContentColor = Color(0xFFFFD8E9)
+        )
     }
 }
 
