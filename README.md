@@ -1,70 +1,49 @@
 # MILTVPLUS V22.34.9
 
-Aplicación de entretenimiento para Android móvil, Android TV y TV Box Android, con un cliente Web/PWA separado. Kotlin, Jetpack Compose, Media3 y Supabase.
+MILTVPLUS es un producto de aplicaciones instalables nativas: Android (teléfonos, Android TV y TV Box) y Windows x64. No se ofrece una PWA ni una página web como aplicación.
 
-## Funciones desarrolladas
+## Android
 
-### Android
-- Inicio con accesos a TV en vivo, películas, series, deportes, radios, música, teatro, EPG, +18, países, fuentes, cuenta y ajustes.
-- Reproducción Media3/HLS para URLs HTTPS de proveedores autorizados.
+Cliente nativo Kotlin, Jetpack Compose y Android Media3.
+- Navegación para TV en vivo, películas, series, deportes, radios, música, teatro, EPG, cuenta y ajustes.
+- Reproducción Media3/HLS de fuentes HTTPS autorizadas.
 - Importación M3U/M3U8 local con límite de 5 MB y validación HTTPS.
-- Catálogo remoto con filtros por país y territorios de licencia, tipo de contenido, imágenes y enlaces oficiales.
-- EPG agrupada por identificador estable, ordenada por horario local y marcada cuando el programa está en vivo.
-- Cuenta Supabase Auth: registro, login, recuperación, actualización de contraseña, cierre, renovación y callback de email.
-- Sesión cifrada AES-GCM con clave Android Keystore.
-- Favoritos en nube para UUID de `catalog_items`; favoritos M3U locales siguen locales.
-- Preferencias locales y sincronizadas: tema, acento, país, idioma, audio preferido, subtítulos, preferencia de avisos y autoplay.
-- Fuentes remotas por cuenta: alta, listado, eliminación y descarga M3U sólo después de aprobación administrativa; el backend fuerza las nuevas fuentes a deshabilitadas.
-- Control +18 con declaración, PIN PBKDF2 con sal, bloqueo temporal tras cinco intentos incorrectos y catálogo filtrado por clasificación.
-- Launcher Android con icono de marca y banner Android TV compuesto con el logotipo original; D-pad y foco requieren QA en dispositivos reales.
+- Catálogo Supabase, favoritos, preferencias, Auth y sesión cifrada con Android Keystore.
+- Control +18 con PIN PBKDF2 y bloqueo temporal.
+- Icono Android con logotipo MILTVPLUS y banner Android TV.
 
-### Web / PWA
-El cliente independiente está en [web/](web/). Incluye navegación de catálogo, búsqueda, filtro regional, Auth, favoritos, preferencias, fuentes, control +18 local y service worker que cachea sólo archivos estáticos. No cachea respuestas privadas de API.
-
-## Supabase
-
-Proyecto: `rbnuxapfsnaabrzuxvdy`.
-
-- Los clientes usan exclusivamente la clave publishable. Nunca incluir `service_role`, secret keys ni contraseñas de base de datos.
-- Las tablas privadas usan RLS y políticas por propietario. Los favoritos sólo pueden referenciar filas del catálogo que estén publicadas.
-- El rol de usuario puede enviar y eliminar fuentes propias, pero no puede aprobarlas ni habilitarlas; un trigger obliga flags de verificación a false al insertar.
-- Las tablas editoriales sólo permiten publicar con derechos verificados, titular, referencia, región y ventana de vigencia activa.
-- El trigger de perfil/preferencias vive en el esquema no expuesto `app_private`.
-- El catálogo sigue vacío en la última comprobación: no hay canales, películas, series, radios, eventos, música, teatro ni EPG publicados.
-- No se cargaron URLs ni metadatos ficticios.
-
-### Configuración necesaria para confirmar emails y recuperación Android
-
-En Supabase Dashboard → Authentication → URL Configuration → Redirect URLs, agregar:
-
-```
-miltvplus://auth/callback
-```
-
-El cliente Android ya declara ese deep link. Sin esta URL permitida, los enlaces de confirmación/recuperación pueden no volver a la app.
-
-## Límites pendientes
-- La preferencia de notificaciones se guarda y sincroniza; el servicio que envía avisos push/reminders todavía no está desplegado.
-- Spotify abre el servicio oficial; OAuth y reproducción integrada requieren una aplicación Spotify aprobada.
-- La declaración +18 y el PIN son barreras de producto, no verificación legal certificada de identidad/edad.
-- Tizen y webOS requieren clientes independientes y todavía no están desarrollados.
-- Web/PWA incluye favicon y manifest con icono de marca; requiere hosting HTTPS y QA de navegadores.
-- Logotipo original integrado en el launcher Android, banner Android TV y cliente Web/PWA.
-- Firma release, privacidad y publicación en tiendas siguen pendientes.
-
-## Construcción Android
-
-Requisitos: JDK 17, Android SDK 35, Gradle 8.9.
-
+Construcción:
 ```bash
 gradle :app:testDebugUnitTest
 gradle :app:assembleDebug
 ```
+APK: `app/build/outputs/apk/debug/app-debug.apk`. La APK debug se firma con la clave debug automática; no es una release firmada para distribución comercial.
 
-APK debug: `app/build/outputs/apk/debug/app-debug.apk`. Sólo considerar válido el artefacto cuando GitHub Actions confirme el mismo SHA, los tests, el ensamblado y la subida del APK.
+## Windows
 
-## Documentación
-- [Matriz de implementación](docs/IMPLEMENTATION-MATRIX.md)
-- [Especificación funcional](docs/PRODUCT-SPEC.md)
-- [Integración y auditoría Supabase](docs/SUPABASE-ANDROID.md)
-- [Cliente Web/PWA](web/README.md)
+Cliente de escritorio nativo WPF/.NET 8 en `windows/MILTVPLUS.Desktop`. No utiliza navegador ni WebView. Incluye navegación de secciones, búsqueda y consulta del catálogo publicado de Supabase.
+
+El workflow `.github/workflows/windows.yml` publica la aplicación x64 autocontenida y construye un instalador `MILTVPLUS-Setup-x64.exe` con Inno Setup. Esta primera base Windows todavía no iguala todas las funciones del cliente Android; reproducción, cuenta completa, protección +18, importación M3U y QA están pendientes de implementación.
+
+## Catálogo y derechos
+
+Proyecto Supabase: `rbnuxapfsnaabrzuxvdy`. Los clientes sólo usan la clave publishable. Nunca colocar service_role, secret keys ni contraseñas en el cliente.
+
+El catálogo estaba vacío en la última auditoría. No se agregan canales, películas, series, eventos, radios ni enlaces ficticios. Cada publicación requiere titular, referencia de derechos, territorios y vigencia. La autorización del propietario de esta aplicación para desarrollar el software no sustituye las licencias de los titulares de cada emisión.
+
+## Pendientes externos y de producto
+
+- Incorporar fuentes y metadatos de proveedores con autorización verificable.
+- Agregar en Supabase Auth Redirect URLs: `miltvplus://auth/callback`.
+- Preparar firma Android release con un keystore aportado de forma segura por el propietario.
+- Probar APK en móviles y Android TV físicos (incluido D-pad).
+- Completar Windows: reproducción, cuenta, seguridad, ajustes y pruebas.
+- Implementar entrega real de notificaciones push; hoy sólo existe la preferencia.
+- Completar temporadas/episodios y grilla EPG.
+- Validar accesibilidad, privacidad, licencias y publicación en tiendas.
+
+## CI
+
+- Android: pruebas JVM + `:app:assembleDebug` + artefacto APK.
+- Windows: publicación x64 autocontenida + instalador Inno Setup.
+- No hay workflow ni artefacto de publicación Web/PWA.
