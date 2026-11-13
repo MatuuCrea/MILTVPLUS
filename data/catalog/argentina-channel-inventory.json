@@ -2,7 +2,7 @@
   "country_code": "AR",
   "country_name": "Argentina",
   "status": "discovery_inventory_not_published",
-  "note": "Inventario de descubrimiento. C5N y Canal 26 están publicados sólo como enlaces a sus páginas oficiales; Crónica TV tiene su URL oficial registrada pero permanece en revisión. Ninguno tiene stream integrado ni logo aprobado cargado.",
+  "note": "Inventario de descubrimiento. C5N, Canal 26 y Senado TV están publicados sólo como enlaces a páginas oficiales; Crónica TV y Diputados TV tienen páginas oficiales registradas pero permanecen en revisión. Ninguno tiene stream integrado ni logo aprobado cargado.",
   "required_news_channels": [
     {
       "slug": "c5n",
@@ -74,14 +74,20 @@
       "name": "Senado TV",
       "category": "public",
       "priority": 9,
-      "required": false
+      "required": false,
+      "official_watch_url": "https://www.senado.gob.ar/parlamentario/sesiones/enVivo",
+      "directory_status": "published_official_web",
+      "integrated_stream_status": "not_authorized_or_not_documented"
     },
     {
       "slug": "diputados-tv",
       "name": "Diputados TV",
       "category": "public",
       "priority": 10,
-      "required": false
+      "required": false,
+      "official_watch_url": "https://www.hcdn.gob.ar/dtv/index.html",
+      "directory_status": "pending_manual_check",
+      "integrated_stream_status": "not_authorized_or_not_documented"
     }
   ],
   "other_categories": [
