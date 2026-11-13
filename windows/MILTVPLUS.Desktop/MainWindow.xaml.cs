@@ -296,6 +296,16 @@ public partial class MainWindow : Window
         if (item is not null) Sections.SelectedItem = item;
     }
 
+    private void AdultCategory_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement element && element.Tag is string category)
+        {
+            SearchBox.Text = category == "Solo Adultos" ? string.Empty : category;
+            StatusText.Text = category == "Solo Adultos" ? "Mostrando todas las publicaciones clasificadas +18." : "Filtrando el catálogo +18 por " + category + ".";
+            ApplySearch();
+        }
+    }
+
     private async void AdultUnlock_Click(object sender, RoutedEventArgs e)
     {
         if (AdultAgeConfirm.IsChecked != true)
@@ -334,8 +344,11 @@ public partial class MainWindow : Window
             _adultUnlocked = true;
             AdultPinBox.Clear();
             AdultGatePanel.Visibility = Visibility.Collapsed;
-            VideoContainer.Visibility = Visibility.Visible;
+            AdultPanel.Visibility = Visibility.Visible;
+            VideoContainer.Visibility = Visibility.Collapsed;
             CatalogScroll.Visibility = Visibility.Visible;
+            Grid.SetRow(CatalogScroll, 3);
+            Grid.SetRowSpan(CatalogScroll, 2);
             table = "catalog_items";
             select = "id,title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url";
             order = "created_at.desc";
@@ -443,8 +456,11 @@ public partial class MainWindow : Window
         HomePanel.Visibility = section == "Inicio" ? Visibility.Visible : Visibility.Collapsed;
         var isAdult = section == "Adultos 18+";
         AdultGatePanel.Visibility = isAdult && !_adultUnlocked ? Visibility.Visible : Visibility.Collapsed;
-        VideoContainer.Visibility = isAdult && !_adultUnlocked ? Visibility.Collapsed : Visibility.Visible;
+        AdultPanel.Visibility = isAdult && _adultUnlocked ? Visibility.Visible : Visibility.Collapsed;
+        VideoContainer.Visibility = isAdult ? Visibility.Collapsed : Visibility.Visible;
         CatalogScroll.Visibility = isAdult && !_adultUnlocked ? Visibility.Collapsed : Visibility.Visible;
+        Grid.SetRow(CatalogScroll, isAdult ? 3 : 4);
+        Grid.SetRowSpan(CatalogScroll, isAdult ? 2 : 1);
         if (isAdult && !_adultUnlocked)
         {
             entries = [];
