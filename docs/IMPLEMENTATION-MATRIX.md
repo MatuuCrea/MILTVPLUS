@@ -23,10 +23,10 @@ Actualizada para la entrega integral de noviembre de 2026. “Implementado” de
 | Preferencias | Local y nube Android/Web: tema, región, idioma, audio, subtítulos, preferencia de avisos, autoplay y acento | Entrega push/reminders aún no desplegada; QA multi-dispositivo |
 | Fuentes remotas | CRUD Android/Web por propietario; trigger fuerza disabled/unverified; importación sólo al aprobar | Revisión administrativa y QA de importación remota |
 | Fuentes locales | Importador M3U/M3U8 con límite 5 MB, BOM UTF-8 y títulos con comas | QA adicional con playlists reales de proveedores autorizados |
-| Android TV / TV Box | Launcher Leanback, banner y agrupación de foco | D-pad, foco visible, banner oficial y QA físico |
+| Android TV / TV Box | Launcher Leanback, icono de marca original, banner TV con logotipo y agrupación de foco | D-pad, foco visible, QA físico del banner y mando |
 | Web/PWA | Cliente estático, Auth, catálogo, favoritos, preferencias, fuentes, +18 y caché estática; REST público usa sólo la clave publishable en `apikey`, reserva Bearer para sesiones de usuario | Hosting HTTPS, iconos de marca, QA de navegador y HLS integrado |
 | Tizen / webOS | No implementado | Clientes separados con SDKs y pruebas de fabricante |
-| Marca oficial | Pendiente | Incorporar archivo original del logo aprobado |
+| Marca oficial | Integrada | Logo original incorporado al icono Android, banner TV y PWA |
 | Publicación | Debug CI existente | Firma release, claves privadas, privacidad, derechos y tiendas |
 | Spotify | Enlace oficial externo | Aplicación Spotify registrada, OAuth y permisos de reproducción |
 | CI/CD | Workflow JVM tests + assembleDebug + APK artifact | Confirmar resultado para el commit integral actual |

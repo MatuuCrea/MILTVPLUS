@@ -16,7 +16,7 @@ Aplicación de entretenimiento para Android móvil, Android TV y TV Box Android,
 - Preferencias locales y sincronizadas: tema, acento, país, idioma, audio preferido, subtítulos, preferencia de avisos y autoplay.
 - Fuentes remotas por cuenta: alta, listado, eliminación y descarga M3U sólo después de aprobación administrativa; el backend fuerza las nuevas fuentes a deshabilitadas.
 - Control +18 con declaración, PIN PBKDF2 con sal, bloqueo temporal tras cinco intentos incorrectos y catálogo filtrado por clasificación.
-- Launcher Android TV con categoría Leanback y banner gráfico provisional; D-pad y foco requieren QA en dispositivos reales.
+- Launcher Android con icono de marca y banner Android TV compuesto con el logotipo original; D-pad y foco requieren QA en dispositivos reales.
 
 ### Web / PWA
 El cliente independiente está en [web/](web/). Incluye navegación de catálogo, búsqueda, filtro regional, Auth, favoritos, preferencias, fuentes, control +18 local y service worker que cachea sólo archivos estáticos. No cachea respuestas privadas de API.
@@ -48,8 +48,8 @@ El cliente Android ya declara ese deep link. Sin esta URL permitida, los enlaces
 - Spotify abre el servicio oficial; OAuth y reproducción integrada requieren una aplicación Spotify aprobada.
 - La declaración +18 y el PIN son barreras de producto, no verificación legal certificada de identidad/edad.
 - Tizen y webOS requieren clientes independientes y todavía no están desarrollados.
-- Web/PWA requiere hosting HTTPS, iconos de marca y QA de navegadores.
-- Falta incorporar el logo oficial original.
+- Web/PWA incluye favicon y manifest con icono de marca; requiere hosting HTTPS y QA de navegadores.
+- Logotipo original integrado en el launcher Android, banner Android TV y cliente Web/PWA.
 - Firma release, privacidad y publicación en tiendas siguen pendientes.
 
 ## Construcción Android

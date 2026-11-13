@@ -24,4 +24,4 @@ Cliente estático con manifest y service worker que consume las mismas tablas p�
 - No hay reproducción HLS universal; se abre la fuente HTTPS autorizada.
 - Spotify abre el servicio oficial; no se simula OAuth ni reproducción integrada.
 - El PIN web es barrera local, no verificación legal de edad.
-- Logo oficial, hosting HTTPS, iconos y QA de navegador siguen pendientes.
+- Logo oficial integrado como icono Web/PWA. Hosting HTTPS y QA de navegador siguen pendientes.
