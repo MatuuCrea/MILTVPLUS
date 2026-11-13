@@ -179,6 +179,7 @@ class MainActivity:ComponentActivity(){
         gesturesEnabled = true,
         drawerContent = {
             ModalDrawerSheet(
+                modifier = Modifier.fillMaxHeight().verticalScroll(rememberScrollState()),
                 drawerContainerColor = Color(0xFF0C1020),
                 drawerContentColor = Color.White
             ) {
@@ -263,6 +264,24 @@ class MainActivity:ComponentActivity(){
                 val countryItems=remoteItems.filter { it.countryCode==countryCode }
                 val featured=countryItems.firstOrNull()
                 Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(18.dp)) {
+                    Row(Modifier.fillMaxWidth().padding(horizontal=18.dp, vertical=2.dp),verticalAlignment=Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text("BIENVENIDO A",color=Color(0xFFE5ECF8),fontSize=11.sp,fontWeight=FontWeight.Bold,letterSpacing=2.sp)
+                            Text("MILTVPLUS",color=Color.White,fontSize=30.sp,fontWeight=FontWeight.Black,letterSpacing=1.sp)
+                            Text("Tu TV, en todas partes 🇦🇷",color=cyan,fontSize=12.sp,fontWeight=FontWeight.SemiBold)
+                        }
+                        Surface(color=Color(0xFF13264A),shape=RoundedCornerShape(15.dp),onClick={tab="Países"}) {
+                            Row(Modifier.padding(horizontal=12.dp,vertical=9.dp),verticalAlignment=Alignment.CenterVertically) {
+                                Text(countryFlag(countryCode),fontSize=21.sp)
+                                Spacer(Modifier.width(7.dp))
+                                Column {
+                                    Text(countryDisplayName(countryCode),color=Color.White,fontWeight=FontWeight.Bold,fontSize=11.sp)
+                                    Text("Cambiar país",color=cyan,fontSize=10.sp)
+                                }
+                                Icon(Icons.Default.ExpandMore,null,tint=cyan)
+                            }
+                        }
+                    }
                     Card(Modifier.fillMaxWidth().padding(horizontal=14.dp),shape=RoundedCornerShape(24.dp),colors=CardDefaults.cardColors(containerColor=Color(0xFF17171C))) {
                         Box(Modifier.fillMaxWidth().height(238.dp)) {
                             if(featured?.artworkUrl!=null) AsyncImage(model=featured.artworkUrl,contentDescription=featured.title,contentScale=ContentScale.Crop,modifier=Modifier.fillMaxSize())
@@ -288,6 +307,44 @@ class MainActivity:ComponentActivity(){
                         }
                     }
                     Column(Modifier.padding(horizontal=16.dp),verticalArrangement=Arrangement.spacedBy(9.dp)) {
+                        Text("EXPLORÁ MILTVPLUS",color=Color.White,fontSize=18.sp,fontWeight=FontWeight.Bold)
+                        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(9.dp)) {
+                            listOf(
+                                Triple("TV en Vivo","📺","tv_channels"),
+                                Triple("Películas","🎬","movie"),
+                                Triple("Series","📽️","series"),
+                                Triple("Deportes","⚽","sports_events"),
+                                Triple("Infantiles","🧸","catalog_items"),
+                                Triple("Países","🌎","Países")
+                            ).forEach { (label,emoji,destination) ->
+                                Card(
+                                    onClick={
+                                        if(destination=="Países") tab="Países" else {
+                                            remoteCategory=if(destination=="movie"||destination=="series") "catalog_items" else destination
+                                            remoteKindFilter=when(destination){"movie"->"movie";"series"->"series";else->null}
+                                            selectedChannelCountry=if(destination=="tv_channels") countryCode else null
+                                            tab="Catálogo"
+                                        }
+                                    },
+                                    modifier=Modifier.width(108.dp).height(96.dp),
+                                    colors=CardDefaults.cardColors(containerColor=when(label) {
+                                        "TV en Vivo"->Color(0xFF123E87)
+                                        "Películas"->Color(0xFF42216E)
+                                        "Series"->Color(0xFF12613F)
+                                        "Deportes"->Color(0xFF82420D)
+                                        "Infantiles"->Color(0xFF7B205A)
+                                        else->Color(0xFF075C78)
+                                    }),
+                                    shape=RoundedCornerShape(16.dp)
+                                ) {
+                                    Column(Modifier.fillMaxSize().padding(8.dp),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.Center) {
+                                        Text(emoji,fontSize=25.sp)
+                                        Spacer(Modifier.height(5.dp))
+                                        Text(label,color=Color.White,fontWeight=FontWeight.Bold,fontSize=11.sp)
+                                    }
+                                }
+                            }
+                        }
                         Text("EXPLORAR POR PAÍS",color=Color.White,fontSize=18.sp,fontWeight=FontWeight.Bold)
                         Text("País seleccionado: "+countryDisplayName(countryCode),color=Color.LightGray,fontSize=12.sp)
                         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp)) {
