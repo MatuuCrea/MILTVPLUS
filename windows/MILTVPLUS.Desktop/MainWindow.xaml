@@ -77,6 +77,8 @@
      <ListBoxItem Content="☺   Infantil" Tag="Infantil"/>
      <ListBoxItem Content="▤   Documentales" Tag="Documentales"/>
      <ListBoxItem Content="♫   Música" Tag="Música"/>
+     <ListBoxItem Content="◉   Radios" Tag="Radios"/>
+     <ListBoxItem Content="▣   Teatro" Tag="Teatro"/>
      <ListBoxItem Content="◎   Países" Tag="Países"/>
      <ListBoxItem Content="🔞   Adultos 18+" Tag="Adultos 18+"/>
      <ListBoxItem Content="☆   Favoritos" Tag="Favoritos"/>
@@ -114,7 +116,7 @@
              Background="#101E3D" Foreground="White" BorderBrush="#493D50"
              ToolTip="Buscar en MILTVPLUS" TextChanged="SearchBox_TextChanged"/>
    </DockPanel>
-   <StackPanel x:Name="HomePanel" Grid.Row="1" Grid.RowSpan="2" Margin="0,0,0,14">
+   <StackPanel x:Name="HomePanel" Grid.Row="1" Margin="0,0,0,14">
     <Border CornerRadius="18" Padding="22" Margin="0,0,0,10" Height="176" BorderBrush="#1B4D85" BorderThickness="1">
      <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#031437"/><GradientStop Color="#075DB4" Offset=".55"/><GradientStop Color="#06152F" Offset="1"/></LinearGradientBrush></Border.Background>
      <Grid>
