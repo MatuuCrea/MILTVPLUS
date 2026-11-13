@@ -98,12 +98,15 @@ class SupabaseCatalogRepository {
             "geo_restricted" -> "Con restricción geográfica"
             else -> null
         }
-        val sourceStatusLabel = when (row.optString("source_status")) {
-            "online" -> "Fuente accesible"
-            "offline" -> "Fuente sin respuesta"
-            "blocked" -> "Acceso bloqueado"
-            "pending_review" -> "En revisión"
-            "geo_restricted" -> "Restricción geográfica"
+        val liveMarkerConfirmed = table == "tv_channels" &&
+            row.optString("last_check_detail").startsWith("YouTube confirma", ignoreCase = true)
+        val sourceStatusLabel = when {
+            liveMarkerConfirmed -> "EN VIVO verificado"
+            row.optString("source_status") == "online" -> "Fuente accesible"
+            row.optString("source_status") == "offline" -> "Fuente sin respuesta"
+            row.optString("source_status") == "blocked" -> "Acceso bloqueado"
+            row.optString("source_status") == "pending_review" -> "En revisión"
+            row.optString("source_status") == "geo_restricted" -> "Restricción geográfica"
             else -> null
         }
         val healthDetail = row.optString("last_check_detail")
