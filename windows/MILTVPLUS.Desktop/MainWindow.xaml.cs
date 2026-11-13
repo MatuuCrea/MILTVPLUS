@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Controls;
+using LibVLCSharp.Shared;
 
 namespace MILTVPLUS.Desktop;
 
@@ -12,6 +13,9 @@ public partial class MainWindow : Window
     private const string PublicKey = "sb_publishable_tmBU-IB7P0db0w7RG9TMEw_GD754hb7";
     private static readonly HttpClient Client = new() { Timeout = TimeSpan.FromSeconds(20) };
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
+    private readonly LibVLC _libVlc;
+    private readonly MediaPlayer _mediaPlayer;
+    private Media? _currentMedia;
     private List<CatalogEntry> entries = [];
     private string table = "catalog_items";
     private string select = "title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url";
@@ -20,10 +24,15 @@ public partial class MainWindow : Window
 
     public MainWindow()
     {
+        Core.Initialize();
+        _libVlc = new LibVLC("--no-video-title-show", "--network-caching=1500");
+        _mediaPlayer = new MediaPlayer(_libVlc);
         InitializeComponent();
+        VideoSurface.MediaPlayer = _mediaPlayer;
         Client.DefaultRequestHeaders.TryAddWithoutValidation("apikey", PublicKey);
         Client.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "application/json");
         Loaded += async (_, _) => await LoadCatalog();
+        Closed += (_, _) => DisposePlayer();
     }
 
     private async Task LoadCatalog()
@@ -65,6 +74,46 @@ public partial class MainWindow : Window
     private async void Refresh_Click(object sender, RoutedEventArgs e) => await LoadCatalog();
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e) { if (IsLoaded) ApplySearch(); }
 
+    private void Play_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.DataContext is not CatalogEntry item ||
+            !Uri.TryCreate(item.StreamUrl, UriKind.Absolute, out var uri) ||
+            uri.Scheme != Uri.UriSchemeHttps)
+        {
+            StatusText.Text = "Este contenido no tiene una dirección HTTPS autorizada para reproducir.";
+            return;
+        }
+
+        try
+        {
+            _currentMedia?.Dispose();
+            _currentMedia = new Media(_libVlc, uri);
+            if (!_mediaPlayer.Play(_currentMedia))
+                throw new InvalidOperationException("El reproductor no pudo iniciar el flujo.");
+            StatusText.Text = "Reproduciendo: " + item.Title;
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = "Error de reproducción: " + ex.Message;
+        }
+    }
+
+    private void Stop_Click(object sender, RoutedEventArgs e)
+    {
+        _mediaPlayer.Stop();
+        _currentMedia?.Dispose();
+        _currentMedia = null;
+        StatusText.Text = "Reproducción detenida.";
+    }
+
+    private void DisposePlayer()
+    {
+        _mediaPlayer.Stop();
+        _currentMedia?.Dispose();
+        _mediaPlayer.Dispose();
+        _libVlc.Dispose();
+    }
+
     private async void Sections_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!IsLoaded || Sections.SelectedItem is not ListBoxItem item) return;
@@ -102,6 +151,7 @@ public partial class MainWindow : Window
         [JsonPropertyName("starts_at")] public DateTimeOffset? StartsAt { get; set; }
         [JsonPropertyName("ends_at")] public DateTimeOffset? EndsAt { get; set; }
         [JsonPropertyName("channel_external_id")] public string? ChannelExternalId { get; set; }
+        [JsonPropertyName("stream_url")] public string? StreamUrl { get; set; }
         public string Metadata => string.Join(" · ", new[] { Kind ?? ItemType ?? Sport, Genre ?? Competition ?? Creator, CountryCode, ReleaseYear?.ToString(), AgeRating, StartsAt?.ToLocalTime().ToString("g") }.Where(x => !string.IsNullOrWhiteSpace(x)));
     }
 }
