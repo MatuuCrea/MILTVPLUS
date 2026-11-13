@@ -87,6 +87,7 @@ class MainActivity:ComponentActivity(){
     var cloudFavorites by remember { mutableStateOf<Set<String>>(emptySet()) }
     val uiScope = rememberCoroutineScope()
     var remoteKindFilter by remember { mutableStateOf<String?>(null) }
+    var channelCategoryFilter by remember { mutableStateOf<String?>(null) }
     var countryCode by remember { mutableStateOf(context.getSharedPreferences("miltvplus_preferences",0).getString("country_code","AR") ?: "AR") }
     LaunchedEffect(Unit) {
         val callback = authCallback ?: (context as? MainActivity)?.intent?.data
@@ -191,7 +192,15 @@ class MainActivity:ComponentActivity(){
             "Catálogo"->{Row(Modifier.fillMaxWidth().padding(end=12.dp),verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Title("Catálogo global","Contenido publicado desde tu backend seguro")};IconButton(onClick={catalogRefresh++},enabled=!remoteLoading){Icon(Icons.Default.Refresh,"Actualizar catálogo",tint=cyan)}};TextButton(onClick={tab="Inicio"},modifier=Modifier.padding(start=12.dp)){Text("← Volver a Inicio")}
                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal=12.dp),horizontalArrangement=Arrangement.spacedBy(6.dp)){
                     listOf("tv_channels" to "Canales por país","catalog_items" to "TV / VOD","radio_stations" to "Radios","sports_events" to "Deportes","music_items" to "Música","theater_events" to "Teatro","epg_programs" to "Guía EPG").forEach{(table,label)->
-                        FilterChip(selected=remoteCategory==table,onClick={remoteCategory=table;remoteKindFilter=null},label={Text(label)})
+                        FilterChip(selected=remoteCategory==table,onClick={remoteCategory=table;remoteKindFilter=null;channelCategoryFilter=null},label={Text(label)})
+                    }
+                }
+                if(remoteCategory=="tv_channels" && remoteItems.isNotEmpty()) {
+                    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal=12.dp),horizontalArrangement=Arrangement.spacedBy(6.dp)) {
+                        FilterChip(selected=channelCategoryFilter==null,onClick={channelCategoryFilter=null},label={Text("Todas las categorías")})
+                        remoteItems.map { it.category }.filter { it.isNotBlank() }.distinct().sorted().forEach { category ->
+                            FilterChip(selected=channelCategoryFilter==category,onClick={channelCategoryFilter=category},label={Text(category.replaceFirstChar { it.uppercase() })})
+                        }
                     }
                 }
                 if(remoteCategory=="catalog_items") {
@@ -242,7 +251,7 @@ class MainActivity:ComponentActivity(){
                                 }
                             }
                         } else {
-                            LazyColumn(contentPadding=PaddingValues(14.dp)){items(publicItems.filter { remoteKindFilter==null || it.kind==remoteKindFilter },key={it.id}){item->
+                            LazyColumn(contentPadding=PaddingValues(14.dp)){items(publicItems.filter { (remoteKindFilter==null || it.kind==remoteKindFilter) && (remoteCategory!="tv_channels" || channelCategoryFilter==null || it.category==channelCategoryFilter) },key={it.id}){item->
                                 Card(Modifier.fillMaxWidth().padding(vertical=5.dp),colors=CardDefaults.cardColors(containerColor=panel)){
                                     Row(Modifier.padding(14.dp),verticalAlignment=Alignment.CenterVertically){
                                         if(item.artworkUrl!=null) AsyncImage(
