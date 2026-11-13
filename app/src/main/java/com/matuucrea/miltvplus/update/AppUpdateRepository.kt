@@ -11,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.security.MessageDigest
@@ -81,7 +82,7 @@ object AppUpdateRepository {
             runCatching {
                 val checksums = downloadText(update.checksumsUrl)
                 val expected = checksums.lineSequence().mapNotNull { line ->
-                    val match = Regex("^([a-fA-F0-9]{64})\\\\s+\\\\*?app-release\\\\.apk$").find(line.trim())
+                    val match = Regex("^([a-fA-F0-9]{64})\\s+\\*?app-release\\.apk$").find(line.trim())
                     match?.groupValues?.get(1)?.lowercase()
                 }.firstOrNull() ?: error("SHA256SUMS no contiene el hash de app-release.apk.")
                 val directory = File(context.cacheDir, "updates").apply { mkdirs() }
