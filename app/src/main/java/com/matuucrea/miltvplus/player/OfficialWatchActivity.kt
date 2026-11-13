@@ -22,10 +22,24 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import org.json.JSONArray
 import org.json.JSONObject
+import com.matuucrea.miltvplus.data.SupabaseCatalogRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
 /** Full-screen official broadcaster page. The broadcaster retains control of its own player and territorial rules. */
 class OfficialWatchActivity : Activity() {
-    companion object { const val EXTRA_CHANNELS = "miltvplus.official.channels"; const val EXTRA_START_INDEX = "miltvplus.official.start" }
+    companion object {
+        const val EXTRA_CHANNELS = "miltvplus.official.channels"
+        const val EXTRA_START_INDEX = "miltvplus.official.start"
+        const val EXTRA_REMOTE_CATALOG = "miltvplus.official.remote"
+        const val EXTRA_COUNTRY_CODE = "miltvplus.official.country"
+        const val EXTRA_CATEGORY = "miltvplus.official.category"
+    }
     private lateinit var root: LinearLayout
     private lateinit var webView: WebView
     private lateinit var title: TextView
@@ -35,6 +49,7 @@ class OfficialWatchActivity : Activity() {
     private var customView: View? = null
     private var customViewCallback: WebChromeClient.CustomViewCallback? = null
     private val channels = ArrayList<JSONObject>()
+    private val refreshScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var index = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -96,6 +111,32 @@ class OfficialWatchActivity : Activity() {
         }
         close.setOnClickListener { finish() }
         loadChannel(index)
+        if (intent.getBooleanExtra(EXTRA_REMOTE_CATALOG, false)) {
+            val selectedCountry = intent.getStringExtra(EXTRA_COUNTRY_CODE).orEmpty().takeIf { it.matches(Regex("^[A-Z]{2}$")) }
+            val selectedCategory = intent.getStringExtra(EXTRA_CATEGORY).orEmpty()
+            val repository = SupabaseCatalogRepository()
+            refreshScope.launch {
+                while (isActive) {
+                    delay(60_000)
+                    val fresh = repository.fetchPublished("tv_channels", null).getOrNull() ?: continue
+                    val eligible = fresh.filter { entry ->
+                        entry.infoUrl != null &&
+                            (selectedCountry == null || entry.countryCode == selectedCountry) &&
+                            (selectedCategory.isBlank() || entry.category == selectedCategory)
+                    }
+                    if (eligible.isEmpty()) continue
+                    val currentId = channels.getOrNull(index)?.optString("id")
+                    val oldUrls = channels.map { it.optString("url") }
+                    val newRows = eligible.map { entry -> JSONObject().put("id", entry.id).put("name", entry.title).put("url", entry.infoUrl) }
+                    val newUrls = newRows.map { it.optString("url") }
+                    val newIndex = newRows.indexOfFirst { it.optString("id") == currentId }.let { if (it >= 0) it else 0 }
+                    channels.clear()
+                    channels.addAll(newRows)
+                    index = newIndex
+                    if (oldUrls != newUrls) loadChannel(index)
+                }
+            }
+        }
     }
 
     private fun restoreWebViewFromCustomView() {
@@ -133,6 +174,7 @@ class OfficialWatchActivity : Activity() {
     }
 
     override fun onDestroy() {
+        refreshScope.cancel()
         customViewCallback?.onCustomViewHidden()
         webView.stopLoading()
         webView.setWebChromeClient(null)
