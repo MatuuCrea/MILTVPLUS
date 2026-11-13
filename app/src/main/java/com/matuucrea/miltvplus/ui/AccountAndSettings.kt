@@ -17,6 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 import com.matuucrea.miltvplus.auth.AuthSession
 import com.matuucrea.miltvplus.auth.SupabaseAuthRepository
 import com.matuucrea.miltvplus.data.AppDirectory
@@ -346,23 +348,29 @@ fun AdultAccessScreen(
             colors = CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color(0xFF250719))
         ) {
             Box(
-                Modifier.fillMaxWidth().heightIn(min = 190.dp).padding(18.dp),
+                Modifier.fillMaxWidth()
+                    .background(androidx.compose.ui.graphics.Brush.horizontalGradient(
+                        listOf(androidx.compose.ui.graphics.Color(0xFF4A0B38), androidx.compose.ui.graphics.Color(0xFF160817), androidx.compose.ui.graphics.Color(0xFF310B37))
+                    ))
+                    .heightIn(min = 196.dp).padding(18.dp),
                 contentAlignment = Alignment.CenterStart
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Box(
-                            Modifier.size(82.dp)
+                            Modifier.size(86.dp)
+                                .background(androidx.compose.ui.graphics.Color(0xFF100510), androidx.compose.foundation.shape.CircleShape)
                                 .then(Modifier),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("18+", color = androidx.compose.ui.graphics.Color.White, style = MaterialTheme.typography.headlineLarge)
+                            Icon(Icons.Default.Favorite, null, tint = androidx.compose.ui.graphics.Color(0xFFFF4F9A), modifier = Modifier.size(78.dp))
+                            Text("18+", color = androidx.compose.ui.graphics.Color.White, style = MaterialTheme.typography.headlineMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.Black)
                         }
                         Text("SOLO ADULTOS", color = androidx.compose.ui.graphics.Color(0xFFFFB5D4), style = MaterialTheme.typography.labelSmall)
                     }
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                        Text("Contenido Adulto", color = androidx.compose.ui.graphics.Color.White, style = MaterialTheme.typography.headlineMedium)
-                        Text("Romance, historias y entretenimiento exclusivo para mayores de edad.", color = androidx.compose.ui.graphics.Color(0xFFFFDDEB), style = MaterialTheme.typography.bodyMedium)
+                        Text("Contenido Adulto", color = androidx.compose.ui.graphics.Color.White, style = MaterialTheme.typography.headlineMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.Black)
+                        Text("Romance, parejas, pasión e historias para mayores de edad.", color = androidx.compose.ui.graphics.Color(0xFFFFDDEB), style = MaterialTheme.typography.bodyMedium)
                         Text("MILTVPLUS · EXPERIENCIA 18+", color = androidx.compose.ui.graphics.Color(0xFFFF6FAF), style = MaterialTheme.typography.labelSmall)
                     }
                 }
@@ -413,17 +421,30 @@ fun AdultAccessScreen(
                 Spacer(Modifier.weight(1f))
                 TextButton(onClick = { unlocked = false }) { Text("Bloquear") }
             }
-            androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(9.dp)) {
                 items(categories) { category ->
-                    FilterChip(
-                        selected = selectedCategory == category,
+                    val symbol = when(category) {
+                        "Recomendados" -> "✨"
+                        "Romance" -> "💋"
+                        "Parejas" -> "💞"
+                        "Pasión" -> "❤️"
+                        "Hot" -> "🔥"
+                        "Premium" -> "💎"
+                        else -> "🔞"
+                    }
+                    Card(
                         onClick = { selectedCategory = category },
-                        label = { Text(category) },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = androidx.compose.ui.graphics.Color(0xFF9C145D),
-                            selectedLabelColor = androidx.compose.ui.graphics.Color.White
+                        modifier = Modifier.width(112.dp).height(88.dp),
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(15.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if(selectedCategory == category) androidx.compose.ui.graphics.Color(0xFF8E1458) else androidx.compose.ui.graphics.Color(0xFF1D1021)
                         )
-                    )
+                    ) {
+                        Column(Modifier.fillMaxSize().padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                            Text(symbol, style = MaterialTheme.typography.headlineSmall)
+                            Text(category, color = androidx.compose.ui.graphics.Color.White, style = MaterialTheme.typography.labelMedium, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                        }
+                    }
                 }
             }
             Text("Recomendados para vos", color = androidx.compose.ui.graphics.Color.White, style = MaterialTheme.typography.titleLarge)
@@ -443,7 +464,11 @@ fun AdultAccessScreen(
                             colors = CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color(0xFF180D1A)),
                             shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
                         ) {
-                            Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                if(!item.artworkUrl.isNullOrBlank()) {
+                                    AsyncImage(model=item.artworkUrl,contentDescription=item.title,contentScale=ContentScale.Crop,modifier=Modifier.width(104.dp).height(76.dp).background(androidx.compose.ui.graphics.Color(0xFF2A1428),androidx.compose.foundation.shape.RoundedCornerShape(10.dp)))
+                                    Spacer(Modifier.width(12.dp))
+                                }
                                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                     Text(item.title, color = androidx.compose.ui.graphics.Color.White, style = MaterialTheme.typography.titleMedium)
                                     Text(item.subtitle, color = androidx.compose.ui.graphics.Color(0xFFD4C4D0), style = MaterialTheme.typography.bodySmall)
