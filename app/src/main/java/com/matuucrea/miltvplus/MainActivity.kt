@@ -79,7 +79,7 @@ class MainActivity:ComponentActivity(){
     val context=LocalContext.current
     val exoPlayer = remember(context) { ExoPlayer.Builder(context).build() }
     DisposableEffect(exoPlayer) { onDispose { exoPlayer.release() } }
-    var tab by remember { mutableStateOf("Inicio") }; var query by remember { mutableStateOf("") }
+    var tab by remember { mutableStateOf("Inicio") }; var query by remember { mutableStateOf("") }; var updateNotice by remember { mutableStateOf<String?>(null) }
     val remoteRepository = remember { SupabaseCatalogRepository() }
     val authRepository = remember(context) { SupabaseAuthRepository(context) }
     val userRepository = remember { SupabaseUserRepository { authRepository.restoreSession() } }
@@ -93,6 +93,7 @@ class MainActivity:ComponentActivity(){
         authSession = if (callback != null) runCatching { authRepository.acceptCallback(callback) }.getOrNull() ?: authRepository.restoreSession()
             else authRepository.restoreSession()
         runCatching { AppUpdateRepository.checkForUpdate().getOrThrow() }.onSuccess { release ->
+            updateNotice = release?.versionName
             context.getSharedPreferences("miltvplus_preferences", 0).edit()
                 .putString("pending_update_version", release?.versionName)
                 .putString("pending_update_url", release?.releaseUrl)
@@ -162,6 +163,7 @@ class MainActivity:ComponentActivity(){
     }}){pad->Column(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF071638),bg,Color(0xFF100D20)))).padding(pad)){
         Row(Modifier.fillMaxWidth().padding(20.dp),verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Text("MILTVPLUS",color=Color.White,fontSize=25.sp,fontWeight=FontWeight.Black,letterSpacing=1.5.sp);Text("ENTRETENIMIENTO • V22.34.9",color=cyan,fontSize=10.sp)};Row(verticalAlignment=Alignment.CenterVertically) {
             Text(if(authSession==null) "● LOCAL" else "● CUENTA",color=cyan,fontSize=10.sp)
+            updateNotice?.let { version -> TextButton(onClick={tab="Ajustes"}) { Text("ACTUALIZAR $version",color=orange,fontSize=10.sp) } }
             IconButton(onClick={tab="Cuenta"}) { Icon(Icons.Default.AccountCircle,"Cuenta",tint=cyan) }
         }}
         when(tab){
