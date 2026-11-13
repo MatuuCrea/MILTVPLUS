@@ -2,21 +2,27 @@
   "country_code": "AR",
   "country_name": "Argentina",
   "status": "discovery_inventory_not_published",
-  "note": "Inventario de canales a investigar. No contiene streams ni logotipos porque cada activo debe obtenerse del titular y validarse antes de publicar.",
+  "note": "Inventario de descubrimiento. C5N ya está publicado sólo como enlace a su página oficial; Crónica TV tiene su URL oficial registrada pero permanece en revisión. Ninguno tiene stream integrado ni logo aprobado cargado.",
   "required_news_channels": [
     {
       "slug": "c5n",
       "name": "C5N",
       "category": "news",
       "priority": 1,
-      "required": true
+      "required": true,
+      "official_watch_url": "https://www.c5n.com/vivo",
+      "directory_status": "published_official_web",
+      "integrated_stream_status": "not_authorized_or_not_documented"
     },
     {
       "slug": "cronica-tv",
       "name": "Crónica TV",
       "category": "news",
       "priority": 2,
-      "required": true
+      "required": true,
+      "official_watch_url": "https://www.cronica.com.ar/cronica-en-vivo/",
+      "directory_status": "pending_manual_check",
+      "integrated_stream_status": "not_authorized_or_not_documented"
     },
     {
       "slug": "tn",
