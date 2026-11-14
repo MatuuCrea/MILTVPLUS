@@ -2,7 +2,7 @@
 
 **Compromiso del producto:** MILTVPLUS es 100 % gratuita, sin anuncios, suscripciones, compras ni monetización. Ver [Política de producto](docs/PRODUCT-POLICY.md).
 
-MILTVPLUS mantiene clientes nativos por plataforma: Android (teléfonos, Android TV/Google TV, TV Box Android y Fire TV sujeto a validación), Windows x64, Samsung Tizen (`platforms/tizen/`) y LG webOS (`platforms/webos/`). Los proyectos Tizen/webOS están en fase inicial y aún no tienen paquetes firmados ni QA físico. No se ofrece una PWA genérica.
+MILTVPLUS mantiene clientes nativos por plataforma: Android (teléfonos, Android TV/Google TV, TV Box Android y Fire TV con Fire OS (Vega OS excluido; sujeto a validación)), Windows x64, Samsung Tizen (`platforms/tizen/`) y LG webOS (`platforms/webos/`). Los proyectos Tizen/webOS están en fase inicial y aún no tienen paquetes firmados ni QA físico. No se ofrece una PWA genérica.
 
 Matriz de paquetes y estado real: [Clientes nativos Smart TV](docs/NATIVE-TV-CLIENTS.md).
 
