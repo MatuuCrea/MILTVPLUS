@@ -613,7 +613,7 @@ public partial class MainWindow : Window
         AdultGatePanel.Visibility = isAdult && !_adultUnlocked ? Visibility.Visible : Visibility.Collapsed;
         AdultPanel.Visibility = isAdult && _adultUnlocked ? Visibility.Visible : Visibility.Collapsed;
         VideoContainer.Visibility = isAdult || section == "Música" || section == "Configuración" ? Visibility.Collapsed : Visibility.Visible;
-        CatalogScroll.Visibility = section == "Configuración" || (isAdult && !_adultUnlocked) ? Visibility.Collapsed : Visibility.Visible;
+        CatalogScroll.Visibility = section == "Configuración" || isAdult ? Visibility.Collapsed : Visibility.Visible;
         Grid.SetRow(CatalogScroll, isAdult || section == "Música" ? 3 : 4);
         Grid.SetRowSpan(CatalogScroll, isAdult || section == "Música" ? 2 : 1);
         if (section == "Configuración")
@@ -622,6 +622,14 @@ public partial class MainWindow : Window
             CatalogScroll.ItemsSource = entries;
             PageTitle.Text = "Configuración";
             StatusText.Text = "Administrá actualizaciones, comportamiento de ventana y volumen de reproducción.";
+            return;
+        }
+        if (isAdult)
+        {
+            entries = [];
+            CatalogScroll.ItemsSource = entries;
+            PageTitle.Text = "Contenido Adulto";
+            StatusText.Text = "Catálogo +18 vacío y protegido. No se consultan ni se cargan URLs activas.";
             return;
         }
         if (isAdult && !_adultUnlocked)
