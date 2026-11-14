@@ -7,6 +7,7 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URI
+import java.io.ByteArrayOutputStream
 
 data class ResolvedMusic(
     val title: String,
@@ -41,9 +42,15 @@ class MusicResolverRepository(
                 val status = connection.responseCode
                 val stream = if (status in 200..299) connection.inputStream else connection.errorStream
                 val body = stream?.use { input ->
-                    val bytes = input.readNBytes(128 * 1024 + 1)
-                    require(bytes.size <= 128 * 1024) { "La respuesta del reproductor supera el límite permitido." }
-                    bytes.toString(Charsets.UTF_8)
+                    val output = ByteArrayOutputStream()
+                    val buffer = ByteArray(4096)
+                    while (true) {
+                        val count = input.read(buffer)
+                        if (count < 0) break
+                        require(output.size() + count <= 128 * 1024) { "La respuesta del reproductor supera el límite permitido." }
+                        output.write(buffer, 0, count)
+                    }
+                    output.toString(Charsets.UTF_8.name())
                 }.orEmpty()
                 val json = JSONObject(body)
                 check(status in 200..299 && json.optBoolean("success") &&
