@@ -204,7 +204,7 @@
      <Button Content="🔥&#x0a;Eróticos" Tag="Eróticos" Click="AdultCategory_Click" Background="#65152F" Margin="2"/>
      <Button Content="💞&#x0a;Parejas" Tag="Parejas" Click="AdultCategory_Click" Background="#511044" Margin="2"/>
      <Button Content="⭐&#x0a;Hot" Tag="Hot" Click="AdultCategory_Click" Background="#5C183C" Margin="2"/>
-     <Button Content="💎&#x0a;Premium" Tag="Premium" Click="AdultCategory_Click" Background="#102E70" Margin="2"/>
+     <Button Content="💎&#x0a;Destacados" Tag="Destacados" Click="AdultCategory_Click" Background="#102E70" Margin="2"/>
      <Button Content="🔞&#x0a;Solo Adultos" Tag="Solo Adultos" Click="AdultCategory_Click" Background="#68152A" Margin="2"/>
     </UniformGrid>
     <DockPanel Margin="2,3,2,5">
