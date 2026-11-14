@@ -471,7 +471,7 @@ class MainActivity:ComponentActivity(){
                         } else {
                             uiScope.launch {
                                 remoteError = null
-                                val playable = queue.filter { it.actionUrl != null && it.id.matches(Regex("(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")) }
+                                val playable = queue.asSequence().filter { it.actionUrl != null && it.id.matches(Regex("(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")) }.take(40).toList()
                                 val resolved = playable.mapNotNull { track ->
                                     musicResolver.resolve(track.id, countryCode).getOrNull()?.let { track to it }
                                 }
