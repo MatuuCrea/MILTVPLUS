@@ -246,7 +246,7 @@ private fun TmdbDetailPanel(
             OutlinedButton(onClick = onToggleFavorite) {
                 Icon(if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder, null)
                 Spacer(Modifier.width(6.dp))
-                Text(if (isFavorite) "Me gusta" else "Me gusta")
+                Text(if (isFavorite) "Quitar me gusta" else "Me gusta")
             }
             OutlinedButton(onClick = onShare) {
                 Icon(Icons.Default.Share, null)
