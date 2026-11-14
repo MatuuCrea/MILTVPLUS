@@ -4,7 +4,7 @@
 |---|---|---|---|
 | Android móvil | app/ Kotlin Compose | APK | CI compila; release y QA físico pendientes |
 | Android TV / Google TV / Android TV Box | app/ con Leanback | APK universal Android | CI compila; D-pad físico pendiente |
-| Fire TV / Fire OS | cliente Android compatible | APK Android | Compatibilidad por modelo y versión Fire OS pendiente |
+| Fire TV con Fire OS | cliente Android compatible y detección amazon.hardware.fire_tv | APK Android | QA por modelo pendiente; no depende de Google Play Services |
 | Windows 10/11 x64 | windows/ WPF .NET 8 | EXE Inno Setup | CI compila; Authenticode y QA físico pendientes |
 | Samsung Tizen TV | platforms/tizen/ | WGT firmado | Código nativo inicial integrado; SDK/certificado/QA pendientes |
 | LG webOS TV | platforms/webos/ | IPK firmado | Código nativo inicial integrado; SDK/certificado/QA pendientes |
