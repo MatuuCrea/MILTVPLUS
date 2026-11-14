@@ -91,20 +91,7 @@ fun PremiumSidebar(activeTab: String, onNavigate: (String) -> Unit) {
                 HorizontalDivider(color = Color(0xFF34283B))
                 Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                     entries.forEach { item ->
-                        val selected = activeTab == item.label ||
-                            (item.label == "TV en Vivo" && activeTab in setOf("Catálogo", "TV")) ||
-                            (item.label == "Configuración" && activeTab == "Ajustes") ||
-                            (item.label == "Adultos 18+" && activeTab == "Adultos")
-                        Row(
-                            Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
-                                .background(if (selected) Brush.horizontalGradient(listOf(Color(0xFF94104F), Color(0xFF42102F))) else Brush.horizontalGradient(listOf(Color.Transparent, Color.Transparent)))
-                                .clickable { onNavigate(item.label) }.padding(horizontal = 10.dp, vertical = 9.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(item.icon, item.label, tint = if (selected) Color(0xFFFF72B9) else Color(0xFFD6D0DE), modifier = Modifier.size(20.dp))
-                            Spacer(Modifier.width(10.dp))
-                            Text(item.label, color = Color.White, fontSize = 11.sp, fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium, maxLines = 1)
-                        }
+                        SidebarDestinationRow(item, activeTab, compact = false) { onNavigate(item.label) }
                     }
                     Row(
                         Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable { moreExpanded = !moreExpanded }.padding(horizontal = 10.dp, vertical = 9.dp),
@@ -157,19 +144,9 @@ fun PremiumSidebar(activeTab: String, onNavigate: (String) -> Unit) {
                         HorizontalDivider(color = Color(0xFF34283B))
                         Column(Modifier.weight(1f).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                             entries.forEach { item ->
-                                val selected = activeTab == item.label ||
-                                    (item.label == "TV en Vivo" && activeTab in setOf("Catálogo", "TV")) ||
-                                    (item.label == "Configuración" && activeTab == "Ajustes") ||
-                                    (item.label == "Adultos 18+" && activeTab == "Adultos")
-                                Row(
-                                    Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
-                                        .background(if (selected) Brush.horizontalGradient(listOf(Color(0xFF94104F), Color(0xFF42102F))) else Brush.horizontalGradient(listOf(Color.Transparent, Color.Transparent)))
-                                        .clickable { drawerOpen = false; onNavigate(item.label) }.padding(horizontal = 12.dp, vertical = 10.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Icon(item.icon, item.label, tint = if (selected) Color(0xFFFF72B9) else Color(0xFFD6D0DE), modifier = Modifier.size(20.dp))
-                                    Spacer(Modifier.width(11.dp))
-                                    Text(item.label, color = Color.White, fontSize = 12.sp)
+                                SidebarDestinationRow(item, activeTab, compact = true) {
+                                    drawerOpen = false
+                                    onNavigate(item.label)
                                 }
                             }
                             TextButton(onClick = { moreExpanded = !moreExpanded }, modifier = Modifier.fillMaxWidth()) {
@@ -192,6 +169,39 @@ fun PremiumSidebar(activeTab: String, onNavigate: (String) -> Unit) {
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun SidebarDestinationRow(
+    item: NavDestination,
+    activeTab: String,
+    compact: Boolean,
+    onClick: () -> Unit
+) {
+    val selected = activeTab == item.label ||
+        (item.label == "TV en Vivo" && activeTab in setOf("Catálogo", "TV")) ||
+        (item.label == "Configuración" && activeTab == "Ajustes") ||
+        (item.label == "Adultos 18+" && activeTab == "Adultos")
+    Row(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
+            .background(
+                if (selected) Brush.horizontalGradient(listOf(Color(0xFF94104F), Color(0xFF42102F)))
+                else Brush.horizontalGradient(listOf(Color.Transparent, Color.Transparent))
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = if (compact) 12.dp else 10.dp, vertical = if (compact) 10.dp else 9.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(item.icon, item.label, tint = if (selected) Color(0xFFFF72B9) else Color(0xFFD6D0DE), modifier = Modifier.size(20.dp))
+        Spacer(Modifier.width(if (compact) 11.dp else 10.dp))
+        Text(
+            item.label,
+            color = Color.White,
+            fontSize = if (compact) 12.sp else 11.sp,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+            maxLines = 1
+        )
     }
 }
 
