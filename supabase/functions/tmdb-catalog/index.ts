@@ -22,6 +22,35 @@ function json(body: unknown, status = 200, cacheControl = "no-store"): Response 
   });
 }
 
+async function readRequestLimited(request: Request): Promise<string> {
+  if (!request.body) return "";
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      if (!value) continue;
+      total += value.byteLength;
+      if (total > MAX_REQUEST_BYTES) {
+        await reader.cancel();
+        throw new RangeError("La solicitud supera el tamaño permitido.");
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const merged = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    merged.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder().decode(merged);
+}
+
 async function readLimited(response: Response): Promise<string> {
   if (!response.body) return "";
   const reader = response.body.getReader();
@@ -66,16 +95,14 @@ Deno.serve(async (request: Request) => {
 
   let input: RequestInput;
   try {
-    const raw = await request.text();
-    if (new TextEncoder().encode(raw).byteLength > MAX_REQUEST_BYTES) {
-      return json({ error: "La solicitud supera el tamaño permitido." }, 413);
-    }
+    const raw = await readRequestLimited(request);
     const parsed: unknown = JSON.parse(raw);
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
       return json({ error: "El cuerpo debe ser un objeto JSON." }, 400);
     }
     input = parsed as RequestInput;
-  } catch {
+  } catch (error) {
+    if (error instanceof RangeError) return json({ error: error.message }, 413);
     return json({ error: "JSON inválido." }, 400);
   }
 
