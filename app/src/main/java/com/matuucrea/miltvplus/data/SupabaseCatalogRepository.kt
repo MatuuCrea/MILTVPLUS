@@ -168,13 +168,14 @@ class SupabaseCatalogRepository {
 
     private fun parseRightsDate(value: String): Date? {
         if (value.isBlank() || value == "null") return null
-        val patterns = listOf("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", "yyyy-MM-dd'T'HH:mm:ssXXX", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'")
+        val normalized = value.replace(Regex("([+-]\\d{2}):(\\d{2})$"), "$1$2")
+        val patterns = listOf("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", "yyyy-MM-dd'T'HH:mm:ssXXX", "yyyy-MM-dd'T'HH:mm:ss.SSSZ", "yyyy-MM-dd'T'HH:mm:ssZ", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'")
         for (pattern in patterns) {
             val parser = SimpleDateFormat(pattern, Locale.US).apply {
                 isLenient = false
                 timeZone = TimeZone.getTimeZone("UTC")
             }
-            val parsed = runCatching { parser.parse(value) }.getOrNull()
+            val parsed = runCatching { parser.parse(normalized) }.getOrNull()
             if (parsed != null) return parsed
         }
         return null
