@@ -9,7 +9,7 @@ require(appVersionParts.size in 2..3) { "appVersionName debe tener dos o tres co
 val appVersionCode = appVersionParts[0] * 100000 + (appVersionParts.getOrElse(1) { 0 }) * 100 + appVersionParts.getOrElse(2) { 0 }
 val mediaResolverUrl = providers.gradleProperty("mediaResolverUrl")
     .orElse(providers.environmentVariable("MILTVPLUS_RESOLVER_URL"))
-    .orElse("")
+    .orElse("https://miltvplus-media-resolver.onrender.com")
     .get().trim().trimEnd('/')
 
 android {
