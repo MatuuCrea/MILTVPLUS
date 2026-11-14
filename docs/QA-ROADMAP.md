@@ -56,3 +56,13 @@
 4. Completar grilla EPG y pantallas dedicadas de temporadas/episodios con datos reales.
 5. Mantener TMDB desactivado para uso público hasta completar atribución oficial y confirmar términos aplicables.
 6. Incorporar streams directos únicamente con derechos verificables por territorio y vigencia; el catálogo actual no autoriza inventar ni inferir URLs.
+
+
+## Backend Node.js de resolución autorizada — 14/11/2026
+
+- Se añadió `backend/resolver`: servicio Express/Node 22 con lectura de catálogo por Supabase REST/RLS, filtros por país/categoría, resolución HLS/DASH condicionada a derechos regionales y fechas activas, y fallback a páginas oficiales.
+- YouTube Live nunca se extrae a un stream crudo: se devuelve la página oficial. No se elimina publicidad ni se evita DRM, geobloqueo o suscripciones.
+- Pruebas automatizadas cubren derechos vencidos/no regionales, URLs HTTPS y rutas de API; CI dedicada comprueba sintaxis y ejecuta Node tests.
+- La migración `20261114120000_adult_catalog_access_gate.sql` añade `is_adult_content` y una política RLS separada para contenido +18. El endpoint exige sesión y consentimiento 18+; es autodeclaración, no verificación formal de edad.
+- **Pendiente antes de producción:** aplicar la migración con revisión, desplegar el contenedor, configurar variables públicas/secretas de entorno, conectar la URL del servicio en clientes Android/Windows y probar con fuentes licenciadas reales. El código aún no está desplegado ni integrado en las apps.
+- No se agregan fuentes de relleno, extractor de terceros, Ads/Billing, monetización ni service-role key.
