@@ -135,7 +135,7 @@ export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()
       b.addEventListener("click",()=>{selectedCountry=code;localStorage.setItem("miltvplus.country",code);countries.querySelector(".country-identity").textContent=name+" - "+phrase+" "+flag;renderCountries();onCountryChange(code);});
       list.append(b);
     });
-    const item=COUNTRIES.find(x=>x[0]===selectedCountry)||COUNTRIES[0];countries.querySelector(".country-identity").textContent=item[2]+" · "+item[3]+" "+item[1];
+    const item=COUNTRIES.find(x=>x[0]===selectedCountry)||COUNTRIES[0];countries.querySelector(".country-identity").textContent=item[2]+" - "+item[3]+" "+item[1];
   }
   countries.querySelector(".country-search").addEventListener("input",e=>{const q=e.target.value.toLowerCase();countries.querySelectorAll(".country-option").forEach(b=>b.hidden=!b.textContent.toLowerCase().includes(q))});
   function renderSettings(){
