@@ -61,6 +61,7 @@ export function mountMusicExperience({ statusElement } = {}) {
     if (statusElement) statusElement.textContent = message;
   };
   const showSection = music => {
+    if (!music) stopPlayback();
     channelGrid.hidden = music;
     if (emptyState) emptyState.hidden = music || channelGrid.childElementCount > 0;
     main.querySelector("h1").textContent = music ? "Música" : "Televisión en vivo";
@@ -163,7 +164,7 @@ export function mountMusicExperience({ statusElement } = {}) {
       $("music-artist").textContent = [body.creator || item.creator, body.album || item.album].filter(Boolean).join(" · ");
       if (avplay) {
         avplay.open(body.streamUrl);
-        avplay.setListener({ onerror: error => setStatus("AVPlay no pudo reproducir este audio: " + String(error)) });
+        avplay.setListener({ onstreamcompleted: () => advance(1), onerror: error => setStatus("AVPlay no pudo reproducir este audio: " + String(error)) });
         avplay.prepareAsync(() => {
           try { avplay.play(); $("music-toggle").textContent = "Pausar"; setStatus("Reproduciendo en el motor multimedia del televisor."); }
           catch (error) { setStatus("No se pudo iniciar AVPlay: " + error.message); }
