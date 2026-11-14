@@ -10,6 +10,10 @@ import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URL
 import java.net.URLEncoder
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 /**
  * Read-only Supabase REST client. RLS remains the authorization boundary:
@@ -119,7 +123,7 @@ class SupabaseCatalogRepository {
             row.optString("playback_type").equals("youtube_live", ignoreCase = true)
         // YouTube Live pages must use the broadcaster's official web player, not ExoPlayer/Media3.
         // Keep their URL in infoUrl so the app opens it in the immersive official-player view.
-        val action = if (youtubeLive) null else listOf("stream_url", "authorized_stream_url")
+        val action = if (youtubeLive || !hasActivePlaybackRights(row, table)) null else listOf("stream_url", "authorized_stream_url")
             .firstNotNullOfOrNull { key -> row.optString(key).takeIf(::isSafeHttpsUrl) }
         val infoUrlKeys = if (youtubeLive) {
             listOf("stream_url", "official_watch_url", "official_info_url", "info_url", "website_url", "external_url")
@@ -141,6 +145,39 @@ class SupabaseCatalogRepository {
             ageRating = row.optString("age_rating").takeIf { it.isNotBlank() && it != "null" },
             infoUrl = infoUrlKeys.firstNotNullOfOrNull { key -> row.optString(key).takeIf(::isSafeHttpsUrl) }
         )
+    }
+
+    private fun hasActivePlaybackRights(row: JSONObject, table: String): Boolean {
+        if (!row.optBoolean("rights_verified", false)) return false
+        if (row.optString("rights_holder").isBlank() || row.optString("rights_reference").isBlank()) return false
+        if (table == "tv_channels" && !row.optString("source_status").equals("online", ignoreCase = true)) return false
+        val region = Locale.getDefault().country.uppercase(Locale.ROOT)
+        if (region.isBlank()) return false
+        val regions = row.optJSONArray("rights_regions") ?: return false
+        var regionAllowed = false
+        for (index in 0 until regions.length()) {
+            val allowed = regions.optString(index).uppercase(Locale.ROOT)
+            if (allowed == region || allowed == "001" || allowed == "*") regionAllowed = true
+        }
+        if (!regionAllowed) return false
+        val from = parseRightsDate(row.optString("rights_valid_from")) ?: return false
+        val until = row.optString("rights_valid_until").takeIf { it.isNotBlank() && it != "null" }?.let(::parseRightsDate)
+        val now = System.currentTimeMillis()
+        return from.time <= now && (until == null || until.time > now)
+    }
+
+    private fun parseRightsDate(value: String): Date? {
+        if (value.isBlank() || value == "null") return null
+        val patterns = listOf("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", "yyyy-MM-dd'T'HH:mm:ssXXX", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'")
+        for (pattern in patterns) {
+            val parser = SimpleDateFormat(pattern, Locale.US).apply {
+                isLenient = false
+                timeZone = TimeZone.getTimeZone("UTC")
+            }
+            val parsed = runCatching { parser.parse(value) }.getOrNull()
+            if (parsed != null) return parsed
+        }
+        return null
     }
 
     private fun readLimited(input: java.io.InputStream, maxBytes: Int): String {
