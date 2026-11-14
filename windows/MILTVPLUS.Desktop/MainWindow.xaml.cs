@@ -109,8 +109,6 @@ public partial class MainWindow : Window
             MusicVolume = Math.Clamp((int)DesktopVolumeSlider.Value, 0, 100),
             FavoriteKeys = _desktopSettings.FavoriteKeys
         };
-        Directory.CreateDirectory(Path.GetDirectoryName(DesktopSettingsPath)!);
-        File.WriteAllText(DesktopSettingsPath, JsonSerializer.Serialize(_desktopSettings, new JsonSerializerOptions { WriteIndented = true }));
         Topmost = _desktopSettings.AlwaysOnTop;
         _mediaPlayer.Volume = _desktopSettings.MusicVolume;
         PersistDesktopSettings();
