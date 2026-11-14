@@ -100,3 +100,15 @@ La televisión digital abierta terrestre puede ser gratuita mediante antena, per
 - **Stream integrado:** sólo con endpoint técnico y autorización expresa de distribución para MILTVPLUS.
 
 Ninguna de las fichas nuevas se considera «en vivo» hasta probar el reproductor en el dispositivo y territorio correspondientes. Ninguna queda habilitada para retransmisión integrada sin referencia documental de derechos vigente.
+
+
+### Corte de la base productiva verificado el 14/11/2026
+
+Consulta de sólo lectura a `public.tv_channels` en el proyecto conectado:
+- 48 fichas en total, 46 publicadas y 2 sin publicar.
+- Argentina: 10 fichas, 9 publicadas, 9 con `source_status='online'` y 1 pendiente de revisión (Diputados TV).
+- Argentina tiene 1 ficha parlamentaria clasificada `public` (Senado TV). Televisión Pública figura actualmente en `general`, por lo que la clasificación del catálogo necesita revisión versionada antes de alterarla.
+- **0 streams directos configurados** y **0 derechos de redistribución verificados** en las fichas consultadas.
+- `source_status='online'` sólo significa que el chequeo de página respondió; no confirma que haya vídeo en vivo ni que el player funcione en teléfono/TV.
+
+Las señales Encuentro, Pakapaka y DeporTV ya están identificadas por CAISAU en el inventario de auditoría, pero todavía no están incorporadas a la base productiva. Sus sitios requieren prueba individual del reproductor; la página oficial de DeporTV respondió y mostró contenido editorial, lo que no acredita una emisión en directo permanente.
