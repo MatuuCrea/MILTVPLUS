@@ -71,3 +71,10 @@ footer{grid-column:1/-1;grid-row:3;position:static;height:48px;padding:14px 24px
 .player-actions button:disabled{opacity:.45;cursor:not-allowed}
 .light-mode main,.light-mode .official-sidebar{filter:brightness(1.18)}
 .settings-help{color:#aab6ce;font-size:13px;line-height:1.5}
+
+
+.epg-days{display:grid;grid-template-columns:repeat(7,minmax(90px,1fr));min-width:980px}
+.epg-times{display:grid;grid-template-columns:repeat(5,1fr);min-width:980px;margin:8px 0 4px;padding-left:180px;color:#8db8e7;font-size:12px}
+.epg-row{grid-template-columns:180px minmax(980px,1fr);overflow:hidden}
+.epg-timeline{display:flex;gap:6px;min-width:0;overflow-x:auto;padding:3px 0}
+.epg-program{flex:1 1 150px;min-width:130px;min-height:68px;white-space:pre-line;line-height:1.4;overflow:hidden;text-overflow:ellipsis}
