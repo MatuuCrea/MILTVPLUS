@@ -49,7 +49,7 @@ class SmartTvClientTests(unittest.TestCase):
         self.assertNotIn("launchAppControl", tizen)
         self.assertNotIn('target="_blank"', webos)
         self.assertIn("no abrirá aplicaciones ni navegadores externos", tizen)
-        self.assertIn("no abrirá navegadores externos", webos)
+        self.assertIn("no abrirá aplicaciones ni navegadores externos", webos)
 
     def test_tv_navigation_and_free_policy_are_visible(self):
         for path in ("platforms/tizen/index.html", "platforms/webos/index.html"):
