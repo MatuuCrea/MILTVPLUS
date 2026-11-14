@@ -87,6 +87,7 @@ export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()
     if(!showTv) optimizer.destruirLista(channels);
     top.hidden=!showTv&&!isMusic;
     tvCats.hidden=!(label==="TV en Vivo"||label==="Deportes"||label==="Infantil"||label==="Documentales");
+    main.classList.toggle("tv-with-categories",showTv&&!tvCats.hidden);
     if(showTv){main.querySelector("h1").textContent=label;filterChannels()}
     main.querySelector("p")?.toggleAttribute("hidden",!showTv);
     sidebar.querySelectorAll("[data-section]").forEach(b=>b.classList.toggle("active",b.dataset.section===label));
