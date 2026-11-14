@@ -7,6 +7,10 @@ val appVersionName = providers.gradleProperty("appVersionName").orElse("22.34.10
 val appVersionParts = appVersionName.split(".").map { it.toIntOrNull() ?: error("appVersionName debe ser numérico, por ejemplo 22.34.10") }
 require(appVersionParts.size in 2..3) { "appVersionName debe tener dos o tres componentes numéricos" }
 val appVersionCode = appVersionParts[0] * 100000 + (appVersionParts.getOrElse(1) { 0 }) * 100 + appVersionParts.getOrElse(2) { 0 }
+val mediaResolverUrl = providers.gradleProperty("mediaResolverUrl")
+    .orElse(providers.environmentVariable("MILTVPLUS_RESOLVER_URL"))
+    .orElse("")
+    .get().trim().trimEnd('/')
 
 android {
     namespace = "com.matuucrea.miltvplus"
@@ -20,6 +24,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "SUPABASE_URL", "\"https://rbnuxapfsnaabrzuxvdy.supabase.co\"")
         buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", "\"sb_publishable_tmBU-IB7P0db0w7RG9TMEw_GD754hb7\"")
+        buildConfigField("String", "MEDIA_RESOLVER_URL", "\"$mediaResolverUrl\"")
     }
     // Release signing is supplied only by protected CI secrets, never committed to source.
     signingConfigs {
