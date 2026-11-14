@@ -22,6 +22,7 @@ public partial class MainWindow : Window
     private const string Api = "https://rbnuxapfsnaabrzuxvdy.supabase.co/rest/v1/";
     private const string PublicKey = "sb_publishable_tmBU-IB7P0db0w7RG9TMEw_GD754hb7";
     private static readonly HttpClient Client = new() { Timeout = TimeSpan.FromSeconds(20) };
+    private static readonly HttpClient ResolverClient = new() { Timeout = TimeSpan.FromSeconds(90) };
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
     private readonly LibVLC _libVlc;
     private readonly MediaPlayer _mediaPlayer;
@@ -282,7 +283,7 @@ public partial class MainWindow : Window
         var country = item.CountryCode;
         if (string.IsNullOrWhiteSpace(country) || !System.Text.RegularExpressions.Regex.IsMatch(country, "^[A-Z]{2}$"))
             country = RegionInfo.CurrentRegion.TwoLetterISORegionName;
-        using var response = await Client.GetAsync($"{resolver}/api/v2/resolve/musica/{country}/{Uri.EscapeDataString(item.Id)}");
+        using var response = await ResolverClient.GetAsync($"{resolver}/api/v2/resolve/musica/{country}/{Uri.EscapeDataString(item.Id)}");
         using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         var root = document.RootElement;
         if (!response.IsSuccessStatusCode || !root.TryGetProperty("success", out var success) || !success.GetBoolean() ||
