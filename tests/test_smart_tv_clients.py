@@ -102,7 +102,7 @@ class SmartTvClientTests(unittest.TestCase):
             self.assertIn(field, windows)
         self.assertIn("hasActivePlaybackRights(row, table)", android)
         self.assertIn("Locale.getDefault().country", android)
-        self.assertIn("entry.HasActivePlaybackRights", windows)
+        self.assertIn("item.HasActivePlaybackRights", windows)
         self.assertIn("entry.HasActivePlaybackRights", playback)
         self.assertIn("IsUserProvidedSource = true", windows)
         self.assertIn("until == null) null else parseRightsDate(untilRaw) ?: return false", android)
