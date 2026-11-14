@@ -56,6 +56,7 @@ export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()
   home.querySelector("[data-go]").addEventListener("click",()=>show("TV en Vivo"));
   const playerHead=document.querySelector(".player-head");
   if(playerHead){
+    const liveBadge=node("span","live-badge","● VIVO");playerHead.prepend(liveBadge);
     const actions=node("div","player-actions");
     const epgButton=node("button","","▦ EPG");epgButton.addEventListener("click",()=>{$("close-player")?.click();show("Guía EPG")});
     const favoriteButton=node("button","","♡ Favorito");favoriteButton.addEventListener("click",()=>{const item=getSelectedChannel();if(!item?.id)return;const ids=new Set(JSON.parse(localStorage.getItem("miltvplus.favorites")||"[]"));if(ids.has(item.id)){ids.delete(item.id);favoriteButton.textContent="♡ Favorito"}else{ids.add(item.id);favoriteButton.textContent="♥ Favorito"}localStorage.setItem("miltvplus.favorites",JSON.stringify([...ids]))});
