@@ -6,9 +6,9 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>MILTVPLUS</AssemblyName>
-    <Version>22.34.9</Version>
-    <AssemblyVersion>22.34.9.0</AssemblyVersion>
-    <FileVersion>22.34.9.0</FileVersion>
+    <Version>22.34.10</Version>
+    <AssemblyVersion>22.34.10.0</AssemblyVersion>
+    <FileVersion>22.34.10.0</FileVersion>
     <ApplicationIcon>miltvplus.ico</ApplicationIcon>
     <RootNamespace>MILTVPLUS.Desktop</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
