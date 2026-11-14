@@ -52,6 +52,7 @@ import com.matuucrea.miltvplus.ui.PremiumHomeDashboard
 import com.matuucrea.miltvplus.ui.PremiumSidebar
 import com.matuucrea.miltvplus.ui.PremiumAppTopBar
 import com.matuucrea.miltvplus.ui.MusicExperience
+import com.matuucrea.miltvplus.ui.TmdbCatalogScreen
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import android.content.Intent
@@ -213,8 +214,8 @@ class MainActivity:ComponentActivity(){
         when (destination) {
             "Inicio" -> { remoteCategory = "tv_channels"; remoteKindFilter = null; tab = "Inicio" }
             "TV en Vivo" -> { remoteCategory = "tv_channels"; remoteKindFilter = null; tab = "Catálogo" }
-            "Películas" -> { remoteCategory = "catalog_items"; remoteKindFilter = "movie"; tab = "Catálogo" }
-            "Series" -> { remoteCategory = "catalog_items"; remoteKindFilter = "series"; tab = "Catálogo" }
+            "Películas" -> { remoteKindFilter = null; tab = "Películas" }
+            "Series" -> { remoteKindFilter = null; tab = "Series" }
             "Deportes" -> { remoteCategory = "sports_events"; remoteKindFilter = null; tab = "Catálogo" }
             "Infantil" -> { remoteCategory = "catalog_items"; remoteKindFilter = "kids"; tab = "Catálogo" }
             "Documentales" -> { remoteCategory = "catalog_items"; remoteKindFilter = "documentary"; tab = "Catálogo" }
@@ -254,6 +255,8 @@ class MainActivity:ComponentActivity(){
 
         updateNotice?.let { version -> TextButton(onClick={tab="Ajustes"}) { Text("ACTUALIZACIÓN DISPONIBLE · $version",color=orange,fontSize=10.sp) } }
         when(tab){
+            "Películas" -> TmdbCatalogScreen(isSeries=false, auth=authRepository, onBack={ tab="Inicio" })
+            "Series" -> TmdbCatalogScreen(isSeries=true, auth=authRepository, onBack={ tab="Inicio" })
             "Inicio"->{
                 val countryItems=remoteItems.filter { it.countryCode==countryCode }
                 // Count only direct HTTPS streams, not metadata-only channel listings.
