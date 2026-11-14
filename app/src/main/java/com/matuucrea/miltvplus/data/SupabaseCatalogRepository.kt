@@ -169,7 +169,8 @@ class SupabaseCatalogRepository {
 
     private fun parseRightsDate(value: String): Date? {
         if (value.isBlank() || value == "null") return null
-        val normalized = Regex("([+-][0-9]{2}):([0-9]{2})").replace(value) { match -> match.groupValues[1] + match.groupValues[2] }
+        val normalizedOffset = Regex("([+-][0-9]{2}):([0-9]{2})").replace(value) { match -> match.groupValues[1] + match.groupValues[2] }
+        val normalized = Regex("\\.([0-9]{3})[0-9]+").replace(normalizedOffset) { match -> "." + match.groupValues[1] }
         val patterns = listOf("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", "yyyy-MM-dd'T'HH:mm:ssXXX", "yyyy-MM-dd'T'HH:mm:ss.SSSZ", "yyyy-MM-dd'T'HH:mm:ssZ", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'")
         for (pattern in patterns) {
             val parser = SimpleDateFormat(pattern, Locale.US).apply {
