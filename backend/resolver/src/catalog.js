@@ -5,6 +5,12 @@ const TV_FIELDS = [
   "rights_regions", "rights_valid_from", "rights_valid_until", "is_published"
 ].join(",");
 
+const SPORTS_FIELDS = [
+  "id", "title", "description", "country_code", "sport", "competition", "starts_at", "ends_at",
+  "poster_url", "official_info_url", "stream_url", "rights_verified", "rights_holder",
+  "rights_reference", "rights_regions", "rights_valid_from", "rights_valid_until", "is_published"
+].join(",");
+
 const MUSIC_FIELDS = [
   "id", "title", "creator", "description", "country_code", "item_type", "album", "genre",
   "release_year", "external_url", "artwork_url", "stream_url", "rights_verified",
@@ -72,7 +78,7 @@ export class SupabaseCatalog {
   }
 
   async list({ category, country, accessToken }) {
-    const query = new URLSearchParams({ select: category === "tv_en_vivo" ? TV_FIELDS : category === "musica" ? MUSIC_FIELDS : MEDIA_FIELDS, is_published: "eq.true", order: "title.asc", limit: "500" });
+    const query = new URLSearchParams({ select: category === "tv_en_vivo" ? TV_FIELDS : category === "deportes" ? SPORTS_FIELDS : category === "musica" ? MUSIC_FIELDS : MEDIA_FIELDS, is_published: "eq.true", order: "title.asc", limit: "500" });
     if (country !== "ALL") query.set("country_code", "eq." + country);
 
     if (category === "tv_en_vivo") {
