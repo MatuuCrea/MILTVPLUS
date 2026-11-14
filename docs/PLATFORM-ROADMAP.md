@@ -119,3 +119,6 @@ Este documento reúne el orden de trabajo y los criterios de salida. Una tarea s
 ## Regla de cierre
 
 Cada elemento se marca como **completo** sólo con: commit identificable, CI verde en ese SHA cuando aplique, prueba funcional registrada, limitaciones documentadas y autorización de contenido comprobable. Si falta hardware, licencia, certificado o acceso de tienda, queda explícitamente bloqueado; no se simula ni se declara terminado.
+## Compilación de instaladores de prueba
+
+Rama aislada para generar artefactos de instalación MILTVPLUS con nombres finales limpios. Esta compilación no publica una versión ni crea un lanzamiento público.
