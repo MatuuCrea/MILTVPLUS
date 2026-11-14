@@ -17,7 +17,7 @@ const COUNTRIES = [
 const $ = id => document.getElementById(id);
 const node = (tag, cls, text) => { const el=document.createElement(tag); if(cls)el.className=cls; if(text!==undefined)el.textContent=text; return el; };
 
-export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()=>[], getChannels=()=>[], getCountryCounts=async()=>({}) }={}) {
+export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()=>[], getChannels=()=>[], getSelectedChannel=()=>null, getCountryCounts=async()=>({}) }={}) {
   const main=$("main") || document.querySelector("main");
   const channels=$("channels"), empty=$("empty"), header=document.querySelector("header");
   if(!main||!channels||!header||$("official-sidebar")) return ()=>{};
@@ -52,6 +52,15 @@ export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()
   const epg=node("section","official-page epg-page");epg.hidden=true;epg.innerHTML='<h2>▦ Guía de Programación (EPG)</h2><div class="epg-days"></div><div class="epg-grid"></div><div class="epg-actions"><button data-action="record" disabled title="La grabación requiere soporte de captura del dispositivo y una fuente autorizada">● Grabar</button><button data-action="remind">◉ Recordatorio</button><button data-action="next24">+24 h</button><button data-action="info">Info</button></div><p class="epg-status" role="status"></p>';
   main.append(home,adult,countries,settings,epg);
   home.querySelector("[data-go]").addEventListener("click",()=>show("TV en Vivo"));
+  const playerHead=document.querySelector(".player-head");
+  if(playerHead){
+    const actions=node("div","player-actions");
+    const epgButton=node("button","","▦ EPG");epgButton.addEventListener("click",()=>{$("close-player")?.click();show("Guía EPG")});
+    const favoriteButton=node("button","","♡ Favorito");favoriteButton.addEventListener("click",()=>{const item=getSelectedChannel();if(!item?.id)return;const ids=new Set(JSON.parse(localStorage.getItem("miltvplus.favorites")||"[]"));if(ids.has(item.id)){ids.delete(item.id);favoriteButton.textContent="♡ Favorito"}else{ids.add(item.id);favoriteButton.textContent="♥ Favorito"}localStorage.setItem("miltvplus.favorites",JSON.stringify([...ids]))});
+    const recordButton=node("button","","● Grabar");recordButton.disabled=true;recordButton.title="La grabación requiere hardware de captura y permisos de la fuente.";
+    const moreButton=node("button","","••• Más");moreButton.addEventListener("click",()=>{const item=getSelectedChannel();$("player-message").textContent=item?.description||"No hay más información publicada para este canal."});
+    actions.append(epgButton,favoriteButton,recordButton,moreButton);playerHead.append(actions);
+  }
 
   function show(label){
     active=label;
