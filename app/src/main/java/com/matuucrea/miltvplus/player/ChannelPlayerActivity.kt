@@ -44,12 +44,14 @@ class ChannelPlayerActivity : Activity() {
     private val refreshScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var player: ExoPlayer? = null
     private var retryCount = 0
+    private var activeChannelIds = ArrayList<String>()
     private lateinit var title: TextView
     private lateinit var previous: Button
     private lateinit var next: Button
     private val retryRunnable = Runnable {
         player?.let {
-            if (it.playbackState == Player.STATE_IDLE || it.playbackState == Player.STATE_BUFFERING) {
+            // Retry only an errored/idle item. STATE_ENDED is not a network failure.
+            if (it.currentMediaItem != null && it.playbackState == Player.STATE_IDLE) {
                 it.prepare()
                 it.playWhenReady = true
             }
@@ -78,9 +80,13 @@ class ChannelPlayerActivity : Activity() {
                 cleanUrl.endsWith(".mpd", true) -> MimeTypes.APPLICATION_MPD
                 else -> null
             }
-            val media = MediaItem.Builder().setUri(url).apply { if (mime != null) setMimeType(mime) }.build()
+            // Stable IDs let the periodic catalog refresh keep the currently playing channel.
+            val channelId = row.optString("id").ifBlank { "channel_$i" }
+            val media = MediaItem.Builder().setMediaId(channelId).setUri(url)
+                .apply { if (mime != null) setMimeType(mime) }.build()
             items.add(media)
             activeUrls.add(url)
+            activeChannelIds.add(row.optString("id").ifBlank { "channel_$i" })
             names.add(row.optString("name", "Canal"))
         }
         if (items.isEmpty()) { finish(); return }
@@ -118,11 +124,18 @@ class ChannelPlayerActivity : Activity() {
                 next.isEnabled = exo.hasNextMediaItem()
             }
             override fun onPlayerError(error: PlaybackException) {
-                if (retryCount >= 3) { title.text = "No se pudo reproducir · " + names.getOrElse(exo.currentMediaItemIndex) { "Canal" }; return }
                 retryCount++
-                title.text = "Reconectando (" + retryCount + "/3)…"
+                val waitMs = (1_000L shl (retryCount - 1).coerceAtMost(5)).coerceAtMost(30_000L)
+                title.text = "Señal interrumpida · reintentando en " + (waitMs / 1_000) + "s"
                 handler.removeCallbacks(retryRunnable)
-                handler.postDelayed(retryRunnable, 1_000L * retryCount)
+                handler.postDelayed(retryRunnable, waitMs)
+            }
+
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                if (playbackState == Player.STATE_READY) {
+                    retryCount = 0
+                    title.text = names.getOrElse(exo.currentMediaItemIndex) { "MILTVPLUS" }
+                }
             }
         })
         previous.setOnClickListener { if (exo.hasPreviousMediaItem()) exo.seekToPreviousMediaItem() }
@@ -141,36 +154,50 @@ class ChannelPlayerActivity : Activity() {
                 while (isActive) {
                     delay(60_000)
                     val refreshed = repository.fetchPublished("tv_channels", null).getOrNull() ?: continue
+                    // Never add an unvalidated URL during refresh: initial load and refresh
+                    // must enforce the same HTTPS-only policy.
                     val eligible = refreshed.filter { entry ->
-                        entry.actionUrl != null &&
+                        val stream = entry.actionUrl
+                        stream != null && isSafeHttps(stream) &&
                             (selectedCountry == null || entry.countryCode == selectedCountry) &&
                             (selectedCategory.isBlank() || entry.category == selectedCategory)
                     }
                     val urls = eligible.mapNotNull { it.actionUrl }
+                    val ids = eligible.map { it.id }
                     if (urls.isEmpty()) continue
-                    if (urls == activeUrls) {
+                    if (urls == activeUrls && ids == activeChannelIds) {
                         names.clear()
                         names.addAll(eligible.map { it.title })
                         title.text = names.getOrElse(exo.currentMediaItemIndex) { "MILTVPLUS" }
                         continue
                     }
-                    val currentUrl = exo.currentMediaItem?.localConfiguration?.uri?.toString()
+                    val currentItem = exo.currentMediaItem
+                    val currentId = currentItem?.mediaId
                     val currentPosition = exo.currentPosition
-                    val newItems = urls.map { streamUrl ->
+                    val currentUrl = currentItem?.localConfiguration?.uri?.toString()
+                    val newItems = eligible.map { entry ->
+                        val streamUrl = entry.actionUrl!!
                         val clean = streamUrl.substringBefore("?")
                         val mime = when {
                             clean.endsWith(".m3u8", true) -> MimeTypes.APPLICATION_M3U8
                             clean.endsWith(".mpd", true) -> MimeTypes.APPLICATION_MPD
                             else -> null
                         }
-                        MediaItem.Builder().setUri(streamUrl).apply { if (mime != null) setMimeType(mime) }.build()
+                        MediaItem.Builder().setMediaId(entry.id).setUri(streamUrl)
+                            .apply { if (mime != null) setMimeType(mime) }.build()
                     }
                     names.clear()
                     names.addAll(eligible.map { it.title })
                     activeUrls.clear()
                     activeUrls.addAll(urls)
-                    val newIndex = currentUrl?.let { urls.indexOf(it) } ?: -1
-                    exo.setMediaItems(newItems, newIndex.coerceAtLeast(0), if (newIndex >= 0) currentPosition else 0L)
+                    activeChannelIds.clear()
+                    activeChannelIds.addAll(ids)
+                    val newIndex = currentId?.let { ids.indexOf(it) }?.takeIf { it >= 0 } ?: 0
+                    val refreshedCurrentUrl = urls.getOrNull(newIndex)
+                    // Keep the live position when the same stream URL remains. If its URL
+                    // changed, restart that channel at its live edge instead of seeking stale time.
+                    val resumePosition = if (currentUrl == refreshedCurrentUrl) currentPosition else 0L
+                    exo.setMediaItems(newItems, newIndex, resumePosition)
                     exo.prepare()
                     exo.playWhenReady = true
                 }

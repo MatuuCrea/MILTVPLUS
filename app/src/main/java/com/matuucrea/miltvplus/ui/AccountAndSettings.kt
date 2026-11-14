@@ -2,8 +2,17 @@ package com.matuucrea.miltvplus.ui
 
 import android.content.Context
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -12,6 +21,8 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -285,6 +296,8 @@ fun AdultAccessScreen(
     onPlay: (RemoteCatalogEntry) -> Unit
 ) {
     val context = LocalContext.current
+    val screenScrollState = rememberScrollState()
+    val screenScope = rememberCoroutineScope()
     val store = remember { ParentalAccessStore(context) }
     val catalog = remember { SupabaseCatalogRepository() }
     var ageConfirmed by remember { mutableStateOf(store.ageConfirmed) }
@@ -294,6 +307,9 @@ fun AdultAccessScreen(
     var adultItems by remember { mutableStateOf<List<RemoteCatalogEntry>>(emptyList()) }
     var loading by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
+    var selectedAdultCategory by remember { mutableStateOf("Todos") }
+    var unavailableCategory by remember { mutableStateOf<String?>(null) }
+    val adultCategories = listOf("Todos", "Romance", "Eróticos", "Parejas", "Hot", "Premium", "Solo Adultos")
 
     LaunchedEffect(ageConfirmed, isSignedIn) {
         if (ageConfirmed && isSignedIn) {
@@ -301,26 +317,201 @@ fun AdultAccessScreen(
                 .onFailure { message = "La confirmación local está guardada; no se pudo sincronizar: ${it.message}" }
         }
     }
-    LaunchedEffect(unlocked, countryCode) {
+    var catalogRefresh by remember { mutableIntStateOf(0) }
+    LaunchedEffect(unlocked, countryCode, catalogRefresh) {
         if (unlocked) {
-            loading = true
-            catalog.fetchPublished("catalog_items", countryCode)
-                .onSuccess { rows ->
-                    adultItems = rows.filter {
-                        val rating = it.ageRating?.trim()?.uppercase().orEmpty()
-                        rating.contains("18") || rating in setOf("NC-17","R18","TV-MA","MA","AO","ADULT","ADULTS ONLY")
+            var firstLoad = true
+            while (true) {
+                // Keep existing cards visible during background refreshes; show the spinner
+                // only on the first load or when the catalog is currently empty.
+                if (firstLoad || adultItems.isEmpty()) loading = true
+                catalog.fetchPublished("catalog_items", countryCode)
+                    .onSuccess { rows ->
+                        adultItems = rows.filter {
+                            val rating = it.ageRating?.trim()?.uppercase().orEmpty()
+                            rating.contains("18") || rating in setOf("NC-17","R18","TV-MA","MA","AO","ADULT","ADULTS ONLY")
+                        }
+                        message = null
                     }
-                }
-                .onFailure { message = "No se pudo cargar el catálogo +18: ${it.message}" }
+                    .onFailure { message = "No se pudo actualizar el catálogo +18. Se conserva el contenido anterior si estaba disponible: ${it.message}" }
+                loading = false
+                firstLoad = false
+                // Refresh every five minutes while the protected section remains unlocked.
+                kotlinx.coroutines.delay(5 * 60 * 1000L)
+            }
+        } else {
+            adultItems = emptyList()
             loading = false
-        } else adultItems = emptyList()
+        }
     }
 
     Column(
-        Modifier.fillMaxWidth().padding(18.dp).verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        Modifier.fillMaxWidth()
+            .background(Brush.verticalGradient(listOf(Color(0xFF210619), Color(0xFF09030D), Color(0xFF05030A))))
+            .padding(16.dp).verticalScroll(screenScrollState),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        Text("Contenido para mayores de 18", style = MaterialTheme.typography.headlineSmall)
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(22.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF260719))
+        ) {
+            Box(
+                Modifier.fillMaxWidth()
+                    .background(Brush.linearGradient(listOf(Color(0xFF570B36), Color(0xFF21051E), Color(0xFF090611))))
+                    .padding(horizontal = 18.dp, vertical = 20.dp)
+            ) {
+                Text("♡       ♡       ♡", Modifier.align(Alignment.TopEnd), color = Color(0xFFFF4D9D).copy(alpha = .32f), fontSize = 24.sp)
+                BoxWithConstraints(Modifier.fillMaxWidth()) {
+                    val compact = maxWidth < 430.dp
+                    if (compact) {
+                        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Box(Modifier.size(82.dp).background(Brush.radialGradient(listOf(Color(0xFFFF4D9D), Color(0xFF4B092F), Color(0xFF180512))), RoundedCornerShape(50)), contentAlignment = Alignment.Center) {
+                                Text("18+", color = Color.White, fontSize = 29.sp, fontWeight = FontWeight.Black)
+                            }
+                            Text("SOLO PARA ADULTOS", color = Color(0xFFFFB7D7), fontSize = 9.sp, fontWeight = FontWeight.ExtraBold)
+                            Icon(Icons.Default.WorkspacePremium, null, tint = Color(0xFFFFC247), modifier = Modifier.size(25.dp))
+                            Text("Contenido Adulto", color = Color.White, fontSize = 25.sp, fontWeight = FontWeight.Black)
+                            Text("Disfrutá de una experiencia cuidada y privada", color = Color(0xFFFFD8E9), style = MaterialTheme.typography.bodySmall)
+                            Button(onClick = {
+                                message = when {
+                                    !ageConfirmed -> "Confirmá que tenés 18 años o más en el control de acceso."
+                                    !pinExists -> "Creá tu PIN parental de seis dígitos para continuar."
+                                    !unlocked -> "Ingresá tu PIN parental de seis dígitos para desbloquear."
+                                    else -> "La sección +18 ya está desbloqueada."
+                                }
+                            }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE91E78)), shape = RoundedCornerShape(24.dp)) {
+                                Icon(Icons.Default.PlayArrow, null); Spacer(Modifier.width(6.dp)); Text("Ingresar Ahora", fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    } else {
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(18.dp)) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Box(Modifier.size(88.dp).background(Brush.radialGradient(listOf(Color(0xFFFF4D9D), Color(0xFF4B092F), Color(0xFF180512))), RoundedCornerShape(50)), contentAlignment = Alignment.Center) {
+                                    Text("18+", color = Color.White, fontSize = 31.sp, fontWeight = FontWeight.Black)
+                                }
+                                Text("Solo para adultos", color = Color(0xFFFFB7D7), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Icon(Icons.Default.WorkspacePremium, null, tint = Color(0xFFFFC247), modifier = Modifier.size(26.dp))
+                                Text("Contenido Adulto", color = Color.White, fontSize = 29.sp, fontWeight = FontWeight.Black)
+                                Text("Disfrutá de una experiencia cuidada, privada y clasificada +18.", color = Color(0xFFFFD8E9), style = MaterialTheme.typography.bodySmall)
+                                Text("ACCESO PRIVADO · MAYORES DE 18", color = Color(0xFFFF79B7), fontSize = 9.sp, fontWeight = FontWeight.ExtraBold)
+                                Button(onClick = {
+                                    screenScope.launch { screenScrollState.animateScrollTo(screenScrollState.maxValue) }
+                                    message = when {
+                                        !ageConfirmed -> "Confirmá que tenés 18 años o más en el control de acceso."
+                                        !pinExists -> "Creá tu PIN parental de seis dígitos para continuar."
+                                        !unlocked -> "Ingresá tu PIN parental de seis dígitos para desbloquear."
+                                        else -> "La sección +18 ya está desbloqueada."
+                                    }
+                                }, colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE91E78)), shape = RoundedCornerShape(24.dp)) {
+                                    Icon(Icons.Default.PlayArrow, null); Spacer(Modifier.width(6.dp)); Text("Ingresar Ahora", fontWeight = FontWeight.Bold)
+                                }
+                            }
+                            Text("♡", color = Color(0xFFFF4D9D), fontSize = 38.sp)
+                        }
+                    }
+                }
+            }
+        }
+        Text("Explorá por categoría", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
+        // Seis accesos visuales de la referencia. "Todos" queda como filtro auxiliar.
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val columns = if (maxWidth >= 760.dp) 6 else 3
+            val tiles = adultCategories.filterNot { it == "Todos" }
+            Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                tiles.chunked(columns).forEach { row ->
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        row.forEach { category ->
+                            val (symbol, tileColor) = when (category) {
+                                "Romance" -> "💋" to Color(0xFF6A1454)
+                                "Eróticos" -> "🔥" to Color(0xFF65152F)
+                                "Parejas" -> "♡" to Color(0xFF511044)
+                                "Hot" -> "⭐" to Color(0xFF5C183C)
+                                "Premium" -> "◇" to Color(0xFF102E70)
+                                else -> "18+" to Color(0xFF68152A)
+                            }
+                            Card(
+                                onClick = {
+                                    selectedAdultCategory = category
+                                    if (unlocked && category != "Solo Adultos") {
+                                        val available = adultItems.any {
+                                            it.category.contains(category, ignoreCase = true) ||
+                                                it.title.contains(category, ignoreCase = true)
+                                        }
+                                        if (!available) unavailableCategory = category
+                                    } else if (unlocked && adultItems.isEmpty()) {
+                                        unavailableCategory = category
+                                    }
+                                },
+                                modifier = Modifier.weight(1f).height(104.dp),
+                                shape = RoundedCornerShape(15.dp),
+                                colors = CardDefaults.cardColors(containerColor = tileColor)
+                            ) {
+                                Column(
+                                    Modifier.fillMaxSize().padding(8.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Text(symbol, color = Color(0xFFFF78B9), fontSize = 27.sp, fontWeight = FontWeight.Black)
+                                    Spacer(Modifier.height(5.dp))
+                                    Text(category, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                                }
+                            }
+                        }
+                        repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
+                    }
+                }
+            }
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.PlayArrow, null, tint = Color(0xFFFF1E7A), modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(6.dp))
+                Text("Recomendados para vos", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
+            }
+            if (!unlocked) {
+                Text("Desbloqueá la sección con tu PIN para ver recomendaciones del catálogo publicado.", color = Color(0xFFFFD8E9), style = MaterialTheme.typography.bodySmall)
+            } else if (adultItems.isEmpty()) {
+                Text("Todavía no hay títulos +18 publicados y verificados para esta región.", color = Color(0xFFFFD8E9), style = MaterialTheme.typography.bodySmall)
+            } else {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    items(adultItems.take(4), key = { it.id }) { item ->
+                        Card(modifier = Modifier.width(174.dp), shape = RoundedCornerShape(14.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF1B0B19))) {
+                            Column {
+                                Box(Modifier.fillMaxWidth().height(112.dp).background(Brush.linearGradient(listOf(Color(0xFF5A1647), Color(0xFF170D2C))),), contentAlignment = Alignment.Center) {
+                                    item.artworkUrl?.takeIf(::isSafeAdultArtworkUrl)?.let { artwork ->
+                                        AsyncImage(model = artwork, contentDescription = "Portada de ${item.title}", contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
+                                    } ?: Icon(Icons.Default.Favorite, null, tint = Color(0xFFFF6DAF), modifier = Modifier.size(34.dp))
+                                    Text("18+", Modifier.align(Alignment.TopEnd).padding(6.dp).background(Color(0xFFB30B45), RoundedCornerShape(7.dp)).padding(horizontal = 7.dp, vertical = 3.dp), color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Black)
+                                }
+                                Row(Modifier.fillMaxWidth().padding(9.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Column(Modifier.weight(1f)) {
+                                        Text(item.title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp, maxLines = 2)
+                                        Text(item.category.ifBlank { item.ageRating ?: "18+" }, color = Color(0xFFFF9CCB), fontSize = 9.sp, maxLines = 1)
+                                    }
+                                    if (item.actionUrl?.let(::isSafeAdultArtworkUrl) == true) {
+                                        IconButton(onClick = { onPlay(item) }) { Icon(Icons.Default.PlayCircleFilled, "Reproducir ${item.title}", tint = Color(0xFFFF4D9D)) }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        FilterChip(
+            selected = selectedAdultCategory == "Todos",
+            onClick = { selectedAdultCategory = "Todos" },
+            label = { Text("Ver todas las categorías") },
+            colors = FilterChipDefaults.filterChipColors(
+                selectedContainerColor = Color(0xFFB30B64),
+                selectedLabelColor = Color.White,
+                labelColor = Color(0xFFFFD8E9)
+            )
+        )
+        Text("Solo contenido publicado y clasificado por edad. No se muestran canales de televisión ni enlaces inventados.", color = Color(0xFFFFD8E9), style = MaterialTheme.typography.bodySmall)
         Text("El acceso requiere declaración de mayoría de edad y un PIN parental de seis dígitos. La confirmación no reemplaza los controles legales de edad exigibles en cada país.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         when {
             !ageConfirmed -> {
@@ -348,29 +539,102 @@ fun AdultAccessScreen(
             else -> {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.VerifiedUser, null, tint = MaterialTheme.colorScheme.primary)
-                    Text("Sección desbloqueada · Catálogo clasificado +18", modifier = Modifier.padding(start = 8.dp))
+                    Text("Sección desbloqueada · Catálogo clasificado +18", modifier = Modifier.weight(1f).padding(start = 8.dp))
+                    IconButton(onClick = { catalogRefresh++ }, enabled = !loading) {
+                        Icon(Icons.Default.Refresh, contentDescription = "Actualizar catálogo +18", tint = Color(0xFFFF9CCB))
+                    }
                 }
                 if (loading) CircularProgressIndicator()
-                else if (adultItems.isEmpty()) Text("No hay títulos +18 publicados para esta región. No se muestran títulos ficticios.")
-                else LazyColumn(Modifier.heightIn(max = 420.dp)) {
-                    items(adultItems, key = { it.id }) { item ->
+                else {
+                    val categorizedItems = when (selectedAdultCategory) {
+                        "Todos", "Solo Adultos" -> adultItems
+                        else -> adultItems.filter { it.category.contains(selectedAdultCategory, ignoreCase = true) || it.title.contains(selectedAdultCategory, ignoreCase = true) }
+                    }
+                    if (categorizedItems.isEmpty()) {
+                        Text(
+                            if (adultItems.isEmpty()) "Todavía no hay títulos +18 publicados y verificados para esta región."
+                            else "No hay títulos publicados dentro de «$selectedAdultCategory». Elegí otra categoría para ver el catálogo disponible.",
+                            color = Color(0xFFFFD8E9)
+                        )
+                    } else LazyColumn(Modifier.heightIn(max = 420.dp)) {
+                    items(categorizedItems, key = { it.id }) { item ->
                         Card(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
                             Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                item.artworkUrl?.takeIf { isSafeAdultArtworkUrl(it) }?.let { artwork ->
+                                    AsyncImage(
+                                        model = artwork,
+                                        contentDescription = "Imagen de ${item.title}",
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier.size(width = 76.dp, height = 104.dp)
+                                    )
+                                    Spacer(Modifier.width(12.dp))
+                                }
                                 Column(Modifier.weight(1f)) {
                                     Text(item.title, style = MaterialTheme.typography.titleMedium)
-                                    Text(item.subtitle, style = MaterialTheme.typography.bodySmall)
+                                    if (item.subtitle.isNotBlank()) Text(item.subtitle, style = MaterialTheme.typography.bodySmall)
                                     Text(item.ageRating ?: "18+", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                                 }
-                                if (item.actionUrl != null) TextButton(onClick = { onPlay(item) }) { Text("Reproducir") }
+                                if (item.actionUrl?.let(::isSafeAdultArtworkUrl) == true) {
+                                    TextButton(onClick = { onPlay(item) }) { Text("Reproducir") }
+                                } else {
+                                    Text("No disponible", style = MaterialTheme.typography.labelSmall, color = Color(0xFFFF9CCB))
+                                }
                             }
                         }
                     }
+                    }
+                    OutlinedButton(
+                        onClick = { unlocked = false },
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFF9CCB))
+                    ) { Icon(Icons.Default.Lock, null); Spacer(Modifier.width(6.dp)); Text("Bloquear ahora") }
                 }
-                OutlinedButton(onClick = { unlocked = false }) { Text("Bloquear ahora") }
+            }
+        }
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val columns = if (maxWidth >= 720.dp) 4 else 2
+            val trustItems = listOf(
+                Triple(Icons.Default.Shield, "Contenido seguro", "y controlado"),
+                Triple(Icons.Default.Lock, "Acceso exclusivo", "para mayores +18"),
+                Triple(Icons.Default.WorkspacePremium, "Calidad premium", "según el catálogo"),
+                Triple(Icons.Default.Favorite, "Experiencia privada", "con control parental")
+            )
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                trustItems.chunked(columns).forEach { row ->
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        row.forEach { (icon, title, subtitle) ->
+                            Row(Modifier.weight(1f).clip(RoundedCornerShape(12.dp)).background(Color(0xFF170D19)).padding(9.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(icon, null, tint = Color(0xFFFFC247), modifier = Modifier.size(22.dp))
+                                Column(Modifier.padding(start = 7.dp)) {
+                                    Text(title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 9.sp)
+                                    Text(subtitle, color = Color(0xFFFFD8E9), fontSize = 8.sp)
+                                }
+                            }
+                        }
+                        repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
+                    }
+                }
             }
         }
         message?.let { Text(it, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall) }
         if (!isSignedIn) Text("Iniciá sesión para sincronizar la constancia de edad con tu cuenta.", style = MaterialTheme.typography.bodySmall)
+    }
+    unavailableCategory?.let { category ->
+        AlertDialog(
+            onDismissRequest = { unavailableCategory = null },
+            icon = { Icon(Icons.Default.Favorite, null, tint = Color(0xFFFF4D9D)) },
+            title = { Text("$category · Próximamente") },
+            text = {
+                Text(
+                    "Estamos preparando esta categoría para MILTVPLUS. Por ahora no hay contenido publicado y verificado disponible aquí. Volvé pronto: queremos ofrecerte una experiencia cuidada y segura."
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { unavailableCategory = null }) { Text("Entendido") }
+            },
+            containerColor = Color(0xFF210619),
+            titleContentColor = Color.White,
+            textContentColor = Color(0xFFFFD8E9)
+        )
     }
 }
 
@@ -454,3 +718,9 @@ fun RemoteSourcesScreen(repository: SupabaseUserRepository, isSignedIn: Boolean,
         message?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary) }
     }
 }
+
+
+private fun isSafeAdultArtworkUrl(value:String):Boolean = runCatching {
+    val uri=java.net.URI(value)
+    uri.scheme.equals("https",true) && !uri.host.isNullOrBlank() && uri.userInfo==null
+}.getOrDefault(false)
