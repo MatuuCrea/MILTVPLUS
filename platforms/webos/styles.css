@@ -115,3 +115,5 @@ main.tv-with-categories #channels{margin-left:174px}
 body.official-interface-active>header,body.official-interface-active>footer{display:none!important}
 body.official-interface-active>main{margin-left:var(--official-sidebar-width,248px);padding:24px clamp(16px,3vw,48px);height:100vh;overflow:auto}
 @media(max-width:760px){body.official-interface-active>main{margin-left:76px;padding:16px 12px}}
+
+.section-nav[hidden]{display:none!important}
