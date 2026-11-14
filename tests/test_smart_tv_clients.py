@@ -89,7 +89,7 @@ class SmartTvClientTests(unittest.TestCase):
             script = (ROOT / f"platforms/{platform}/app.js").read_text(encoding="utf-8")
             self.assertIn("rights_verified,rights_holder,rights_reference,rights_regions", script)
             self.assertIn("function hasActivePlaybackRights(c)", script)
-            self.assertIn("regions.includes(region)", script)
+            self.assertIn("regions.some(value=>String(value).toUpperCase()===region)", script)
             self.assertIn("rights_valid_until", script)
             self.assertIn("hasActivePlaybackRights(c)", script)
 
