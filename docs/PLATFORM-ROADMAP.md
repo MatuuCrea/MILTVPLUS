@@ -1,8 +1,8 @@
 # MILTVPLUS · hoja única de trabajo, QA y publicación
 
 **Actualizado:** 14 de noviembre de 2026  
-**Rama de trabajo:** `feat/responsive-mobile-navigation` → `main`  
-**PR de referencia:** https://github.com/MatuuCrea/MILTVPLUS/pull/10
+**Rama de trabajo actual:** `feat/native-smart-tv-clients`  
+**Referencia de base:** PR #10 fusionada; esta rama incorpora clientes iniciales Tizen/webOS.
 
 Este documento reúne el orden de trabajo y los criterios de salida. Una tarea sólo pasa a «completa» cuando existe implementación verificable y la prueba correspondiente; compilar no equivale a probar en un dispositivo real.
 
@@ -28,7 +28,9 @@ Este documento reúne el orden de trabajo y los criterios de salida. Una tarea s
 | EPG | Estructura/campos y sección descritos en el proyecto | Grilla poblada con datos licenciados, zona horaria, actualización y pruebas |
 | Windows funcional | WPF, LibVLC y WebView2; controles de reproducción y catálogo | Paridad de Auth, favoritos, +18, ajustes, EPG y flujos Android pendientes |
 | Publicación | Workflows Android/Windows preparados | Release firmada, instalación limpia, QA, atribuciones y notas de versión |
-| Samsung/LG | No son objetivos del APK Android | Apps nativas independientes para Tizen y webOS |
+| Samsung Tizen | Cliente nativo inicial en `platforms/tizen/`, catálogo RLS, D-pad y AVPlay | WGT firmado, SDK/certificado y QA físico por modelo |
+| LG webOS | Cliente nativo inicial en `platforms/webos/`, catálogo RLS, D-pad y HTML5 video | IPK firmado, SDK y QA físico por versión |
+| Fire TV | APK Android compartido como punto de partida | Validar sideload, launcher, D-pad y codecs por modelo |
 
 ## Prioridad P0 · estabilizar la rama actual
 
@@ -85,6 +87,9 @@ Este documento reúne el orden de trabajo y los criterios de salida. Una tarea s
 - Mantener artefactos reproducibles, SHA del código publicado y trazabilidad entre tag, workflows y archivos de distribución.
 
 ## Prioridad P3 · plataformas con desarrollo separado
+
+**Actualización 14/11/2026:** se añadieron proyectos iniciales Tizen y webOS en `platforms/tizen/` y `platforms/webos/`, con manifiestos, recursos de marca, lectura del catálogo publicado, controles remotos y adaptadores de reproducción. Se añadió validación estática en `smart-tv-clients.yml`. No existen todavía WGT/IPK firmados ni QA físico; requieren SDK y certificados del propietario. Ver `docs/NATIVE-TV-CLIENTS.md`.
+
 
 ### Samsung Smart TV · Tizen
 - Crear aplicación de TV independiente con Tizen Studio y el SDK/TV Extensions de Samsung; no reutilizar ni presentar el APK Android como instalador Tizen.
