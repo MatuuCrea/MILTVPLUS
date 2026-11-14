@@ -111,12 +111,23 @@ class SmartTvClientTests(unittest.TestCase):
         self.assertIn("localStorage.setItem", shell)
         self.assertIn("player-actions", shell)
         self.assertIn("favoriteButton", shell)
+        self.assertIn('document.body.classList.add("official-interface-active")', shell)
         self.assertIn("matchFavorite", shell)
         self.assertIn("row.hidden=row.dataset.group!==s", shell)
         self.assertIn('data-action="record" disabled', shell)
         self.assertNotIn('"AR","🇦🇷","Argentina","Siempre en tu corazón",194', shell)
         self.assertIn("No hay fuentes ni reproducciones activas", shell)
 
+    def test_one_official_menu_without_duplicate_mobile_or_settings_navigation(self):
+        main = (ROOT / "app/src/main/java/com/matuucrea/miltvplus/MainActivity.kt").read_text(encoding="utf-8")
+        topbar = (ROOT / "app/src/main/java/com/matuucrea/miltvplus/ui/PremiumExperience.kt").read_text(encoding="utf-8")
+        music = (ROOT / "platforms/shared/music-experience.js").read_text(encoding="utf-8")
+        windows = (ROOT / "windows/MILTVPLUS.Desktop/MainWindow.xaml").read_text(encoding="utf-8")
+        self.assertIn("PremiumSidebar(activeNavigation, navigateTo)", main)
+        self.assertNotIn("bottomBar = {", main)
+        self.assertNotIn("onSettings: () -> Unit", topbar)
+        self.assertNotIn('ToolTip="Configuración" Click="OpenSettings_Click"', windows)
+        self.assertIn("nav.hidden = true", music)
     def test_android_official_sidebar_and_country_phrases(self):
         ui = (ROOT / "app/src/main/java/com/matuucrea/miltvplus/ui/PremiumExperience.kt").read_text(encoding="utf-8")
         countries = (ROOT / "app/src/main/java/com/matuucrea/miltvplus/ui/AccountAndSettings.kt").read_text(encoding="utf-8")
