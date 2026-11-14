@@ -248,7 +248,7 @@
         <DockPanel LastChildFill="True">
          <Image DockPanel.Dock="Left" Width="76" Height="50" Margin="0,0,14,0" Stretch="Uniform" Source="{Binding LogoUrl}"/>
          <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-          <Button Content="☆ Guardar" Click="ToggleFavorite_Click" Padding="10,8" Margin="4,0,0,0" Background="#26365D"/>
+          <Button Content="{Binding FavoriteLabel}" Click="ToggleFavorite_Click" Padding="10,8" Margin="4,0,0,0" Background="#26365D"/>
           <Button Content="Ver canal" Click="Watch_Click" Padding="14,8" Margin="8,0,0,0" Background="#087BFF"/>
          </StackPanel>
          <StackPanel>
