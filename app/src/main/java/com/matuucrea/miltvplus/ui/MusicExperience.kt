@@ -44,8 +44,8 @@ fun MusicExperience(
     onOpenOfficialService: (String) -> Unit
 ) {
     var genre by remember { mutableStateOf("Todo") }
-    var isPlaying by remember { mutableStateOf(player.isPlaying) }
-    var currentTitle by remember { mutableStateOf(player.currentMediaItem?.mediaMetadata?.title?.toString().orEmpty()) }
+    var isPlaying by remember(player) { mutableStateOf(player.isPlaying) }
+    var currentTitle by remember(player) { mutableStateOf(player.currentMediaItem?.mediaMetadata?.title?.toString().orEmpty()) }
     DisposableEffect(player) {
         val listener = object : Player.Listener {
             override fun onIsPlayingChanged(value: Boolean) { isPlaying = value }
