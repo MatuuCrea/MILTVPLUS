@@ -12,6 +12,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Threading;
+using System.Windows.Media;
 using Microsoft.Win32;
 using LibVLCSharp.Shared;
 
@@ -92,6 +93,12 @@ public partial class MainWindow : Window
         _mediaPlayer.Volume = (int)DesktopVolumeSlider.Value;
     }
 
+    private void PersistDesktopSettings()
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(DesktopSettingsPath)!);
+        File.WriteAllText(DesktopSettingsPath, JsonSerializer.Serialize(_desktopSettings, new JsonSerializerOptions { WriteIndented = true }));
+    }
+
     private void SaveDesktopSettings_Click(object sender, RoutedEventArgs e)
     {
         _desktopSettings = new DesktopSettings
@@ -99,12 +106,14 @@ public partial class MainWindow : Window
             AutoCheckUpdates = AutoCheckUpdatesCheckBox.IsChecked == true,
             AlwaysOnTop = AlwaysOnTopCheckBox.IsChecked == true,
             StartMaximized = StartMaximizedCheckBox.IsChecked == true,
-            MusicVolume = Math.Clamp((int)DesktopVolumeSlider.Value, 0, 100)
+            MusicVolume = Math.Clamp((int)DesktopVolumeSlider.Value, 0, 100),
+            FavoriteKeys = _desktopSettings.FavoriteKeys
         };
         Directory.CreateDirectory(Path.GetDirectoryName(DesktopSettingsPath)!);
         File.WriteAllText(DesktopSettingsPath, JsonSerializer.Serialize(_desktopSettings, new JsonSerializerOptions { WriteIndented = true }));
         Topmost = _desktopSettings.AlwaysOnTop;
         _mediaPlayer.Volume = _desktopSettings.MusicVolume;
+        PersistDesktopSettings();
         StatusText.Text = "¡Listo! Tu configuración quedó guardada en esta computadora.";
     }
 
@@ -136,7 +145,8 @@ public partial class MainWindow : Window
             }
             if (table == "catalog_items")
             {
-                var adultSection = Sections.SelectedItem is ListBoxItem selectedItem && selectedItem.Tag?.ToString() == "Adultos 18+";
+                foreach (var row in loaded) row.SourceTable = table;
+            var adultSection = Sections.SelectedItem is ListBoxItem selectedItem && selectedItem.Tag?.ToString() == "Adultos 18+";
                 loaded = adultSection && _adultUnlocked
                     ? loaded.Where(x => IsAdultRating(x.AgeRating)).ToList()
                     : loaded.Where(x => !IsAdultRating(x.AgeRating)).ToList();
@@ -578,6 +588,17 @@ public partial class MainWindow : Window
             StatusText.Text = "Confirmá tu edad y validá tu PIN parental para continuar.";
             return;
         }
+        if (section == "Favoritos")
+        {
+            await LoadFavorites();
+            return;
+        }
+        if (section == "Soporte")
+        {
+            OpenSupportCenter();
+            QuickSelect("Inicio");
+            return;
+        }
         (table, select, order, kind) = section switch
         {
             "Inicio" or "TV en vivo" or "Países" => ("tv_channels", "id,title,description,country_code,created_at,category,language_code,access_model,logo_url,official_watch_url,stream_url,playback_type,is_free_to_air,source_status,last_checked_at,last_check_detail", "sort_order.asc,title.asc", null),
@@ -602,6 +623,135 @@ public partial class MainWindow : Window
         await LoadCatalog();
     }
 
+    private async Task LoadFavorites()
+    {
+        StatusText.Text = "Cargando tus favoritos guardados en esta computadora…";
+        var loaded = new List<CatalogEntry>();
+        var keys = _desktopSettings.FavoriteKeys ?? [];
+        foreach (var group in keys.Select(key => key.Split('|', 2))
+                     .Where(parts => parts.Length == 2 && Guid.TryParse(parts[1], out _) &&
+                         (parts[0] == "tv_channels" || parts[0] == "catalog_items"))
+                     .GroupBy(parts => parts[0], parts => parts[1]))
+        {
+            var ids = group.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+            if (ids.Length == 0) continue;
+            var sourceTable = group.Key;
+            var projection = sourceTable == "tv_channels"
+                ? "id,title,description,country_code,created_at,category,language_code,access_model,logo_url,official_watch_url,stream_url,playback_type,is_free_to_air,source_status,last_checked_at,last_check_detail"
+                : "id,title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url,official_watch_url";
+            var fields = projection.Split(',').Concat(new[] { "rights_verified", "rights_holder", "rights_reference", "rights_regions", "rights_valid_from", "rights_valid_until" }).Distinct(StringComparer.OrdinalIgnoreCase);
+            var query = "?select=" + Uri.EscapeDataString(string.Join(",", fields)) + "&id=in.(" + string.Join(",", ids) + ")&is_published=eq.true&limit=500";
+            using var response = await Client.GetAsync(Api + sourceTable + query);
+            if (!response.IsSuccessStatusCode) throw new HttpRequestException($"No se pudieron recuperar favoritos de {sourceTable}: HTTP {(int)response.StatusCode}.");
+            await using var stream = await response.Content.ReadAsStreamAsync();
+            var rows = await JsonSerializer.DeserializeAsync<List<CatalogEntry>>(stream, JsonOptions) ?? [];
+            foreach (var row in rows)
+            {
+                row.SourceTable = sourceTable;
+                row.IsFavorite = true;
+                if (sourceTable == "catalog_items" && !_adultUnlocked && IsAdultRating(row.AgeRating)) continue;
+                loaded.Add(row);
+            }
+        }
+        entries = loaded;
+        UpdateFilterOptions();
+        StatusText.Text = entries.Count == 0
+            ? "Todavía no guardaste favoritos publicados en este dispositivo. Usá ☆ Guardar en una ficha para agregarla."
+            : $"{entries.Count} favoritos guardados localmente en esta computadora.";
+    }
+
+    private void ToggleFavorite_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.DataContext is not CatalogEntry item || !Guid.TryParse(item.Id, out _))
+        {
+            StatusText.Text = "Esta fuente local no tiene un identificador editorial; no se puede guardar como favorito sincronizable.";
+            return;
+        }
+        var source = string.IsNullOrWhiteSpace(item.SourceTable) ? table : item.SourceTable;
+        if (source != "tv_channels" && source != "catalog_items")
+        {
+            StatusText.Text = "Los favoritos de esta sección todavía no están habilitados.";
+            return;
+        }
+        var key = source + "|" + item.Id;
+        _desktopSettings.FavoriteKeys ??= [];
+        if (_desktopSettings.FavoriteKeys.Contains(key, StringComparer.OrdinalIgnoreCase))
+        {
+            _desktopSettings.FavoriteKeys.RemoveAll(x => string.Equals(x, key, StringComparison.OrdinalIgnoreCase));
+            item.IsFavorite = false;
+            StatusText.Text = "Se quitó de tus favoritos.";
+        }
+        else
+        {
+            _desktopSettings.FavoriteKeys.Add(key);
+            item.IsFavorite = true;
+            StatusText.Text = "Guardado en favoritos de esta computadora.";
+        }
+        PersistDesktopSettings();
+        if (Sections.SelectedItem is ListBoxItem selected && selected.Tag?.ToString() == "Favoritos") _ = LoadFavorites();
+        else ApplySearch();
+    }
+
+    private void OpenSupportCenter_Click(object sender, RoutedEventArgs e) => OpenSupportCenter();
+
+    private void OpenSupportCenter()
+    {
+        var panel = new StackPanel { Margin = new Thickness(24), Width = 520 };
+        panel.Children.Add(new TextBlock { Text = "CENTRO DE SOPORTE MILTVPLUS", FontSize = 12, FontWeight = FontWeights.Bold, Foreground = new SolidColorBrush(Color.FromRgb(22, 200, 242)) });
+        panel.Children.Add(new TextBlock { Text = "Ayuda real para instalar, actualizar y diagnosticar", FontSize = 24, FontWeight = FontWeights.Bold, Foreground = Brushes.White, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 10) });
+        panel.Children.Add(new TextBlock { Text = "Desde acá podés abrir la guía oficial, consultar incidencias del proyecto o exportar un diagnóstico técnico. El archivo no incluye contraseñas, tokens ni datos de sesión.", Foreground = new SolidColorBrush(Color.FromRgb(190, 202, 224)), TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 18) });
+        var window = new Window { Title = "MILTVPLUS · Soporte", Width = 600, Height = 440, WindowStartupLocation = WindowStartupLocation.CenterOwner, Owner = this, ResizeMode = ResizeMode.NoResize, Background = new SolidColorBrush(Color.FromRgb(5, 8, 18)), Content = panel };
+        Button AddAction(string label, RoutedEventHandler action)
+        {
+            var button = new Button { Content = label, Height = 42, Margin = new Thickness(0, 5, 0, 5), Padding = new Thickness(12, 8, 12, 8), HorizontalContentAlignment = HorizontalAlignment.Left, Background = new SolidColorBrush(Color.FromRgb(24, 42, 75)), Foreground = Brushes.White, BorderBrush = new SolidColorBrush(Color.FromRgb(57, 92, 140)) };
+            button.Click += action;
+            panel.Children.Add(button);
+            return button;
+        }
+        AddAction("Abrir guía oficial de instalación y solución de problemas", (_, _) => OpenSupportUrl("https://github.com/MatuuCrea/MILTVPLUS/blob/main/docs/INSTALL-TEST-GUIDE.md"));
+        AddAction("Consultar incidencias y reportar un problema", (_, _) => OpenSupportUrl("https://github.com/MatuuCrea/MILTVPLUS/issues/new/choose"));
+        AddAction("Abrir versiones y paquetes oficiales", (_, _) => OpenSupportUrl("https://github.com/MatuuCrea/MILTVPLUS/releases"));
+        AddAction("Exportar diagnóstico técnico (sin credenciales)", (_, _) => ExportSupportDiagnostics());
+        panel.Children.Add(new TextBlock { Text = "MILTVPLUS es gratuita. El soporte público se gestiona mediante incidencias del repositorio; no se promete atención 24/7 ni un canal privado inexistente.", Foreground = new SolidColorBrush(Color.FromRgb(150, 166, 193)), FontSize = 11, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 14, 0, 0) });
+        window.ShowDialog();
+    }
+
+    private static void OpenSupportUrl(string url)
+    {
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps) return;
+        Process.Start(new ProcessStartInfo(uri.ToString()) { UseShellExecute = true });
+    }
+
+    private void ExportSupportDiagnostics()
+    {
+        try
+        {
+            var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "desconocida";
+            var section = (Sections.SelectedItem as ListBoxItem)?.Tag?.ToString() ?? "desconocida";
+            var report = string.Join(Environment.NewLine, new[]
+            {
+                "MILTVPLUS - Diagnóstico técnico",
+                "Fecha UTC: " + DateTimeOffset.UtcNow.ToString("O"),
+                "Versión: " + version,
+                "Sistema: " + Environment.OSVersion,
+                "Arquitectura proceso: " + System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture,
+                "Arquitectura sistema: " + System.Runtime.InteropServices.RuntimeInformation.OSArchitecture,
+                ".NET: " + Environment.Version,
+                "Región del sistema: " + RegionInfo.CurrentRegion.TwoLetterISORegionName,
+                "Sección activa: " + section,
+                "Filas cargadas: " + entries.Count,
+                "Favoritos locales: " + (_desktopSettings.FavoriteKeys?.Count ?? 0),
+                "No se incluyen email, tokens, contraseñas, cookies ni URLs privadas."
+            });
+            var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "MILTVPLUS", "Diagnosticos");
+            Directory.CreateDirectory(folder);
+            var path = Path.Combine(folder, "diagnostico-" + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss") + ".txt");
+            File.WriteAllText(path, report, Encoding.UTF8);
+            MessageBox.Show(this, "Diagnóstico exportado en:\n" + path, "Soporte MILTVPLUS", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex) { MessageBox.Show(this, "No se pudo exportar el diagnóstico: " + ex.Message, "Soporte MILTVPLUS", MessageBoxButton.OK, MessageBoxImage.Error); }
+    }
+
     private sealed class DesktopSettings
     {
         public DesktopSettings() { }
@@ -609,10 +759,14 @@ public partial class MainWindow : Window
         public bool AlwaysOnTop { get; set; }
         public bool StartMaximized { get; set; }
         public int MusicVolume { get; set; } = 100;
+        public List<string> FavoriteKeys { get; set; } = [];
     }
 
     private sealed class CatalogEntry
     {
+        [JsonPropertyName("id")] public string? Id { get; set; }
+        [JsonIgnore] public string? SourceTable { get; set; }
+        [JsonIgnore] public bool IsFavorite { get; set; }
         public string? Title { get; set; }
         public string? Description { get; set; }
         [JsonPropertyName("country_code")] public string? CountryCode { get; set; }
