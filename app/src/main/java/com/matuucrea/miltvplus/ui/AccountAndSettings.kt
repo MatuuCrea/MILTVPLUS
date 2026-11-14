@@ -338,7 +338,7 @@ fun CountryPickerScreen(channelCounts: Map<String, Int> = emptyMap(), onCountryS
             }
         }
         val phrase = when (selected) {
-            "AR" -> "Argentina · Siempre en tu corazón 🇦🇷"
+            "AR" -> "Argentina - Siempre en tu corazón 🇦🇷"
             "US" -> "Estados Unidos · Un mundo de historias 🇺🇸"
             "ES" -> "España · Cultura que nos une 🇪🇸"
             "MX" -> "México · Tradición y emoción 🇲🇽"
