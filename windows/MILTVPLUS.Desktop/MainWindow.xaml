@@ -235,8 +235,8 @@
      <wv2:WebView2 x:Name="OfficialWebView" Visibility="Collapsed"/>
     </Grid>
    </Border>
-   <ScrollViewer x:Name="CatalogScroll" Grid.Row="4" VerticalScrollBarVisibility="Auto">
-    <ListBox x:Name="Catalog" Background="Transparent" BorderThickness="0" ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.CanContentScroll="True" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling">
+   <ListBox x:Name="CatalogScroll" Grid.Row="4" Background="Transparent" BorderThickness="0" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.CanContentScroll="True" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling">
+    
      <ItemsControl.ItemTemplate>
       <DataTemplate>
        <Border Background="#101E3D" BorderBrush="#26365D" BorderThickness="1" CornerRadius="14" Padding="14" Margin="0,0,0,9">
@@ -253,7 +253,6 @@
       </DataTemplate>
      </ItemsControl.ItemTemplate>
     </ListBox>
-   </ScrollViewer>
    <Border x:Name="AdultGatePanel" Grid.Row="3" Grid.RowSpan="2" Panel.ZIndex="5" Visibility="Collapsed"
            Background="#160611" BorderBrush="#8F175A" BorderThickness="1" CornerRadius="18" Padding="28" Margin="0,0,0,12">
     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="420">
