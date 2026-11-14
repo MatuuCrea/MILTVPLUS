@@ -84,7 +84,19 @@ class MainActivity:ComponentActivity(){
 }
 @Composable private fun App(onThemeChanged:(String,String)->Unit, authCallback:Uri?=null, vm:PlayerViewModel=viewModel()){
     val context=LocalContext.current
-    val exoPlayer = remember(context) { ExoPlayer.Builder(context).build() }
+    val exoPlayer = remember(context) {
+        ExoPlayer.Builder(context)
+            .setAudioAttributes(
+                androidx.media3.common.AudioAttributes.Builder()
+                    .setUsage(C.USAGE_MEDIA)
+                    .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+                    .build(),
+                true
+            )
+            .build()
+    }
+    var musicVolume by remember { mutableFloatStateOf(context.getSharedPreferences("miltvplus_preferences", 0).getFloat("music_volume", 1f).coerceIn(0f, 1f)) }
+    LaunchedEffect(musicVolume) { exoPlayer.volume = musicVolume }
     DisposableEffect(exoPlayer) { onDispose { exoPlayer.release() } }
     var tab by remember { mutableStateOf("Inicio") }; var query by remember { mutableStateOf("") }; var updateNotice by remember { mutableStateOf<String?>(null) }
     val remoteRepository = remember { SupabaseCatalogRepository() }
@@ -361,7 +373,16 @@ class MainActivity:ComponentActivity(){
                 val prefs=context.getSharedPreferences("miltvplus_preferences",0)
                 uiScope.launch { if(authSession!=null) runCatching { userRepository.savePreferences(prefs.getString("theme","dark")?:"dark",country.code,prefs.getString("language","es")?:"es",prefs.getBoolean("subtitles",true),prefs.getBoolean("notifications",true),prefs.getBoolean("autoplay",false),prefs.getString("accent_color","electric-blue")?:"electric-blue",prefs.getString("audio_language","original")?.takeIf{it!="original"}) } }
             }}
-            "Ajustes"->{Title("Ajustes","Personalizá tu experiencia");SettingsScreen(onThemeChanged,userRepository,authSession!=null)
+            "Ajustes"->{Title("Ajustes","Personalizá tu experiencia");SettingsScreen(
+                onThemeChanged, userRepository, authSession!=null,
+                onKeepScreenOnChanged = { keep ->
+                    (context as? MainActivity)?.window?.let { window ->
+                        if (keep) window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                        else window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                    }
+                },
+                onMusicVolumeChanged = { value -> musicVolume = value }
+            )
                 TextButton(onClick={tab="Países"},modifier=Modifier.padding(horizontal=16.dp)){Text("🌎 País y región")}
                 TextButton(onClick={tab="Cuenta"},modifier=Modifier.padding(horizontal=16.dp)){Text("👤 Cuenta y sincronización")}
                 TextButton(onClick={tab="Adultos"},modifier=Modifier.padding(horizontal=16.dp)){Text("🔞 Control parental +18")}
