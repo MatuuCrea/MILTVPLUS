@@ -456,12 +456,10 @@ public partial class MainWindow : Window
             CatalogScroll.Visibility = Visibility.Visible;
             Grid.SetRow(CatalogScroll, 3);
             Grid.SetRowSpan(CatalogScroll, 2);
-            table = "catalog_items";
-            select = "id,title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url";
-            order = "created_at.desc";
-            kind = null;
-            await LoadCatalog();
+            entries = [];
+            CatalogScroll.ItemsSource = entries;
             PageTitle.Text = "Adultos 18+";
+            StatusText.Text = "Acceso local confirmado. El panel conserva su diseño, pero el catálogo permanece vacío y sin URLs activas.";
         }
         catch (Exception ex)
         {
