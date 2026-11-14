@@ -134,7 +134,7 @@ class SmartTvClientTests(unittest.TestCase):
         for label in ("Inicio", "TV en Vivo", "Películas", "Series", "Deportes", "Infantil", "Documentales", "Música", "Adultos 18+", "Favoritos", "Configuración"):
             self.assertIn(f'NavDestination("{label}"', ui)
         self.assertIn('Text("Más Opciones"', ui)
-        self.assertIn("Argentina · Siempre en tu corazón", countries)
+        self.assertIn("Argentina - Siempre en tu corazón", countries)
         self.assertIn("Canales publicados:", countries)
         self.assertIn("Restablecer Configuración", countries)
 
