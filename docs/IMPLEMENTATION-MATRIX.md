@@ -12,11 +12,11 @@ La arquitectura de producto es nativa: Android y Windows. No existe cliente Web/
 | Favoritos y preferencias | Sincronización Supabase con RLS | Conflictos offline y QA multi-dispositivo |
 | +18 Android | PIN PBKDF2, bloqueo temporal, declaración y filtros | Verificación de edad conforme a cada jurisdicción |
 | Catálogo editorial | Tablas y reglas RLS/derechos | Catálogo vacío; incorporar proveedores y derechos reales |
-| TMDB películas/series | Edge Function con rutas permitidas, JWT requerido, secretos servidor, búsqueda, listas, fichas y reparto; pantallas Android | Configurar secretos en Supabase, validar licencia TMDB y desplegar función; QA en móvil/TV |
+| TMDB películas/series | Edge Function con rutas permitidas, JWT requerido y secretos servidor; catálogo Android y ventana nativa Windows con login Supabase, listas, búsqueda, fichas, reparto, tráiler oficial, temporadas/episodios, favoritos locales y compartir | Configurar secretos en Supabase, validar licencia/atribución TMDB, desplegar función y QA físico Android/Windows |
 | Series | Modelo de series/temporadas/episodios | Pantalla dedicada y contenido real |
 | EPG | Consulta ordenada y agrupada por canal | Grilla temporal y datos de varios días |
 | Deportes/radio/música/teatro | Modelos y navegación Android | Datos y fuentes autorizadas; Spotify sigue siendo enlace externo |
-| Windows | Cliente WPF nativo .NET 8, navegación, búsqueda, catálogo publicado, reproductor LibVLC/HLS, importación local M3U/M3U8 HTTPS de hasta 5 MB, comprobación de releases y actualizador con SHA-256; workflow x64 + instalador | Auth, favoritos, +18, preferencias, EPG/series completas, pruebas físicas y validación de codecs/proveedores |
+| Windows | Cliente WPF nativo .NET 8, navegación, búsqueda, catálogo publicado, reproductor LibVLC/HLS, importación local M3U/M3U8 HTTPS de hasta 5 MB, comprobación de releases y actualizador con SHA-256; catálogo TMDB con Supabase Auth, búsqueda, fichas, tráiler oficial, temporadas/episodios, favoritos locales y compartir por enlace copiable | QA físico, Auth integral, favoritos sincronizados, +18, preferencias, EPG completa y validación de codecs/proveedores |
 | Web/PWA | Retirada del repositorio | No es un producto ni se publicará |
 | Tizen / webOS | No implementado | Clientes nativos separados si se decide ampliar plataformas |
 | Marca | Logotipo incorporado a launcher Android y banner TV | Icono Windows .ico/.exe e instalador |
