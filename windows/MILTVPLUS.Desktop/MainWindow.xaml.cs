@@ -585,6 +585,16 @@ public partial class MainWindow : Window
         _libVlc.Dispose();
     }
 
+    private void MoreOptions_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is ListBoxItem item && item.ContextMenu is ContextMenu menu)
+        {
+            menu.PlacementTarget = item;
+            menu.IsOpen = true;
+            e.Handled = true;
+        }
+    }
+
     private void MoreEpg_Click(object sender, RoutedEventArgs e) => Sections.SelectedItem = HiddenEpg;
     private void MoreCountries_Click(object sender, RoutedEventArgs e) => Sections.SelectedItem = HiddenCountries;
     private void MoreRadios_Click(object sender, RoutedEventArgs e) => Sections.SelectedItem = HiddenRadios;
