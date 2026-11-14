@@ -305,12 +305,14 @@ fun CountryPickerScreen(channelCounts: Map<String, Int> = emptyMap(), onCountryS
     val prefs = remember { context.getSharedPreferences("miltvplus_preferences", Context.MODE_PRIVATE) }
     var selected by remember { mutableStateOf(prefs.getString("country_code", "AR") ?: "AR") }
     var search by remember { mutableStateOf("") }
+    val featuredCodes = listOf("AR", "US", "ES", "MX", "CO", "CL", "BR")
+    val orderedCountries = remember { AppDirectory.countries.sortedBy { featuredCodes.indexOf(it.code).let { index -> if (index < 0) Int.MAX_VALUE else index } } }
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         Text("Países y regiones", style = MaterialTheme.typography.headlineSmall)
         Text("El país filtra el catálogo; no modifica licencias ni habilita contenidos no disponibles.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         OutlinedTextField(search, { search = it }, Modifier.fillMaxWidth(), label = { Text("Buscar país") }, singleLine = true)
-        LazyColumn {
-            items(AppDirectory.countries.filter { it.name.contains(search, true) || it.code.contains(search, true) }, key = { it.code }) { country ->
+        LazyColumn(Modifier.weight(1f)) {
+            items(orderedCountries.filter { it.name.contains(search, true) || it.code.contains(search, true) }, key = { it.code }) { country ->
                 Row(
                     Modifier.fillMaxWidth().clickable {
                         selected = country.code
