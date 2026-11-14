@@ -15,6 +15,10 @@ Este documento define lo que debe existir y probarse antes de declarar cada plat
 - **Pruebas:** emulador Android TV y al menos un dispositivo físico; navegación completa sin pantalla táctil, foco en todos los controles, reproducción y recuperación de errores con mando.
 - **Salida:** no declarar compatible hasta completar prueba real de control remoto y validar instalación en el dispositivo objetivo.
 
+## Fire TV (Fire OS) y TV Box / TV Stick
+- **Fire OS:** el APK Android puede ser candidato; el manifiesto declara `amazon.hardware.fire_tv` opcional y la app fuerza navegación de diez pies en hardware Fire TV detectado.
+- **Límite importante:** no confundir Fire OS con Vega OS. Los modelos Fire TV que ejecutan Vega OS no instalan APK Android y requieren cliente Vega independiente.
+
 ## TV Box y TV Stick / dongle HDMI
 - **Qué significa:** TV Box es un decodificador externo; TV Stick o dongle HDMI es un dispositivo compacto conectado al HDMI. Algunos usan Android TV/Google TV y otros sistemas propietarios.
 - **Compatibilidad:** sólo equipos con Android compatible que superen la matriz Android TV. No todos los TV Box/TV Stick son Android ni todos soportan los mismos códecs, DRM, memoria o arquitectura.
