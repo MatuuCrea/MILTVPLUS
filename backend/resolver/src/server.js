@@ -34,7 +34,7 @@ function bearerToken(req) {
 }
 
 function validateCategory(category) {
-  return ["tv_en_vivo", "peliculas", "series", "adultos", "musica"].includes(category);
+  return ["tv_en_vivo", "deportes", "peliculas", "series", "adultos", "musica"].includes(category);
 }
 
 function validateCountry(value) {
