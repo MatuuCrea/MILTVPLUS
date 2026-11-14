@@ -510,6 +510,12 @@ public partial class MainWindow : Window
     {
         if (!IsLoaded || Sections.SelectedItem is not ListBoxItem item) return;
         var section = item.Tag?.ToString() ?? item.Content?.ToString();
+        if (section is "Películas" or "Series")
+        {
+            var catalogWindow = new TmdbCatalogWindow(section == "Series") { Owner = this };
+            catalogWindow.ShowDialog();
+            return;
+        }
         _localPlaylistLoaded = false;
         _contentCategoryFilter = section == "Infantil" ? "kids" : section == "Documentales" ? "documentary" : null;
         HomePanel.Visibility = section == "Inicio" ? Visibility.Visible : Visibility.Collapsed;

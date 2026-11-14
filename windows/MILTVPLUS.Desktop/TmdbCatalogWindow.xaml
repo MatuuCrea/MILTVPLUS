@@ -1,0 +1,113 @@
+<Window x:Class="MILTVPLUS.Desktop.TmdbCatalogWindow"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+ Title="MILTVPLUS · Catálogo" Height="820" Width="1320" MinHeight="650" MinWidth="980"
+ WindowStartupLocation="CenterOwner" Background="#050812" Foreground="#F5F8FF">
+ <Window.Resources>
+  <Style TargetType="Button">
+   <Setter Property="Foreground" Value="White"/><Setter Property="Background" Value="#17365F"/>
+   <Setter Property="BorderBrush" Value="#31527D"/><Setter Property="Padding" Value="12,7"/>
+   <Setter Property="Margin" Value="3"/><Setter Property="Cursor" Value="Hand"/>
+  </Style>
+  <Style TargetType="TextBox">
+   <Setter Property="Foreground" Value="White"/><Setter Property="Background" Value="#101E3D"/>
+   <Setter Property="BorderBrush" Value="#34496D"/><Setter Property="Padding" Value="9,7"/>
+   <Setter Property="Margin" Value="3"/>
+  </Style>
+ </Window.Resources>
+ <Grid Margin="18">
+  <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+  <DockPanel Grid.Row="0" Margin="0,0,0,12">
+   <StackPanel DockPanel.Dock="Left">
+    <TextBlock x:Name="HeaderTitle" Text="Películas" FontSize="26" FontWeight="Black"/>
+    <TextBlock Text="Catálogo informativo · Argentina · Datos de TMDB" Foreground="#9FB2D0" FontSize="11"/>
+   </StackPanel>
+   <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+    <TextBox x:Name="EmailBox" Width="210" ToolTip="Correo de tu cuenta MILTVPLUS"/>
+    <PasswordBox x:Name="PasswordBox" Width="160" Margin="3" Padding="8,7" Background="#101E3D" Foreground="White" BorderBrush="#34496D"/>
+    <Button x:Name="SignInButton" Content="Iniciar sesión" Click="SignIn_Click" Background="#087BFF"/>
+    <Button x:Name="SignOutButton" Content="Cerrar sesión" Click="SignOut_Click" Visibility="Collapsed"/>
+   </StackPanel>
+  </DockPanel>
+  <DockPanel Grid.Row="1" Margin="0,0,0,12">
+   <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+    <Button Content="Populares" Tag="popular" Click="Category_Click"/>
+    <Button Content="Mejor valoradas" Tag="top" Click="Category_Click" x:Name="TopRatedButton"/>
+    <Button Content="Próximos estrenos" Tag="upcoming" Click="Category_Click" x:Name="UpcomingButton"/>
+    <Button Content="En emisión" Tag="airing" Click="Category_Click" x:Name="AiringButton"/>
+   </StackPanel>
+   <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+    <TextBox x:Name="SearchBox" Width="260" ToolTip="Buscar título"/>
+    <Button Content="Buscar" Click="Search_Click" Background="#087BFF"/>
+    <Button Content="Actualizar" Click="Refresh_Click"/>
+   </StackPanel>
+  </DockPanel>
+  <Grid Grid.Row="2">
+   <Grid.ColumnDefinitions><ColumnDefinition Width="390"/><ColumnDefinition Width="12"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+   <Border Grid.Column="0" Background="#0B1428" BorderBrush="#26365D" BorderThickness="1" CornerRadius="12" Padding="8">
+    <DockPanel>
+     <TextBlock DockPanel.Dock="Top" Text="Resultados" Foreground="#7DD3FC" FontWeight="Bold" Margin="5,3,5,8"/>
+     <ListBox x:Name="ResultsList" Background="Transparent" BorderThickness="0" Foreground="White" SelectionChanged="ResultsList_SelectionChanged">
+      <ListBox.ItemTemplate>
+       <DataTemplate>
+        <Border Background="#101E3D" CornerRadius="9" Padding="7" Margin="0,0,0,7">
+         <DockPanel>
+          <Image DockPanel.Dock="Left" Width="66" Height="94" Stretch="UniformToFill" Source="{Binding PosterUrl}" Margin="0,0,10,0"/>
+          <StackPanel VerticalAlignment="Center">
+           <TextBlock Text="{Binding Title}" FontWeight="Bold" TextWrapping="Wrap" FontSize="13"/>
+           <TextBlock Text="{Binding Year}" Foreground="#9FB2D0" FontSize="10" Margin="0,3,0,0"/>
+           <TextBlock Text="{Binding RatingLabel}" Foreground="#7DD3FC" FontSize="10" Margin="0,3,0,0"/>
+          </StackPanel>
+         </DockPanel>
+        </Border>
+       </DataTemplate>
+      </ListBox.ItemTemplate>
+     </ListBox>
+    </DockPanel>
+   </Border>
+   <Border Grid.Column="2" Background="#0B1428" BorderBrush="#26365D" BorderThickness="1" CornerRadius="12" Padding="16">
+    <Grid>
+     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+     <StackPanel Grid.Row="0">
+      <TextBlock x:Name="DetailTitle" Text="Elegí una película o serie" FontSize="24" FontWeight="Black" TextWrapping="Wrap"/>
+      <TextBlock x:Name="DetailMeta" Foreground="#7DD3FC" FontSize="11" Margin="0,5,0,8"/>
+     </StackPanel>
+     <Grid Grid.Row="1">
+      <Grid.ColumnDefinitions><ColumnDefinition Width="190"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+      <StackPanel Grid.Column="0" Margin="0,0,14,0">
+       <Image x:Name="DetailPoster" Height="270" Stretch="UniformToFill"/>
+       <Button x:Name="FavoriteButton" Content="♡ Me gusta" Click="Favorite_Click"/>
+       <Button Content="Compartir · Copiar enlace" Click="Share_Click"/>
+       <Button x:Name="PlayButton" Content="▶ Reproducir" IsEnabled="False" ToolTip="Se habilitará cuando exista una fuente con derechos verificados"/>
+      </StackPanel>
+      <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+       <StackPanel>
+        <TextBlock Text="SINOPSIS" Foreground="#7DD3FC" FontWeight="Bold" FontSize="10"/>
+        <TextBlock x:Name="OverviewText" Text="Iniciá sesión para consultar el catálogo." TextWrapping="Wrap" Foreground="#D5DFEF" Margin="0,5,0,14"/>
+        <TextBlock Text="TRÁILER OFICIAL" Foreground="#7DD3FC" FontWeight="Bold" FontSize="10"/>
+        <wv2:WebView2 x:Name="TrailerView" Height="245" Visibility="Collapsed" Margin="0,7,0,14"/>
+        <TextBlock x:Name="TrailerNotice" Text="No hay tráiler oficial disponible para este título." Foreground="#9FB2D0" Margin="0,6,0,14"/>
+        <StackPanel x:Name="SeasonPanel" Visibility="Collapsed">
+         <TextBlock Text="TEMPORADAS" Foreground="#7DD3FC" FontWeight="Bold" FontSize="10"/>
+         <ComboBox x:Name="SeasonCombo" Height="34" Margin="3,7,3,8" SelectionChanged="SeasonCombo_SelectionChanged"/>
+         <TextBlock Text="EPISODIOS" Foreground="#7DD3FC" FontWeight="Bold" FontSize="10"/>
+         <ItemsControl x:Name="EpisodesList" Margin="0,5,0,12">
+          <ItemsControl.ItemTemplate><DataTemplate>
+           <Border Background="#101E3D" CornerRadius="7" Padding="9" Margin="0,0,0,5">
+            <StackPanel><TextBlock Text="{Binding Name}" FontWeight="Bold"/><TextBlock Text="{Binding Overview}" Foreground="#9FB2D0" TextWrapping="Wrap" FontSize="10" Margin="0,3,0,0"/></StackPanel>
+           </Border>
+          </DataTemplate></ItemsControl.ItemTemplate>
+         </ItemsControl>
+        </StackPanel>
+        <TextBlock x:Name="CreditsText" Foreground="#9FB2D0" TextWrapping="Wrap" Margin="0,8,0,12"/>
+       </StackPanel>
+      </ScrollViewer>
+     </Grid>
+     <TextBlock Grid.Row="2" x:Name="StatusText" Text="Iniciá sesión con tu cuenta MILTVPLUS para consultar TMDB." Foreground="#00D9F5" TextWrapping="Wrap" Margin="0,10,0,0"/>
+    </Grid>
+   </Border>
+  </Grid>
+  <TextBlock Grid.Row="3" Text="This product uses the TMDB API but is not endorsed or certified by TMDB." Foreground="#7386A5" FontSize="10" Margin="4,10,4,0"/>
+ </Grid>
+</Window>
