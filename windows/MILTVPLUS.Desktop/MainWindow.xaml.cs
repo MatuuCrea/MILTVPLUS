@@ -466,6 +466,7 @@ public partial class MainWindow : Window
         _localPlaylistLoaded = false;
         _contentCategoryFilter = section == "Infantil" ? "kids" : section == "Documentales" ? "documentary" : null;
         HomePanel.Visibility = section == "Inicio" ? Visibility.Visible : Visibility.Collapsed;
+        MusicPanel.Visibility = section == "Música" ? Visibility.Visible : Visibility.Collapsed;
         var isAdult = section == "Adultos 18+";
         AdultGatePanel.Visibility = isAdult && !_adultUnlocked ? Visibility.Visible : Visibility.Collapsed;
         AdultPanel.Visibility = isAdult && _adultUnlocked ? Visibility.Visible : Visibility.Collapsed;
