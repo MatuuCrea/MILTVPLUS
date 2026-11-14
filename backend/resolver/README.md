@@ -9,6 +9,7 @@ Node.js 22 + Express service for the MILTVPLUS catalogue and playback hand-off. 
 - Returns native HLS/DASH URLs only when the rights grant is verified, current, region-matched and the source is online.
 - Returns the broadcaster's official HTTPS page for `official_web` and `youtube_live`; playback stays in the broadcaster's official player.
 - Refuses unverified, expired, out-of-region, offline or malformed sources.
+- TV pages and direct streams require an `online` health check no older than 15 minutes; stale checks are hidden from playback until the monitor refreshes them.
 - Does not rewrite, scrape, decrypt, proxy or extract third-party stream URLs. No `yt-dlp`, ad removal, paywall bypass, DRM circumvention, or fake auto-healing.
 - Uses bounded request timeouts, Helmet security headers, rate limiting and exact-origin CORS configuration.
 
