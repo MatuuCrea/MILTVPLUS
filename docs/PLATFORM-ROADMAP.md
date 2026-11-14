@@ -30,7 +30,7 @@ Este documento reúne el orden de trabajo y los criterios de salida. Una tarea s
 | Publicación | Workflows Android/Windows preparados | Release firmada, instalación limpia, QA, atribuciones y notas de versión |
 | Samsung/LG | No son objetivos del APK Android | Apps nativas independientes para Tizen y webOS |
 
-## Prioridad P0 · estabilizar la rama actual\n\n**Estado CI actual:** Android #324 y Windows #165 terminaron con conclusión `success` en el SHA `117e25a12990e6dd1c12c43d8d266f01016ceaef`. Esto verifica compilación, pruebas automatizadas y empaquetado; no equivale a QA físico ni a publicación. El PR #10 sigue abierto y no se fusionó.
+## Prioridad P0 · estabilizar la rama actual\n\n**Último CI completado:** Android #324 y Windows #165 terminaron con conclusión `success` en el SHA `117e25a12990e6dd1c12c43d8d266f01016ceaef`. Después se actualizó la interfaz (rótulo +18) y documentación; por eso el SHA actual `48ce8b963e2d974ac3e36af18a0b241593086d98` tiene Android #326 y Windows #167 en ejecución al momento de esta actualización. Esto verifica compilación, pruebas automatizadas y empaquetado sólo cuando esos nuevos runs concluyan; no equivale a QA físico ni a publicación. El PR #10 sigue abierto y no se fusionó.
 
 1. Mantener PR #10 abierto hasta validar el último SHA y revisar los dos workflows.
 2. Corregir únicamente fallos reproducibles de CI; no ocultar errores ni relajar pruebas para conseguir un verde artificial.
