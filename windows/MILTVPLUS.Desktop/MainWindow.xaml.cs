@@ -13,6 +13,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Threading;
 using System.Windows.Media;
+using MediaPlayer = LibVLCSharp.Shared.MediaPlayer;
 using Microsoft.Win32;
 using LibVLCSharp.Shared;
 
