@@ -48,6 +48,7 @@ import com.matuucrea.miltvplus.ui.RemoteSourcesScreen
 import com.matuucrea.miltvplus.ui.PremiumHomeDashboard
 import com.matuucrea.miltvplus.ui.PremiumSidebar
 import com.matuucrea.miltvplus.ui.PremiumAppTopBar
+import com.matuucrea.miltvplus.ui.MusicExperience
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import android.content.Intent
@@ -136,7 +137,7 @@ class MainActivity:ComponentActivity(){
     var catalogRefresh by remember { mutableIntStateOf(0) }
     var remoteError by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(tab, remoteCategory, catalogRefresh, countryCode) {
-        if (tab == "Catálogo" || (tab == "Inicio" && remoteCategory == "tv_channels")) {
+        if (tab == "Catálogo" || (tab == "Inicio" && remoteCategory == "tv_channels") || (tab == "Música" && remoteCategory == "music_items")) {
             remoteError = null
             while (true) {
                 if (remoteItems.isEmpty()) remoteLoading = true
@@ -188,7 +189,7 @@ class MainActivity:ComponentActivity(){
             "Documentales" -> { remoteCategory = "catalog_items"; remoteKindFilter = "documentary"; tab = "Catálogo" }
             "Apps" -> { remoteKindFilter = null; tab = "Apps" }
             "Fuentes" -> { remoteKindFilter = null; tab = "Fuentes" }
-            "Música" -> { remoteKindFilter = null; tab = "Música" }
+            "Música" -> { remoteCategory = "music_items"; remoteKindFilter = null; tab = "Música" }
             "Cuenta" -> { remoteKindFilter = null; tab = "Cuenta" }
             "Radios" -> { remoteCategory = "radio_stations"; remoteKindFilter = null; tab = "Catálogo" }
             "Teatro" -> { remoteCategory = "theater_events"; remoteKindFilter = null; tab = "Catálogo" }
@@ -379,10 +380,30 @@ class MainActivity:ComponentActivity(){
                     }
                 }
             }
-            "Música"->{Title("Música","Artistas, álbumes y listas publicadas")
-                Button(onClick={ { runCatching { context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse("https://open.spotify.com/"))) }.onFailure { remoteError="No se pudo abrir Spotify." } } },modifier=Modifier.padding(horizontal=16.dp)){Icon(Icons.Default.OpenInNew,null);Text("Abrir Spotify")}
-                Text("La conexión con Spotify abre su servicio oficial. El inicio de sesión OAuth y la reproducción integrada requieren una aplicación Spotify registrada y aprobada.",Modifier.padding(16.dp),color=MaterialTheme.colorScheme.onSurfaceVariant)
-                TextButton(onClick={remoteCategory="music_items";tab="Catálogo"}){Text("Ver música publicada en MILTVPLUS")}
+            "Música"->{
+                MusicExperience(
+                    entries = remoteItems.filterNot { isAdultRating(it.ageRating) },
+                    loading = remoteLoading,
+                    error = remoteError,
+                    query = query,
+                    onQueryChange = { query = it },
+                    player = exoPlayer,
+                    onPlay = { item ->
+                        val stream = item.actionUrl
+                        if (stream != null && isSafeHttpsUrl(stream)) {
+                            exoPlayer.setMediaItem(MediaItem.Builder().setUri(stream).setMediaMetadata(
+                                androidx.media3.common.MediaMetadata.Builder().setTitle(item.title).setArtist(item.subtitle).build()
+                            ).build())
+                            exoPlayer.prepare()
+                            exoPlayer.playWhenReady = true
+                        }
+                    },
+                    onRefresh = { catalogRefresh++ },
+                    onOpenOfficialService = { url ->
+                        runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+                            .onFailure { remoteError = "No se pudo abrir el servicio oficial." }
+                    }
+                )
             }
             else->{Title(if(tab=="TV")"Televisión en vivo" else "Tus favoritos","Elegí un canal para reproducir");OutlinedTextField(query,{query=it},Modifier.fillMaxWidth().padding(horizontal=16.dp),placeholder={Text("Buscar canal o categoría")},singleLine=true);val list=channels.filter{(tab!="Favoritos"||it.id in favorites)&&(it.name.contains(query,true)||it.group.contains(query,true))};if(list.isEmpty())Empty("No hay canales para mostrar","Agregá una lista autorizada desde Fuentes.");LazyColumn(contentPadding=PaddingValues(14.dp)){items(list,key={it.id}){c->ChannelItem(c,c.id in favorites,{launchChannelPlayer(context,channels,channels.indexOfFirst { it.id==c.id })},{vm.toggleFavorite(c.id)})}};selected?.let{channel->Card(Modifier.fillMaxWidth().padding(14.dp),colors=CardDefaults.cardColors(containerColor=Color.Black)){Column(Modifier.padding(12.dp)){Text("REPRODUCIENDO · "+channel.name,color=cyan,fontWeight=FontWeight.Bold);AndroidView(factory={ctx->PlayerView(ctx).apply{player=exoPlayer;useController=true;setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING)}},update={it.player=exoPlayer},modifier=Modifier.fillMaxWidth().height(220.dp));Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){TextButton(onClick={launchChannelPlayer(context,channels,channels.indexOfFirst { it.id==channel.id }.coerceAtLeast(0))}){Text("Pantalla completa")};TextButton(onClick={vm.stop()}){Text("Detener reproducción")}}}}};errorMessage?.let{Text(it,color=orange,modifier=Modifier.padding(12.dp))}}
         }
