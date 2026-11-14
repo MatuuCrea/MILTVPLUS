@@ -17,7 +17,7 @@
 
 const SECTION_CONFIG = Object.freeze({
   tv_en_vivo: { api: "tv_en_vivo", title: "Televisión en Vivo", partition: "country" },
-  deportes: { api: "tv_en_vivo", title: "Deportes en Vivo", partition: "country", filter: "sports" },
+  deportes: { api: "deportes", title: "Deportes en Vivo", partition: "country" },
   peliculas: { api: "peliculas", title: "Películas", partition: "genre" },
   series: { api: "series", title: "Series", partition: "genre" }
 });
