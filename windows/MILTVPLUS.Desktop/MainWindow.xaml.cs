@@ -203,7 +203,20 @@ public partial class MainWindow : Window
 
     private void Filter_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (IsLoaded && !_updatingFilters) ApplySearch();
+        if (!IsLoaded || _updatingFilters) return;
+        var code = CountryFilter.SelectedItem?.ToString() ?? "Todos";
+        CountryPhrase.Text = code switch
+        {
+            "AR" => "Argentina · Siempre en tu corazón 🇦🇷",
+            "US" => "Estados Unidos · Un mundo de historias 🇺🇸",
+            "ES" => "España · Cultura que nos une 🇪🇸",
+            "MX" => "México · Tradición y emoción 🇲🇽",
+            "CO" => "Colombia · Pasión que se comparte 🇨🇴",
+            "CL" => "Chile · Un país, mil paisajes 🇨🇱",
+            "BR" => "Brasil · Ritmo y alegría 🇧🇷",
+            _ => "Desde Argentina para el mundo 🇦🇷"
+        };
+        ApplySearch();
     }
 
     private async void Refresh_Click(object sender, RoutedEventArgs e) => await LoadCatalog();
