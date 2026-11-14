@@ -232,9 +232,10 @@ class MainActivity:ComponentActivity(){
                     countryFlag=countryFlag(countryCode),
                     channelCount=playableCountryItems.size,
                     featuredTitle=featured?.title,
-                    loading=remoteLoading,
-                    errorMessage=remoteError
-                , onNavigate = navigateTo)
+                    loading = remoteLoading,
+                    errorMessage = remoteError,
+                    onNavigate = navigateTo
+                )
             }
             "Catálogo"->{Row(Modifier.fillMaxWidth().padding(end=12.dp),verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Title("Catálogo global","Contenido publicado desde tu backend seguro")};IconButton(onClick={catalogRefresh++},enabled=!remoteLoading){Icon(Icons.Default.Refresh,"Actualizar catálogo",tint=cyan)}};TextButton(onClick={remoteCategory="tv_channels";tab="Inicio"},modifier=Modifier.padding(start=12.dp)){Text("← Volver a Inicio")}
                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal=12.dp),horizontalArrangement=Arrangement.spacedBy(6.dp)){
