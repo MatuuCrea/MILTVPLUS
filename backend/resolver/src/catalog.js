@@ -5,6 +5,13 @@ const TV_FIELDS = [
   "rights_regions", "rights_valid_from", "rights_valid_until", "is_published"
 ].join(",");
 
+const MUSIC_FIELDS = [
+  "id", "title", "creator", "description", "country_code", "item_type", "album", "genre",
+  "release_year", "external_url", "artwork_url", "stream_url", "rights_verified",
+  "rights_holder", "rights_reference", "rights_regions", "rights_valid_from", "rights_valid_until",
+  "is_published"
+].join(",");
+
 const MEDIA_FIELDS = [
   "id", "title", "description", "kind", "country_code", "language_code", "genre", "genres",
   "release_year", "duration_seconds", "age_rating", "poster_url", "backdrop_url",
@@ -65,12 +72,17 @@ export class SupabaseCatalog {
   }
 
   async list({ category, country, accessToken }) {
-    const query = new URLSearchParams({ select: category === "tv_en_vivo" ? TV_FIELDS : MEDIA_FIELDS, is_published: "eq.true", order: "title.asc", limit: "500" });
+    const query = new URLSearchParams({ select: category === "tv_en_vivo" ? TV_FIELDS : category === "musica" ? MUSIC_FIELDS : MEDIA_FIELDS, is_published: "eq.true", order: "title.asc", limit: "500" });
     if (country !== "ALL") query.set("country_code", "eq." + country);
 
     if (category === "tv_en_vivo") {
       query.set("playback_type", "in.(official_web,hls,dash,youtube_live)");
       return this.request("/rest/v1/tv_channels?" + query, accessToken);
+    }
+
+    if (category === "musica") {
+      query.set("order", "created_at.desc");
+      return this.request("/rest/v1/music_items?" + query, accessToken);
     }
 
     if (category === "peliculas") {
@@ -96,7 +108,7 @@ export class SupabaseCatalog {
 
   async find({ category, country, id, accessToken }) {
     const query = new URLSearchParams({
-      select: category === "tv_en_vivo" ? TV_FIELDS : MEDIA_FIELDS,
+      select: category === "tv_en_vivo" ? TV_FIELDS : category === "musica" ? MUSIC_FIELDS : MEDIA_FIELDS,
       id: "eq." + id,
       is_published: "eq.true",
       limit: "1"
@@ -107,7 +119,9 @@ export class SupabaseCatalog {
     if (category === "tv_en_vivo") {
       path = "/rest/v1/tv_channels?" + query;
     } else {
-      if (category === "peliculas") {
+      if (category === "musica") {
+        path = "/rest/v1/music_items?" + query;
+      } else if (category === "peliculas") {
         query.set("kind", "eq.movie");
         query.set("is_adult_content", "eq.false");
       } else if (category === "series") {
@@ -119,7 +133,7 @@ export class SupabaseCatalog {
       } else {
         throw new CatalogError("Categoría no admitida.", 400);
       }
-      path = "/rest/v1/catalog_items?" + query;
+      if (category !== "musica") path = "/rest/v1/catalog_items?" + query;
     }
     const rows = await this.request(path, accessToken);
     return Array.isArray(rows) ? rows[0] ?? null : null;

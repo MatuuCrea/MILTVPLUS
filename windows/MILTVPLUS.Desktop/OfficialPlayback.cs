@@ -16,7 +16,12 @@ public partial class MainWindow
     private async void Watch_Click(object sender, RoutedEventArgs e)
     {
         if ((sender as FrameworkElement)?.DataContext is not CatalogEntry selected) return;
-        var visible = Catalog.ItemsSource as IEnumerable<CatalogEntry>;
+        if (Sections.SelectedItem is ListBoxItem section && section.Tag?.ToString() == "Música")
+        {
+            PlayEntry(selected);
+            return;
+        }
+        var visible = CatalogScroll.ItemsSource as IEnumerable<CatalogEntry>;
         _watchQueue.Clear();
         _watchQueue.AddRange((visible ?? entries).Where(IsWatchable));
         if (!_watchQueue.Any(x => ReferenceEquals(x, selected) || x.Title == selected.Title))
@@ -47,7 +52,7 @@ public partial class MainWindow
 
     private void SyncWatchQueueWithCatalog()
     {
-        if (Catalog.ItemsSource is not IEnumerable<CatalogEntry> visible) return;
+        if (CatalogScroll.ItemsSource is not IEnumerable<CatalogEntry> visible) return;
         var refreshed = visible.Where(IsWatchable).ToList();
         if (refreshed.Count == 0) return;
         var currentTitle = _currentEntry?.Title;
@@ -145,9 +150,25 @@ public partial class MainWindow
 
     private async Task ChangeWatchChannelAsync(int delta)
     {
+        if (Sections.SelectedItem is ListBoxItem selectedSection && selectedSection.Tag?.ToString() == "Música")
+        {
+            var playableMusic = CurrentPlayableEntries();
+            if (playableMusic.Count == 0)
+            {
+                StatusText.Text = "No hay pistas con audio directo disponible en el filtro actual.";
+                return;
+            }
+            var currentMusicIndex = _currentEntry is null ? -1 :
+                playableMusic.FindIndex(x => x.Id == _currentEntry.Id);
+            var nextMusicIndex = currentMusicIndex < 0
+                ? (delta > 0 ? 0 : playableMusic.Count - 1)
+                : (currentMusicIndex + delta + playableMusic.Count) % playableMusic.Count;
+            PlayEntry(playableMusic[nextMusicIndex]);
+            return;
+        }
         if (_watchQueue.Count == 0)
         {
-            var visible = Catalog.ItemsSource as IEnumerable<CatalogEntry>;
+            var visible = CatalogScroll.ItemsSource as IEnumerable<CatalogEntry>;
             _watchQueue.AddRange((visible ?? entries).Where(IsWatchable));
         }
         if (_watchQueue.Count == 0)

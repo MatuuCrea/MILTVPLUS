@@ -22,6 +22,7 @@ public partial class MainWindow : Window
     private const string Api = "https://rbnuxapfsnaabrzuxvdy.supabase.co/rest/v1/";
     private const string PublicKey = "sb_publishable_tmBU-IB7P0db0w7RG9TMEw_GD754hb7";
     private static readonly HttpClient Client = new() { Timeout = TimeSpan.FromSeconds(20) };
+    private static readonly HttpClient ResolverClient = new() { Timeout = TimeSpan.FromSeconds(90) };
     private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
     private readonly LibVLC _libVlc;
     private readonly MediaPlayer _mediaPlayer;
@@ -52,6 +53,14 @@ public partial class MainWindow : Window
         InitializeComponent();
         LoadDesktopSettings();
         VideoSurface.MediaPlayer = _mediaPlayer;
+        _mediaPlayer.EndReached += (_, _) =>
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (Sections.SelectedItem is ListBoxItem selected && selected.Tag?.ToString() == "Música")
+                    ChangeChannel(1);
+            }));
+        };
         UpdateClock();
         _clockTimer.Tick += (_, _) => UpdateClock();
         _clockTimer.Start();
@@ -155,7 +164,7 @@ public partial class MainWindow : Window
         {
             StatusText.Text = "No se pudo cargar el catálogo: " + ex.Message;
             entries = [];
-            Catalog.ItemsSource = entries;
+            CatalogScroll.ItemsSource = entries;
         }
     }
 
@@ -183,7 +192,7 @@ public partial class MainWindow : Window
         var term = SearchBox.Text.Trim();
         var country = CountryFilter.SelectedItem?.ToString();
         var category = CategoryFilter.SelectedItem?.ToString();
-        Catalog.ItemsSource = entries.Where(x =>
+        CatalogScroll.ItemsSource = entries.Where(x =>
             (string.IsNullOrEmpty(term) ||
                 (x.Title + " " + x.Description + " " + x.Genre + " " + x.Creator + " " + x.CountryCode + " " + x.Category + " " + x.LanguageCode + " " + x.SourceStatus + " " + x.AccessModel)
                 .Contains(term, StringComparison.OrdinalIgnoreCase)) &&
@@ -238,31 +247,22 @@ public partial class MainWindow : Window
         if ((sender as FrameworkElement)?.DataContext is CatalogEntry item) PlayEntry(item);
     }
 
-    private void PlayEntry(CatalogEntry item)
+    private async void PlayEntry(CatalogEntry item)
     {
-        if (!Uri.TryCreate(item.StreamUrl ?? item.AuthorizedStreamUrl, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps || (!item.HasActivePlaybackRights && !item.IsUserProvidedSource))
+        var isMusic = Sections.SelectedItem is ListBoxItem selected && selected.Tag?.ToString() == "Música";
+        string? streamUrl = item.StreamUrl ?? item.AuthorizedStreamUrl;
+        if (isMusic)
         {
-            var officialMusicUrl = item.ExternalUrl ?? item.OfficialWatchUrl;
-            if (Sections.SelectedItem is ListBoxItem selected && selected.Tag?.ToString() == "Música" && IsHttps(officialMusicUrl))
-            {
-                try
-                {
-                    Process.Start(new ProcessStartInfo(officialMusicUrl!) { UseShellExecute = true });
-                    StatusText.Text = "Abriendo la fuente musical oficial en tu navegador.";
-                }
-                catch (Exception ex) { StatusText.Text = "No se pudo abrir la fuente oficial: " + ex.Message; }
-                return;
-            }
-            if (IsHttps(item.OfficialWatchUrl))
-            {
-                StatusText.Text = "No hay derechos activos para reproducción directa en esta región. Abriendo únicamente la página oficial del emisor.";
-                _ = WatchEntryAsync(item);
-                return;
-            }
-            StatusText.Text = "Este canal todavía no tiene una señal HTTPS verificada ni una página oficial de visualización.";
+            try { streamUrl = await ResolveMusicUrlAsync(item); }
+            catch (Exception ex) { StatusText.Text = "Música no disponible para reproducción interna: " + ex.Message; return; }
+        }
+        if (!Uri.TryCreate(streamUrl, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps || (!isMusic && !item.HasActivePlaybackRights && !item.IsUserProvidedSource))
+        {
+            StatusText.Text = isMusic
+                ? "Esta pista no tiene una fuente de audio directa disponible para tu región."
+                : "Este contenido todavía no tiene una señal HTTPS verificada. No se abrirán aplicaciones externas.";
             return;
         }
-
         try
         {
             _currentEntry = item;
@@ -274,9 +274,33 @@ public partial class MainWindow : Window
         catch (Exception ex) { StatusText.Text = "Error de reproducción: " + ex.Message; }
     }
 
+    private async Task<string> ResolveMusicUrlAsync(CatalogEntry item)
+    {
+        if (string.IsNullOrWhiteSpace(item.Id)) throw new InvalidOperationException("La pista no tiene un identificador válido.");
+        var resolver = (Environment.GetEnvironmentVariable("MILTVPLUS_RESOLVER_URL") ?? "https://miltvplus-resolver-api.onrender.com").TrimEnd('/');
+        if (!Uri.TryCreate(resolver, UriKind.Absolute, out var baseUri) || baseUri.Scheme != Uri.UriSchemeHttps)
+            throw new InvalidOperationException("El servicio de música no está configurado.");
+        var country = item.CountryCode;
+        if (string.IsNullOrWhiteSpace(country) || !System.Text.RegularExpressions.Regex.IsMatch(country, "^[A-Z]{2}$"))
+            country = RegionInfo.CurrentRegion.TwoLetterISORegionName;
+        using var response = await ResolverClient.GetAsync($"{resolver}/api/v2/resolve/musica/{country}/{Uri.EscapeDataString(item.Id)}");
+        using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        var root = document.RootElement;
+        if (!response.IsSuccessStatusCode || !root.TryGetProperty("success", out var success) || !success.GetBoolean() ||
+            !root.TryGetProperty("mode", out var mode) || mode.GetString() != "direct_stream" ||
+            !root.TryGetProperty("mediaType", out var mediaType) || mediaType.GetString() != "audio" ||
+            !root.TryGetProperty("streamUrl", out var stream) || !Uri.TryCreate(stream.GetString(), UriKind.Absolute, out var audioUri) ||
+            audioUri.Scheme != Uri.UriSchemeHttps)
+        {
+            var message = root.TryGetProperty("error", out var error) ? error.GetString() : null;
+            throw new InvalidOperationException(message ?? "El servidor no autorizó esta pista.");
+        }
+        return audioUri!.ToString();
+    }
+
     private List<CatalogEntry> CurrentPlayableEntries()
     {
-        if (Catalog.ItemsSource is IEnumerable<CatalogEntry> visible)
+        if (CatalogScroll.ItemsSource is IEnumerable<CatalogEntry> visible)
         {
             var filtered = visible.Where(x => x.HasActivePlaybackRights || x.IsUserProvidedSource).Where(x => Uri.TryCreate(x.StreamUrl, UriKind.Absolute, out var u) && u.Scheme == Uri.UriSchemeHttps).ToList();
             if (filtered.Count > 0) return filtered;
@@ -349,18 +373,9 @@ public partial class MainWindow : Window
 
     private void OpenNotifications_Click(object sender, RoutedEventArgs e) => StatusText.Text = "No hay un servicio de notificaciones push conectado en esta compilación.";
     private void OpenSettings_Click(object sender, RoutedEventArgs e) => QuickSelect("Configuración");
-    private void SearchYouTubeMusic_Click(object sender, RoutedEventArgs e) => OpenOfficialMusicSearch("https://music.youtube.com/search?q=");
-    private void SearchSpotify_Click(object sender, RoutedEventArgs e) => OpenOfficialMusicSearch("https://open.spotify.com/search/");
-    private void OpenOfficialMusicSearch(string baseUrl)
-    {
-        try
-        {
-            var term = Uri.EscapeDataString(SearchBox.Text?.Trim() ?? string.Empty);
-            Process.Start(new ProcessStartInfo(baseUrl + term) { UseShellExecute = true });
-            StatusText.Text = "Abriendo la búsqueda musical oficial en tu navegador.";
-        }
-        catch (Exception ex) { StatusText.Text = "No se pudo abrir la búsqueda musical: " + ex.Message; }
-    }
+    private void SearchYouTubeMusic_Click(object sender, RoutedEventArgs e) => StatusText.Text = "La música se reproduce dentro de MILTVPLUS cuando hay una pista directa disponible.";
+    private void SearchSpotify_Click(object sender, RoutedEventArgs e) => StatusText.Text = "La música se reproduce dentro de MILTVPLUS cuando hay una pista directa disponible.";
+
     private void OpenAccount_Click(object sender, RoutedEventArgs e) =>
         MessageBox.Show(this, "La gestión de cuenta y sincronización está disponible en el cliente Android. Esta compilación de escritorio usa el catálogo público y fuentes locales.", "MILTVPLUS · Cuenta", MessageBoxButton.OK, MessageBoxImage.Information);
 
@@ -529,6 +544,17 @@ public partial class MainWindow : Window
         }
     }
 
+    private void MusicPause_Click(object sender, RoutedEventArgs e)
+    {
+        if (_currentMedia is null)
+        {
+            StatusText.Text = "Todavía no hay música en reproducción.";
+            return;
+        }
+        _mediaPlayer.Pause();
+        StatusText.Text = _mediaPlayer.IsPlaying ? "Música reanudada." : "Música pausada.";
+    }
+
     private void Stop_Click(object sender, RoutedEventArgs e)
     {
         _mediaPlayer.Stop();
@@ -565,7 +591,7 @@ public partial class MainWindow : Window
         if (section == "Configuración")
         {
             entries = [];
-            Catalog.ItemsSource = entries;
+            CatalogScroll.ItemsSource = entries;
             PageTitle.Text = "Configuración";
             StatusText.Text = "Administrá actualizaciones, comportamiento de ventana y volumen de reproducción.";
             return;
@@ -573,7 +599,7 @@ public partial class MainWindow : Window
         if (isAdult && !_adultUnlocked)
         {
             entries = [];
-            Catalog.ItemsSource = entries;
+            CatalogScroll.ItemsSource = entries;
             PageTitle.Text = "Adultos 18+ · Acceso protegido";
             StatusText.Text = "Confirmá tu edad y validá tu PIN parental para continuar.";
             return;
@@ -613,6 +639,7 @@ public partial class MainWindow : Window
 
     private sealed class CatalogEntry
     {
+        [JsonPropertyName("id")] public string? Id { get; set; }
         public string? Title { get; set; }
         public string? Description { get; set; }
         [JsonPropertyName("country_code")] public string? CountryCode { get; set; }

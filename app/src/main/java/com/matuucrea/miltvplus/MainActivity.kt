@@ -32,8 +32,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import androidx.media3.common.C
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.ui.PlayerView
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
@@ -90,7 +92,12 @@ class MainActivity:ComponentActivity(){
 @Composable private fun App(onThemeChanged:(String,String)->Unit, authCallback:Uri?=null, vm:PlayerViewModel=viewModel()){
     val context=LocalContext.current
     val exoPlayer = remember(context) {
+        val loadControl = DefaultLoadControl.Builder()
+            .setBufferDurationsMs(8_000, 30_000, 1_000, 2_000)
+            .setPrioritizeTimeOverSizeThresholds(true)
+            .build()
         ExoPlayer.Builder(context)
+            .setLoadControl(loadControl)
             .setAudioAttributes(
                 androidx.media3.common.AudioAttributes.Builder()
                     .setUsage(C.USAGE_MEDIA)
@@ -120,6 +127,7 @@ class MainActivity:ComponentActivity(){
     DisposableEffect(exoPlayer) { onDispose { exoPlayer.release() } }
     var tab by remember { mutableStateOf("Inicio") }; var query by remember { mutableStateOf("") }; var updateNotice by remember { mutableStateOf<String?>(null) }
     val remoteRepository = remember { SupabaseCatalogRepository() }
+    val musicResolver = remember { com.matuucrea.miltvplus.player.MusicResolverRepository() }
     val authRepository = remember(context) { SupabaseAuthRepository(context) }
     val userRepository = remember { SupabaseUserRepository { authRepository.restoreSession() } }
     var authSession by remember { mutableStateOf<AuthSession?>(authRepository.currentSession()) }
@@ -464,39 +472,40 @@ class MainActivity:ComponentActivity(){
                     onQueryChange = { query = it },
                     player = musicController ?: exoPlayer,
                     onPlay = { item, queue ->
-                        val playable = queue.filter { it.actionUrl?.let(::isSafeHttpsUrl) == true }
-                        val startIndex = playable.indexOfFirst { it.id == item.id }
                         val controller = musicController
                         if (controller == null) {
                             remoteError = "El reproductor de música se está conectando. Probá nuevamente en un instante."
-                        } else if (startIndex >= 0) {
-                            val mediaItems = playable.map { track ->
-                                MediaItem.Builder().setUri(track.actionUrl!!)
-                                    .setMediaMetadata(
-                                        androidx.media3.common.MediaMetadata.Builder()
-                                            .setTitle(track.title)
-                                            .setArtist(track.subtitle)
-                                            .setArtworkUri(track.artworkUrl?.let(Uri::parse))
-                                            .build()
-                                    ).build()
+                        } else {
+                            uiScope.launch {
+                                remoteError = null
+                                val playable = queue.asSequence().filter { it.actionUrl != null && it.id.matches(Regex("(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")) }.take(40).toList()
+                                val resolved = playable.mapNotNull { track ->
+                                    musicResolver.resolve(track.id, countryCode).getOrNull()?.let { track to it }
+                                }
+                                val startIndex = resolved.indexOfFirst { it.first.id == item.id }
+                                if (startIndex < 0) {
+                                    remoteError = "Esta pista no tiene una fuente de audio directa disponible para tu país."
+                                } else {
+                                    val mediaItems = resolved.map { (track, audio) ->
+                                        MediaItem.Builder().setMediaId(track.id).setUri(audio.streamUrl)
+                                            .setMediaMetadata(
+                                                androidx.media3.common.MediaMetadata.Builder()
+                                                    .setTitle(audio.title.ifBlank { track.title })
+                                                    .setArtist(audio.creator.ifBlank { track.subtitle })
+                                                    .setAlbumTitle(audio.album)
+                                                    .setArtworkUri(audio.artworkUrl?.let(Uri::parse) ?: track.artworkUrl?.let(Uri::parse))
+                                                    .build()
+                                            ).build()
+                                    }
+                                    controller.setMediaItems(mediaItems, startIndex, 0L)
+                                    controller.repeatMode = Player.REPEAT_MODE_ALL
+                                    controller.prepare()
+                                    controller.play()
+                                }
                             }
-                            controller.setMediaItems(mediaItems, startIndex, 0L)
-                            controller.prepare()
-                            controller.play()
                         }
                     },
-                    onOpenOfficialItem = { item ->
-                        val officialUrl = item.infoUrl
-                        if (officialUrl != null && isSafeHttpsUrl(officialUrl)) {
-                            runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(officialUrl))) }
-                                .onFailure { remoteError = "No se pudo abrir la fuente oficial de música." }
-                        }
-                    },
-                    onRefresh = { catalogRefresh++ },
-                    onOpenOfficialService = { url ->
-                        runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
-                            .onFailure { remoteError = "No se pudo abrir el servicio oficial." }
-                    }
+                    onRefresh = { catalogRefresh++ }
                 )
             }
             else->{Title(if(tab=="TV")"Televisión en vivo" else "Tus favoritos","Elegí un canal para reproducir");OutlinedTextField(query,{query=it},Modifier.fillMaxWidth().padding(horizontal=16.dp),placeholder={Text("Buscar canal o categoría")},singleLine=true);val list=channels.filter{(tab!="Favoritos"||it.id in favorites)&&(it.name.contains(query,true)||it.group.contains(query,true))};if(list.isEmpty())Empty("No hay canales para mostrar","Agregá una lista autorizada desde Fuentes.");LazyColumn(contentPadding=PaddingValues(14.dp)){items(list,key={it.id}){c->ChannelItem(c,c.id in favorites,{launchChannelPlayer(context,channels,channels.indexOfFirst { it.id==c.id })},{vm.toggleFavorite(c.id)})}};selected?.let{channel->Card(Modifier.fillMaxWidth().padding(14.dp),colors=CardDefaults.cardColors(containerColor=Color.Black)){Column(Modifier.padding(12.dp)){Text("REPRODUCIENDO · "+channel.name,color=cyan,fontWeight=FontWeight.Bold);AndroidView(factory={ctx->PlayerView(ctx).apply{player=exoPlayer;useController=true;setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING)}},update={it.player=exoPlayer},modifier=Modifier.fillMaxWidth().height(220.dp));Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){TextButton(onClick={launchChannelPlayer(context,channels,channels.indexOfFirst { it.id==channel.id }.coerceAtLeast(0))}){Text("Pantalla completa")};TextButton(onClick={vm.stop()}){Text("Detener reproducción")}}}}};errorMessage?.let{Text(it,color=orange,modifier=Modifier.padding(12.dp))}}
