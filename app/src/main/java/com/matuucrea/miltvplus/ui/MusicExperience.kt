@@ -39,6 +39,7 @@ fun MusicExperience(
     onQueryChange: (String) -> Unit,
     player: ExoPlayer,
     onPlay: (RemoteCatalogEntry) -> Unit,
+    onOpenOfficialItem: (RemoteCatalogEntry) -> Unit,
     onRefresh: () -> Unit,
     onOpenOfficialService: (String) -> Unit
 ) {
@@ -88,7 +89,7 @@ fun MusicExperience(
 Subí el volumen.", color = Color.White, fontSize = 28.sp, lineHeight = 32.sp, fontWeight = FontWeight.Black)
                     Text("Elegí una canción del catálogo autorizado y dejá que la música acompañe tu día.", color = Color(0xFFE0D9EE), style = MaterialTheme.typography.bodyMedium)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(onClick = { visible.firstOrNull { it.actionUrl != null }?.let(onPlay) }, enabled = visible.any { it.actionUrl != null },
+                        Button(onClick = { visible.firstOrNull { it.actionUrl != null }?.let(onPlay) ?: visible.firstOrNull { it.infoUrl != null }?.let(onOpenOfficialItem) }, enabled = visible.any { it.actionUrl != null || it.infoUrl != null },
                             colors = ButtonDefaults.buttonColors(containerColor = MusicPink, contentColor = Color(0xFF210D20))) {
                             Icon(Icons.Default.PlayArrow, null); Spacer(Modifier.width(5.dp)); Text("Escuchar ahora")
                         }
@@ -150,8 +151,8 @@ Subí el volumen.", color = Color.White, fontSize = 28.sp, lineHeight = 32.sp, f
                                 Text(item.title, color = Color.White, fontWeight = FontWeight.Bold, maxLines = 1)
                                 Text(item.subtitle.ifBlank { item.category }, color = Color(0xFFBEB6CD), style = MaterialTheme.typography.bodySmall, maxLines = 2)
                             }
-                            IconButton(onClick = { onPlay(item) }, enabled = item.actionUrl != null) {
-                                Icon(Icons.Default.PlayCircleFilled, "Reproducir ${item.title}", tint = if (item.actionUrl != null) MusicPink else Color.Gray, modifier = Modifier.size(30.dp))
+                            IconButton(onClick = { if (item.actionUrl != null) onPlay(item) else onOpenOfficialItem(item) }, enabled = item.actionUrl != null || item.infoUrl != null) {
+                                Icon(if (item.actionUrl != null) Icons.Default.PlayCircleFilled else Icons.Default.OpenInNew, "Abrir o reproducir música", tint = MusicPink, modifier = Modifier.size(30.dp))
                             }
                         }
                     }
