@@ -56,3 +56,11 @@
 4. Completar grilla EPG y pantallas dedicadas de temporadas/episodios con datos reales.
 5. Mantener TMDB desactivado para uso público hasta completar atribución oficial y confirmar términos aplicables.
 6. Incorporar streams directos únicamente con derechos verificables por territorio y vigencia; el catálogo actual no autoriza inventar ni inferir URLs.
+
+
+## Windows: favoritos locales y centro de soporte
+
+- Implementado en la rama `feat/windows-favorites-support-center`: favoritos locales para fichas publicadas de TV y películas/series; se persisten en `%LOCALAPPDATA%\\MILTVPLUS\\desktop-settings.json` y se vuelven a consultar al abrir Favoritos, de modo que una ficha retirada del catálogo deja de aparecer.
+- Las fuentes M3U importadas no se mezclan con favoritos editoriales. El alcance actual no sincroniza favoritos con Android ni requiere iniciar sesión.
+- Centro de soporte integrado en la navegación Windows: guía de instalación, incidencias GitHub, releases oficiales y exportación de diagnóstico técnico sin email, contraseñas, tokens ni cookies.
+- Validar con CI Windows: compilación WPF y empaquetado x64. QA manual pendiente en Windows 10/11 limpio, instalación/desinstalación y exportación del diagnóstico.
