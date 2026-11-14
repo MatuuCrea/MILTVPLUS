@@ -19,7 +19,7 @@ const activeRights = {
 const tvRows = [
   {
     id: "11111111-1111-4111-8111-111111111111", title: "Official YouTube",
-    playback_type: "youtube_live", source_status: "online",
+    playback_type: "youtube_live", source_status: "online", last_checked_at: new Date().toISOString(),
     official_watch_url: "https://www.youtube.com/@Example/live",
     stream_url: "https://youtube.invalid/extracted.m3u8", ...activeRights
   },
@@ -115,4 +115,4 @@ test("adult catalogue requires a signed-in account and recorded consent", async 
   assert.equal(allowed.status, 200);
   assert.equal(body.count, 1);
   assert.equal(body.items[0].is_adult_content, true);
-});
+});, last_checked_at: new Date().toISOString(), last_checked_at: new Date().toISOString()
