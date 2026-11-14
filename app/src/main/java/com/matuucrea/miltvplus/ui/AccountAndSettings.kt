@@ -256,6 +256,7 @@ fun SettingsScreen(
         HorizontalDivider()
         Text("Privacidad y seguridad", style = MaterialTheme.typography.titleMedium)
         Text("Las sesiones Android se cifran con Android Keystore; los datos de cuenta se aíslan con RLS. No se integra publicidad ni analítica de terceros en esta versión. Podés cerrar sesión desde Cuenta y administrar el acceso +18 desde su sección.", style = MaterialTheme.typography.bodySmall)
+        Text("Créditos de catálogo: This product uses the TMDB API but is not endorsed or certified by TMDB. TMDB aporta metadatos e imágenes, no derechos de reproducción. Más información: themoviedb.org/about/logos-attribution.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         HorizontalDivider()
         AppUpdateSection()
         Text("Accesibilidad", style = MaterialTheme.typography.titleMedium)

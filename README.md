@@ -1,5 +1,7 @@
 # MILTVPLUS V22.34.9
 
+**Compromiso del producto:** MILTVPLUS es 100 % gratuita, sin anuncios, suscripciones, compras ni monetización. Ver [Política de producto](docs/PRODUCT-POLICY.md).
+
 MILTVPLUS es un producto de aplicaciones instalables nativas: Android (teléfonos, Android TV, TV Box y TV Stick con Android compatible) y Windows x64. No se ofrece una PWA ni una página web como aplicación.
 
 ## Android
@@ -29,6 +31,10 @@ APK: `app/build/outputs/apk/debug/app-debug.apk`. La APK debug se firma con la c
 Cliente de escritorio nativo WPF/.NET 8 en `windows/MILTVPLUS.Desktop`. Usa LibVLC para streams HLS/DASH directos y Microsoft Edge WebView2 para mostrar dentro de la aplicación las páginas oficiales de los emisores cuando no hay un endpoint directo autorizado. El visor oficial sólo puede reproducir lo que el propio emisor permita; respeta sus restricciones, DRM y geobloqueos. Si WebView2 Runtime no está instalado o el emisor bloquea la vista integrada, se informa dentro de MILTVPLUS y la aplicación permanece abierta; no se lanza un navegador externo desde el flujo de TV. Incluye navegación de secciones, búsqueda, consulta por tabla con proyecciones compatibles con el esquema real de Supabase y generación automática del icono Windows desde el logotipo de marca para el ejecutable y el instalador.
 
 El workflow `.github/workflows/windows.yml` publica la aplicación x64 autocontenida y construye un instalador `MILTVPLUS-Setup-x64.exe` con Inno Setup. Windows consulta la última release al iniciar y permite descargar el instalador oficial, verificar SHA-256 y ejecutar el actualizador con confirmación. El workflow `.github/workflows/release-native.yml` prepara un APK release firmado y el EXE como activos directos de una GitHub Release al etiquetar `v*`; el flujo genera `SHA256SUMS`, exige los secretos protegidos de firma Android y falla de forma segura si faltan. Hasta publicar la primera release firmada, los actualizadores no encontrarán una versión descargable. El cliente Windows incorpora reproducción mediante LibVLC y WebView2, pantalla completa automática al seleccionar un canal (F11/Escape/doble clic), cambio anterior/siguiente entre señales directas y páginas oficiales, decodificación por hardware, caché de red y reconexión HTTP; valida HTTPS antes de iniciar un flujo e importa listas M3U/M3U8 con límite de 5 MB. La lista local no se sincroniza con la nube ni se considera verificada por el mero hecho de usar HTTPS. Todavía faltan Auth, favoritos, control +18, preferencias, EPG/series completas y QA físico; no se declara paridad funcional con Android. La nueva sección Canales por país también consulta `tv_channels` y abre la página oficial si no hay URL directa.
+
+## Catálogo TMDB (metadatos)
+
+La rama de integración incorpora una Edge Function `tmdb-catalog` con lista cerrada de operaciones para películas y series, búsquedas, fichas, reparto y temporadas. Usa `TMDB_READ_ACCESS_TOKEN` (preferido) o `TMDB_API_KEY` como credenciales de servidor; nunca se incluyen en Android, Windows ni Git. La función exige JWT de usuario, limita rutas/IDs/parámetros, usa idioma `es-AR`, región `AR` para películas y caché temporal en memoria de cada instancia. Android incorpora pantallas de Películas y Series con búsqueda, categorías, pósteres, fichas y reparto; requieren iniciar sesión. Los datos TMDB son metadatos e imágenes, no licencias ni streams reproducibles. Antes de desplegar/activar el uso público debe confirmarse la modalidad de licencia TMDB aplicable al producto.
 
 ## Compatibilidad y criterios de lanzamiento
 

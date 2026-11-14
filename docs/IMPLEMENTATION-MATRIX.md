@@ -12,6 +12,7 @@ La arquitectura de producto es nativa: Android y Windows. No existe cliente Web/
 | Favoritos y preferencias | Sincronización Supabase con RLS | Conflictos offline y QA multi-dispositivo |
 | +18 Android | PIN PBKDF2, bloqueo temporal, declaración y filtros | Verificación de edad conforme a cada jurisdicción |
 | Catálogo editorial | Tablas y reglas RLS/derechos | Catálogo vacío; incorporar proveedores y derechos reales |
+| TMDB películas/series | Edge Function con rutas permitidas, JWT requerido, secretos servidor, búsqueda, listas, fichas y reparto; pantallas Android | Configurar secretos en Supabase, validar licencia TMDB y desplegar función; QA en móvil/TV |
 | Series | Modelo de series/temporadas/episodios | Pantalla dedicada y contenido real |
 | EPG | Consulta ordenada y agrupada por canal | Grilla temporal y datos de varios días |
 | Deportes/radio/música/teatro | Modelos y navegación Android | Datos y fuentes autorizadas; Spotify sigue siendo enlace externo |
