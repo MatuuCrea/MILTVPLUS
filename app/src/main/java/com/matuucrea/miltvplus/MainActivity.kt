@@ -430,7 +430,7 @@ class MainActivity:ComponentActivity(){
                     item.actionUrl?.let { vm.play(Channel(item.id,item.title,it,item.subtitle,item.artworkUrl)) }
                 }
             }
-            "Países"->{CountryPickerScreen { country ->
+            "Países"->{CountryPickerScreen(channelCounts = remoteItems.groupingBy { it.countryCode }.eachCount()) { country ->
                 countryCode=country.code
                 val prefs=context.getSharedPreferences("miltvplus_preferences",0)
                 uiScope.launch { if(authSession!=null) runCatching { userRepository.savePreferences(prefs.getString("theme","dark")?:"dark",country.code,prefs.getString("language","es")?:"es",prefs.getBoolean("subtitles",true),prefs.getBoolean("notifications",true),prefs.getBoolean("autoplay",false),prefs.getString("accent_color","electric-blue")?:"electric-blue",prefs.getString("audio_language","original")?.takeIf{it!="original"}) } }
