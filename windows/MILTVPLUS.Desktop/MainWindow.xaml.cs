@@ -564,6 +564,7 @@ public partial class MainWindow : Window
 
     private sealed class DesktopSettings
     {
+        public DesktopSettings() { }
         public bool AutoCheckUpdates { get; set; } = true;
         public bool AlwaysOnTop { get; set; }
         public bool StartMaximized { get; set; }
