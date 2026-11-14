@@ -52,6 +52,14 @@ public partial class MainWindow : Window
         InitializeComponent();
         LoadDesktopSettings();
         VideoSurface.MediaPlayer = _mediaPlayer;
+        _mediaPlayer.EndReached += (_, _) =>
+        {
+            Dispatcher.BeginInvoke(() =>
+            {
+                if (Sections.SelectedItem is ListBoxItem selected && selected.Tag?.ToString() == "Música")
+                    ChangeChannel(1);
+            });
+        };
         UpdateClock();
         _clockTimer.Tick += (_, _) => UpdateClock();
         _clockTimer.Start();
