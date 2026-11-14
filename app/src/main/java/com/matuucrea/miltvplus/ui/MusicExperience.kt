@@ -85,7 +85,7 @@ fun MusicExperience(
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text("✦  UN AMBIENTE HECHO PARA ESCUCHAR", color = Color(0xFFFFC5E3), fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                    Text("Bajá el ruido.\\nSubí el volumen.", color = Color.White, fontSize = 28.sp, lineHeight = 32.sp, fontWeight = FontWeight.Black)
+                    Text("Bajá el ruido.\nSubí el volumen.", color = Color.White, fontSize = 28.sp, lineHeight = 32.sp, fontWeight = FontWeight.Black)
                     Text("Elegí una canción del catálogo autorizado y dejá que la música acompañe tu día.", color = Color(0xFFE0D9EE), style = MaterialTheme.typography.bodyMedium)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(onClick = { visible.firstOrNull { it.actionUrl != null }?.let { item -> onPlay(item, visible.filter { it.actionUrl != null }) } ?: visible.firstOrNull { it.infoUrl != null }?.let(onOpenOfficialItem) }, enabled = visible.any { it.actionUrl != null || it.infoUrl != null },
