@@ -16,6 +16,11 @@ public partial class MainWindow
     private async void Watch_Click(object sender, RoutedEventArgs e)
     {
         if ((sender as FrameworkElement)?.DataContext is not CatalogEntry selected) return;
+        if (Sections.SelectedItem is ListBoxItem section && section.Tag?.ToString() == "Música")
+        {
+            PlayEntry(selected);
+            return;
+        }
         var visible = Catalog.ItemsSource as IEnumerable<CatalogEntry>;
         _watchQueue.Clear();
         _watchQueue.AddRange((visible ?? entries).Where(IsWatchable));
