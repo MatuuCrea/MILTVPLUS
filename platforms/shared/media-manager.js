@@ -180,9 +180,16 @@ export class AppMediaManager {
     if (seccion === ADULT_SECTION) {
       throw new MediaManagerError("La sección para adultos permanece vacía y protegida.", 403);
     }
-    const country = normalizeCountry(subcategoria, this.country);
-    const result = await this.getCatalog(seccion, { country });
-    return result.items;
+    if (seccion === "tv_en_vivo" || seccion === "deportes") {
+      const country = normalizeCountry(subcategoria, this.country);
+      const result = await this.getCatalog(seccion, { country });
+      return result.items;
+    }
+    if (seccion === "peliculas" || seccion === "series") {
+      const result = await this.getCatalog(seccion, { subcategory: subcategoria });
+      return result.items;
+    }
+    throw new MediaManagerError("El catálogo solicitado no existe.", 404);
   }
 
   async play(sectionName, itemId, nativeVideoComponent, country = this.country) {
