@@ -4,7 +4,7 @@
 - Proyecto Supabase MILTVPLUS activo y saludable.
 - Las 9 migraciones del repositorio están aplicadas en la base productiva.
 - Las tablas públicas revisadas tienen RLS habilitado; el asesor de seguridad devolvió cero alertas.
-- El catálogo editorial está vacío (0 filas en las tablas principales). No hay emisiones ni títulos reproducibles hasta incorporar fuentes y metadatos autorizados.
+- El catálogo editorial de películas/series (`catalog_items`) está vacío: no hay títulos publicados. La tabla de TV `tv_channels` contiene 48 fichas (46 publicadas y 2 no publicadas en la auditoría del 14/11/2026). Las 46 fichas publicadas no equivalen a 46 señales reproducibles: la auditoría encontró 0 URLs HLS/DASH directas y 0 registros con derechos de redistribución verificados. La disponibilidad de una página oficial tampoco acredita que exista un directo integrado.
 - Android CI ya produjo APK debug en una ejecución anterior; una APK debug no es una release apta para distribución.
 - No hay GitHub Releases publicadas todavía.
 - Los actualizadores Android y Windows ya consultan releases y exigen verificar SHA-256 antes de abrir el instalador. Su recorrido completo queda pendiente hasta publicar la primera release estable firmada.
@@ -56,3 +56,11 @@
 4. Completar grilla EPG y pantallas dedicadas de temporadas/episodios con datos reales.
 5. Mantener TMDB desactivado para uso público hasta completar atribución oficial y confirmar términos aplicables.
 6. Incorporar streams directos únicamente con derechos verificables por territorio y vigencia; el catálogo actual no autoriza inventar ni inferir URLs.
+
+
+## Windows: favoritos locales y centro de soporte
+
+- Implementado en la rama `feat/windows-favorites-support-center`: favoritos locales para fichas publicadas de TV y películas/series; se persisten en `%LOCALAPPDATA%\\MILTVPLUS\\desktop-settings.json` y se vuelven a consultar al abrir Favoritos, de modo que una ficha retirada del catálogo deja de aparecer.
+- Las fuentes M3U importadas no se mezclan con favoritos editoriales. El alcance actual no sincroniza favoritos con Android ni requiere iniciar sesión.
+- Centro de soporte integrado en la navegación Windows: guía de instalación, incidencias GitHub, releases oficiales y exportación de diagnóstico técnico sin email, contraseñas, tokens ni cookies.
+- Validar con CI Windows: compilación WPF y empaquetado x64. QA manual pendiente en Windows 10/11 limpio, instalación/desinstalación y exportación del diagnóstico.

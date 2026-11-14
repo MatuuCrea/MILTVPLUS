@@ -84,6 +84,7 @@
      <ListBoxItem Content="☆   Favoritos" Tag="Favoritos"/>
      <ListBoxItem Content="⚙   Configuración" Tag="Configuración"/>
      <ListBoxItem Content="•••   Más Opciones" Tag="Más Opciones"/>
+     <ListBoxItem Content="ⓘ   Soporte" Tag="Soporte"/>
     </ListBox>
     <TextBlock DockPanel.Dock="Bottom" Text="Señales públicas y fuentes autorizadas" Foreground="#8192B3" FontSize="9" TextWrapping="Wrap" Margin="5,8,5,0"/>
    </DockPanel>
@@ -180,6 +181,7 @@
       <Slider x:Name="DesktopVolumeSlider" Minimum="0" Maximum="100" Value="100" TickFrequency="10" IsSnapToTickEnabled="False"/>
       <TextBlock Text="El volumen se aplica al reproductor multimedia integrado." Foreground="#9EACC5" FontSize="10" Margin="0,0,0,14"/>
       <Button Content="Guardar configuración" Click="SaveDesktopSettings_Click" Background="#1763A8" HorizontalAlignment="Left" Padding="18,9"/>
+      <Button Content="Centro de soporte y diagnóstico" Click="OpenSupportCenter_Click" Background="#26365D" HorizontalAlignment="Left" Padding="18,9" Margin="3,12,3,3"/>
      </StackPanel>
     </Border>
    </StackPanel>
@@ -245,7 +247,10 @@
        <Border Background="#101E3D" BorderBrush="#26365D" BorderThickness="1" CornerRadius="14" Padding="14" Margin="0,0,0,9">
         <DockPanel LastChildFill="True">
          <Image DockPanel.Dock="Left" Width="76" Height="50" Margin="0,0,14,0" Stretch="Uniform" Source="{Binding LogoUrl}"/>
-         <Button DockPanel.Dock="Right" Content="Ver canal" Click="Watch_Click" Padding="14,8" Margin="12,0,0,0" Background="#087BFF"/>
+         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+          <Button Content="{Binding FavoriteLabel}" Click="ToggleFavorite_Click" Padding="10,8" Margin="4,0,0,0" Background="#26365D"/>
+          <Button Content="Ver canal" Click="Watch_Click" Padding="14,8" Margin="8,0,0,0" Background="#087BFF"/>
+         </StackPanel>
          <StackPanel>
           <TextBlock Text="{Binding Title}" FontSize="17" FontWeight="Bold"/>
           <TextBlock Text="{Binding Description}" Foreground="#AAB6CE" TextWrapping="Wrap" Margin="0,6,0,0"/>
