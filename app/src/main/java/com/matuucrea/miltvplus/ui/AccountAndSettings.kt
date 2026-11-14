@@ -274,7 +274,7 @@ private fun SettingSwitch(label: String, checked: Boolean, onChange: (Boolean) -
 }
 
 @Composable
-fun CountryPickerScreen(onCountrySelected: (CountryOption) -> Unit) {
+fun CountryPickerScreen(channelCounts: Map<String, Int> = emptyMap(), onCountrySelected: (CountryOption) -> Unit) {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("miltvplus_preferences", Context.MODE_PRIVATE) }
     var selected by remember { mutableStateOf(prefs.getString("country_code", "AR") ?: "AR") }
@@ -294,11 +294,27 @@ fun CountryPickerScreen(onCountrySelected: (CountryOption) -> Unit) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(country.flag, style = MaterialTheme.typography.titleLarge)
-                    Text(country.name, Modifier.weight(1f).padding(start = 12.dp))
+                    Column(Modifier.weight(1f).padding(start = 12.dp)) {
+                        Text(country.name)
+                        Text(channelCounts[country.code]?.let { "Canales publicados: $it" } ?: "Canales publicados: —", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                     if (selected == country.code) Icon(Icons.Default.CheckCircle, null, tint = MaterialTheme.colorScheme.primary)
                 }
                 HorizontalDivider()
             }
+        }
+        val phrase = when (selected) {
+            "AR" -> "Argentina · Siempre en tu corazón 🇦🇷"
+            "US" -> "Estados Unidos · Un mundo de historias 🇺🇸"
+            "ES" -> "España · Cultura que nos une 🇪🇸"
+            "MX" -> "México · Tradición y emoción 🇲🇽"
+            "CO" -> "Colombia · Pasión que se comparte 🇨🇴"
+            "CL" -> "Chile · Un país, mil paisajes 🇨🇱"
+            "BR" -> "Brasil · Ritmo y alegría 🇧🇷"
+            else -> AppDirectory.countries.firstOrNull { it.code == selected }?.let { "${it.name} · Tu cultura en pantalla ${it.flag}" } ?: "Tu mundo en MILTVPLUS"
+        }
+        Card(Modifier.fillMaxWidth().padding(top = 10.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF0D2852))) {
+            Text(phrase, Modifier.padding(18.dp), color = Color.White, fontWeight = FontWeight.SemiBold)
         }
     }
 }
