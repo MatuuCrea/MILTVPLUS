@@ -35,6 +35,9 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.C
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
+import com.matuucrea.miltvplus.player.MusicPlaybackService
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.matuucrea.miltvplus.data.Channel
 import com.matuucrea.miltvplus.auth.AuthSession
@@ -52,6 +55,7 @@ import com.matuucrea.miltvplus.ui.MusicExperience
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import android.content.Intent
+import android.content.ComponentName
 import android.net.Uri
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
@@ -96,7 +100,22 @@ class MainActivity:ComponentActivity(){
             .build()
     }
     var musicVolume by remember { mutableFloatStateOf(context.getSharedPreferences("miltvplus_preferences", 0).getFloat("music_volume", 1f).coerceIn(0f, 1f)) }
-    LaunchedEffect(musicVolume) { exoPlayer.volume = musicVolume }
+    val musicControllerFuture = remember(context) {
+        val token = SessionToken(context, ComponentName(context, MusicPlaybackService::class.java))
+        MediaController.Builder(context, token).buildAsync()
+    }
+    var musicController by remember { mutableStateOf<MediaController?>(null) }
+    DisposableEffect(musicControllerFuture) {
+        val listener = Runnable {
+            musicController = runCatching { musicControllerFuture.get() }.getOrNull()
+        }
+        musicControllerFuture.addListener(listener, androidx.core.content.ContextCompat.getMainExecutor(context))
+        onDispose { MediaController.releaseFuture(musicControllerFuture) }
+    }
+    LaunchedEffect(musicVolume, musicController) {
+        exoPlayer.volume = musicVolume
+        musicController?.volume = musicVolume
+    }
     DisposableEffect(exoPlayer) { onDispose { exoPlayer.release() } }
     var tab by remember { mutableStateOf("Inicio") }; var query by remember { mutableStateOf("") }; var updateNotice by remember { mutableStateOf<String?>(null) }
     val remoteRepository = remember { SupabaseCatalogRepository() }
@@ -408,15 +427,20 @@ class MainActivity:ComponentActivity(){
                     error = remoteError,
                     query = query,
                     onQueryChange = { query = it },
-                    player = exoPlayer,
+                    player = musicController ?: exoPlayer,
                     onPlay = { item ->
                         val stream = item.actionUrl
                         if (stream != null && isSafeHttpsUrl(stream)) {
-                            exoPlayer.setMediaItem(MediaItem.Builder().setUri(stream).setMediaMetadata(
-                                androidx.media3.common.MediaMetadata.Builder().setTitle(item.title).setArtist(item.subtitle).build()
-                            ).build())
-                            exoPlayer.prepare()
-                            exoPlayer.playWhenReady = true
+                            val controller = musicController
+                            if (controller == null) {
+                                remoteError = "El reproductor de música se está conectando. Probá nuevamente en un instante."
+                            } else {
+                                controller.setMediaItem(MediaItem.Builder().setUri(stream).setMediaMetadata(
+                                    androidx.media3.common.MediaMetadata.Builder().setTitle(item.title).setArtist(item.subtitle).build()
+                                ).build())
+                                controller.prepare()
+                                controller.play()
+                            }
                         }
                     },
                     onOpenOfficialItem = { item ->
