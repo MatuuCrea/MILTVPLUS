@@ -38,7 +38,7 @@ fun MusicExperience(
     query: String,
     onQueryChange: (String) -> Unit,
     player: Player,
-    onPlay: (RemoteCatalogEntry) -> Unit,
+    onPlay: (RemoteCatalogEntry, List<RemoteCatalogEntry>) -> Unit,
     onOpenOfficialItem: (RemoteCatalogEntry) -> Unit,
     onRefresh: () -> Unit,
     onOpenOfficialService: (String) -> Unit
@@ -89,12 +89,21 @@ fun MusicExperience(
 Subí el volumen.", color = Color.White, fontSize = 28.sp, lineHeight = 32.sp, fontWeight = FontWeight.Black)
                     Text("Elegí una canción del catálogo autorizado y dejá que la música acompañe tu día.", color = Color(0xFFE0D9EE), style = MaterialTheme.typography.bodyMedium)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(onClick = { visible.firstOrNull { it.actionUrl != null }?.let(onPlay) ?: visible.firstOrNull { it.infoUrl != null }?.let(onOpenOfficialItem) }, enabled = visible.any { it.actionUrl != null || it.infoUrl != null },
+                        Button(onClick = { visible.firstOrNull { it.actionUrl != null }?.let { item -> onPlay(item, visible.filter { it.actionUrl != null }) } ?: visible.firstOrNull { it.infoUrl != null }?.let(onOpenOfficialItem) }, enabled = visible.any { it.actionUrl != null || it.infoUrl != null },
                             colors = ButtonDefaults.buttonColors(containerColor = MusicPink, contentColor = Color(0xFF210D20))) {
                             Icon(Icons.Default.PlayArrow, null); Spacer(Modifier.width(5.dp)); Text("Escuchar ahora")
                         }
-                        OutlinedButton(onClick = { onOpenOfficialService("https://music.youtube.com/") }) {
-                            Icon(Icons.Default.OpenInNew, null); Spacer(Modifier.width(5.dp)); Text("Explorar música")
+                        OutlinedButton(onClick = {
+                            val term = java.net.URLEncoder.encode(query, Charsets.UTF_8.name())
+                            onOpenOfficialService(if (term.isBlank()) "https://music.youtube.com/" else "https://music.youtube.com/search?q=$term")
+                        }) {
+                            Icon(Icons.Default.OpenInNew, null); Spacer(Modifier.width(5.dp)); Text("YouTube Music")
+                        }
+                        OutlinedButton(onClick = {
+                            val term = java.net.URLEncoder.encode(query, Charsets.UTF_8.name())
+                            onOpenOfficialService(if (term.isBlank()) "https://open.spotify.com/" else "https://open.spotify.com/search/$term")
+                        }) {
+                            Icon(Icons.Default.Search, null); Spacer(Modifier.width(5.dp)); Text("Spotify")
                         }
                     }
                 }
@@ -119,10 +128,16 @@ Subí el volumen.", color = Color.White, fontSize = 28.sp, lineHeight = 32.sp, f
                         Text("SONANDO AHORA", color = MusicPink, fontSize = 9.sp, fontWeight = FontWeight.Bold)
                         Text(currentTitle, color = Color.White, fontWeight = FontWeight.SemiBold, maxLines = 1)
                     }
+                    IconButton(onClick = { player.seekToPreviousMediaItem() }, enabled = player.hasPreviousMediaItem()) {
+                        Icon(Icons.Default.SkipPrevious, "Anterior", tint = Color.White)
+                    }
                     IconButton(onClick = { if (player.isPlaying) player.pause() else player.play() }) {
                         Icon(if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, "Pausar o reanudar", tint = Color.White)
                     }
-                    IconButton(onClick = { player.stop(); currentTitle = ""; isPlaying = false }) {
+                    IconButton(onClick = { player.seekToNextMediaItem() }, enabled = player.hasNextMediaItem()) {
+                        Icon(Icons.Default.SkipNext, "Siguiente", tint = Color.White)
+                    }
+                    IconButton(onClick = { player.stop(); player.clearMediaItems(); currentTitle = ""; isPlaying = false }) {
                         Icon(Icons.Default.Stop, "Detener", tint = Color.White)
                     }
                 }
@@ -151,7 +166,7 @@ Subí el volumen.", color = Color.White, fontSize = 28.sp, lineHeight = 32.sp, f
                                 Text(item.title, color = Color.White, fontWeight = FontWeight.Bold, maxLines = 1)
                                 Text(item.subtitle.ifBlank { item.category }, color = Color(0xFFBEB6CD), style = MaterialTheme.typography.bodySmall, maxLines = 2)
                             }
-                            IconButton(onClick = { if (item.actionUrl != null) onPlay(item) else onOpenOfficialItem(item) }, enabled = item.actionUrl != null || item.infoUrl != null) {
+                            IconButton(onClick = { if (item.actionUrl != null) onPlay(item, visible.filter { it.actionUrl != null }) else onOpenOfficialItem(item) }, enabled = item.actionUrl != null || item.infoUrl != null) {
                                 Icon(if (item.actionUrl != null) Icons.Default.PlayCircleFilled else Icons.Default.OpenInNew, "Abrir o reproducir música", tint = MusicPink, modifier = Modifier.size(30.dp))
                             }
                         }
