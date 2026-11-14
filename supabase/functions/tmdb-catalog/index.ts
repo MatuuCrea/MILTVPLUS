@@ -12,6 +12,7 @@ const TMDB_BASE = "https://api.themoviedb.org/3";
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const MAX_CACHE_ENTRIES = 100;
 const MAX_RESPONSE_BYTES = 1_500_000;
+const MAX_REQUEST_BYTES = 8_192;
 const cache = new Map<string, { expiresAt: number; body: string }>();
 
 function json(body: unknown, status = 200, cacheControl = "no-store"): Response {
@@ -58,9 +59,22 @@ Deno.serve(async (request: Request) => {
   if (request.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (request.method !== "POST") return json({ error: "Método no permitido." }, 405);
 
+  const declaredLength = Number(request.headers.get("content-length") ?? "0");
+  if (Number.isFinite(declaredLength) && declaredLength > MAX_REQUEST_BYTES) {
+    return json({ error: "La solicitud supera el tamaño permitido." }, 413);
+  }
+
   let input: RequestInput;
   try {
-    input = await request.json() as RequestInput;
+    const raw = await request.text();
+    if (new TextEncoder().encode(raw).byteLength > MAX_REQUEST_BYTES) {
+      return json({ error: "La solicitud supera el tamaño permitido." }, 413);
+    }
+    const parsed: unknown = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return json({ error: "El cuerpo debe ser un objeto JSON." }, 400);
+    }
+    input = parsed as RequestInput;
   } catch {
     return json({ error: "JSON inválido." }, 400);
   }
