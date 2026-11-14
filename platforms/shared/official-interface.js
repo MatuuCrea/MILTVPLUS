@@ -30,7 +30,7 @@ export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()
   NAV.forEach(([label,icon])=>{const b=node("button","official-nav-item");b.type="button";b.dataset.section=label;const i=node("span","nav-icon",icon);const t=node("span","nav-label",label);b.append(i,t);b.addEventListener("click",()=>show(label));nav.append(b);});
   const more=node("button","official-nav-item");more.type="button";more.innerHTML='<span class="nav-icon">•••</span><span class="nav-label">Más Opciones</span><span class="nav-chevron">⌄</span>';
   const extras=node("div","official-more");extras.hidden=true;
-  [["Guía EPG","▦"],["Países","◎"],["Fuentes","＋"]].forEach(([label,icon])=>{const b=node("button","official-nav-extra",icon+"  "+label);b.addEventListener("click",()=>show(label));extras.append(b)});
+  [["Guía EPG","▦"],["Países","◎"]].forEach(([label,icon])=>{const b=node("button","official-nav-extra",icon+"  "+label);b.addEventListener("click",()=>show(label));extras.append(b)});
   more.addEventListener("click",()=>extras.hidden=!extras.hidden);nav.append(more,extras);sidebar.append(nav);
   const brand=node("section","official-brand-card");brand.innerHTML='<div class="brand-crown">♛</div><strong>MILTVPLUS Premium</strong><span>Experiencia completa · 100 % gratuita</span><small>Sin anuncios · Sin pagos · Sin suscripciones</small><b>🇦🇷</b>';sidebar.append(brand);
   document.body.insertBefore(sidebar,main);
