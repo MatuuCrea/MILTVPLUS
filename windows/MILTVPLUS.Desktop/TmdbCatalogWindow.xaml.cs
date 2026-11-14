@@ -57,11 +57,10 @@ public partial class TmdbCatalogWindow : Window
         StatusText.Text = "Autenticando con Supabase…";
         try
         {
-            using var response = await Http.PostAsync(
-                SupabaseUrl + "/auth/v1/token?grant_type=password",
-                new StringContent(JsonSerializer.Serialize(new { email, password }), Encoding.UTF8, "application/json"));
-            response.Headers.TryAddWithoutValidation("apikey", PublicKey);
-            // Headers must be attached to the request itself, not the response.
+            using var request = new HttpRequestMessage(HttpMethod.Post, SupabaseUrl + "/auth/v1/token?grant_type=password");
+            request.Headers.TryAddWithoutValidation("apikey", PublicKey);
+            request.Content = new StringContent(JsonSerializer.Serialize(new { email, password }), Encoding.UTF8, "application/json");
+            using var response = await Http.SendAsync(request);
             if (!response.IsSuccessStatusCode)
             {
                 var error = await response.Content.ReadAsStringAsync();
