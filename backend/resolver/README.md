@@ -36,10 +36,13 @@ The service uses the public key and caller's JWT only. Do not put a Supabase ser
 
 - `GET /healthz`
 - `GET /api/v2/catalog/tv_en_vivo/AR`
+- `GET /api/v2/catalog/deportes/AR`
 - `GET /api/v2/catalog/peliculas/AR`
 - `GET /api/v2/catalog/series/AR`
 - `GET /api/v2/catalog/musica/AR` (music items only; stream URLs are redacted without current regional rights)\n- `GET /api/v2/catalog/adultos/AR` (requires `Authorization: Bearer <Supabase user access token>` and a recorded 18+ consent)
 - `GET /api/v2/resolve/tv_en_vivo/AR/<uuid>`
+- `GET /api/v2/resolve/deportes/AR/<uuid>`
+- `GET /api/v2/resolve/musica/AR/<uuid>`
 - `GET /api/v2/resolve/peliculas/AR/<uuid>`
 - `GET /api/v2/resolve/series/AR/<uuid>`
 - `GET /api/v2/resolve/adultos/AR/<uuid>` (same account and consent gate)
@@ -50,6 +53,8 @@ Country is an ISO 3166-1 alpha-2 code; `global` is accepted for directory browsi
 
 | Catalog row | API result |
 |---|---|
+| Sports with current regional rights | Direct HTTPS stream from `sports_events.authorized_stream_url` |
+| Sports without direct-stream rights | Official event information page, when available |
 | TV `official_web` | Official HTTPS viewing page |
 | TV `youtube_live` | Official YouTube Live page; never extracted |
 | TV `hls` / `dash` | Direct URL only with current rights and online status |
