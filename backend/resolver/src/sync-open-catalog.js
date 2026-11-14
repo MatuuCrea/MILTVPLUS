@@ -79,6 +79,7 @@ function baseRights(item, evidence) {
 async function upsert(table, rows) {
   if (!rows.length) return 0;
   const url = new URL(`/rest/v1/${table}`, SUPABASE_URL);
+  url.searchParams.set("on_conflict", "id");
   const response = await request(url, {
     method: "POST",
     headers: {
@@ -97,27 +98,32 @@ async function prepare(item) {
   const evidence = validateRights(item);
   const rights = baseRights(item, evidence);
   const title = requiredString(item.title, "title");
+  const id = requiredString(item.id, "id");
+  if (!/^[0-9a-f-]{36}$/i.test(id)) throw new Error("id must be a stable UUID");
   const country = String(item.country_code || "").toUpperCase();
   if (!/^[A-Z]{2}$/.test(country)) throw new Error("country_code must be ISO alpha-2");
 
   if (item.type === "tv") {
     const stream = await validateMediaUrl(item.stream_url, "hls");
     return { table: "tv_channels", row: {
-      slug: requiredString(item.slug, "slug"), title, country_code: country,
+      id, slug: requiredString(item.slug, "slug"), title, country_code: country,
       language_code: item.language_code || null, category: item.category || "general",
       is_free_to_air: true, playback_type: "hls", source_status: "online",
       last_checked_at: new Date().toISOString(), last_check_detail: "HLS manifest validated by rights-gated ingest",
-      access_model: "free", stream_url: stream, official_watch_url: item.official_watch_url || null,
+      access_model: "free_to_air", stream_url: stream, official_watch_url: httpsUrl(item.official_watch_url, "official_watch_url"),
       ...rights
     }};
   }
   if (item.type === "movie" || item.type === "series" || item.type === "episode") {
     const stream = await validateMediaUrl(item.stream_url, "video");
     return { table: "catalog_items", row: {
-      title, kind: item.type, country_code: country, language_code: item.language_code || null,
+      id, title, kind: item.type, country_code: country, language_code: item.language_code || null,
       description: item.description || null, genre: item.genre || null,
       genres: Array.isArray(item.genres) ? item.genres : [],
       release_year: item.release_year || null, duration_seconds: item.duration_seconds || null,
+      series_id: item.type === "episode" ? requiredString(item.series_id, "series_id") : null,
+      season_number: item.type === "episode" ? Number(item.season_number) : null,
+      episode_number: item.type === "episode" ? Number(item.episode_number) : null,
       age_rating: item.age_rating || "ATP", poster_url: item.poster_url || null,
       stream_url: stream, source_url: null, is_adult_content: false, ...rights
     }};
@@ -125,11 +131,17 @@ async function prepare(item) {
   if (item.type === "music") {
     const stream = await validateMediaUrl(item.stream_url, "audio");
     return { table: "music_items", row: {
-      item_type: "track", title, creator: item.creator || null, country_code: country,
+      id, item_type: "track", title, creator: item.creator || null, country_code: country,
       album: item.album || null, genre: item.genre || null, release_year: item.release_year || null,
       language_code: item.language_code || null, external_url: null, source_url: evidence,
       stream_url: stream, is_featured: false, ...rights
     }};
+  }
+  if (item.type === "sports") {
+    const stream = await validateMediaUrl(item.stream_url, "hls");
+    const start = requiredString(item.starts_at, "starts_at");
+    if (!Number.isFinite(Date.parse(start))) throw new Error("starts_at must be an ISO date");
+    return { table: "sports_events", row: { id, title, description: item.description || null, sport: requiredString(item.sport, "sport"), competition: item.competition || null, country_code: country, starts_at: start, ends_at: item.ends_at || null, official_info_url: httpsUrl(item.official_info_url, "official_info_url"), authorized_stream_url: stream, source_url: evidence, poster_url: item.poster_url || null, ...rights } };
   }
   throw new Error(`Unsupported type: ${item.type}`);
 }
