@@ -44,13 +44,28 @@ function validateCountry(value) {
   return normalized;
 }
 
+function isOfficialYoutubeLive(value) {
+  if (!isSafeHttpsUrl(value)) return false;
+  try {
+    const url = new URL(value);
+    const host = url.hostname.toLowerCase();
+    return ["youtube.com", "www.youtube.com", "m.youtube.com"].includes(host) &&
+      /^\/(?:@[^/]+|channel\/[^/]+|c\/[^/]+|user\/[^/]+)\/live\/?$/i.test(url.pathname);
+  } catch {
+    return false;
+  }
+}
+
 function mediaResponse(row, category, region) {
   if (!row) throw new CatalogError("Contenido no encontrado o no publicado.", 404);
   const title = row.title;
   if (category === "tv_en_vivo") {
     if (row.source_status !== "online" || !isRecentCheck(row.last_checked_at)) throw new CatalogError("La fuente oficial no tiene una comprobación reciente y disponible.", 503);
     if (row.playback_type === "official_web" || row.playback_type === "youtube_live") {
-      if (!isSafeHttpsUrl(row.official_watch_url)) throw new CatalogError("La página oficial no tiene una URL HTTPS válida.", 503);
+      const validPage = row.playback_type === "youtube_live"
+        ? isOfficialYoutubeLive(row.official_watch_url)
+        : isSafeHttpsUrl(row.official_watch_url);
+      if (!validPage) throw new CatalogError("La página oficial no tiene una URL HTTPS válida para su tipo de fuente.", 503);
       return { success: true, title, mode: "official_web", protocol: "https_page", watchUrl: row.official_watch_url, directPlayback: false };
     }
     if (!["hls", "dash"].includes(row.playback_type) ||
@@ -75,13 +90,16 @@ function mediaResponse(row, category, region) {
   throw new CatalogError("No existe una fuente de reproducción autorizada y vigente para este contenido.", 503);
 }
 
-app.get("/healthz", (_req, res) => {
-  const ready = Boolean(catalog);
-  res.status(ready ? 200 : 503).json({
-    service: "miltvplus-authorized-media-resolver",
-    status: ready ? "ready" : "configuration_required",
-    version: "1.0.0"
-  });
+app.get("/healthz", async (_req, res) => {
+  if (!catalog) {
+    return res.status(503).json({ service: "miltvplus-authorized-media-resolver", status: "configuration_required", version: "1.0.0" });
+  }
+  try {
+    await catalog.request("/rest/v1/tv_channels?select=id&limit=1");
+    return res.status(200).json({ service: "miltvplus-authorized-media-resolver", status: "ready", version: "1.0.0" });
+  } catch {
+    return res.status(503).json({ service: "miltvplus-authorized-media-resolver", status: "upstream_unavailable", version: "1.0.0" });
+  }
 });
 
 app.get("/api/v2/catalog/:category/:country", async (req, res, next) => {
