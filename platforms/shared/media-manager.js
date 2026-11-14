@@ -24,6 +24,23 @@ const SECTIONS = Object.freeze({
 });
 
 const ADULT_SECTION = "adultos";
+const COUNTRY_CODES = Object.freeze({
+  argentina: "AR",
+  mexico: "MX",
+  espana: "ES",
+  internacional: "ALL",
+  global: "ALL",
+  todo_el_mundo: "ALL"
+});
+
+function normalizeCountry(value, fallback = "AR") {
+  const raw = String(value || fallback).trim().toLowerCase();
+  const country = COUNTRY_CODES[raw] || raw.toUpperCase();
+  if (country !== "ALL" && !/^[A-Z]{2}$/.test(country)) {
+    throw new MediaManagerError("El país debe ser un código ISO de dos letras o ALL.");
+  }
+  return country;
+}
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export class MediaManagerError extends Error {
@@ -108,10 +125,7 @@ export class AppMediaManager {
     adultCatalogEnabled = false
   } = {}) {
     this.baseUrl = normalizeBaseUrl(resolverBaseUrl);
-    this.country = String(country).toUpperCase();
-    if (this.country !== "ALL" && !/^[A-Z]{2}$/.test(this.country)) {
-      throw new MediaManagerError("El país debe ser un código ISO de dos letras.");
-    }
+    this.country = normalizeCountry(country);
     if (typeof fetchImpl !== "function") throw new MediaManagerError("Fetch no está disponible en este dispositivo.");
     this.getAccessToken = getAccessToken;
     this.adapter = adapter;
@@ -133,18 +147,27 @@ export class AppMediaManager {
     return body;
   }
 
-  async getCatalog(sectionName) {
-    if (sectionName === ADULT_SECTION && !this.adultCatalogEnabled) {
+  async getCatalog(sectionName, { country = this.country, subcategory = null } = {}) {
+    if (sectionName === ADULT_SECTION) {
       return { title: "Contenido para Adultos", items: [] };
     }
     const category = SECTIONS[sectionName];
     if (!category) throw new MediaManagerError("El catálogo solicitado no existe.", 404);
+    const selectedCountry = normalizeCountry(country, this.country);
     const body = await this.request(
-      "/api/v2/catalog/" + encodeURIComponent(category) + "/" + encodeURIComponent(this.country)
+      "/api/v2/catalog/" + encodeURIComponent(category) + "/" + encodeURIComponent(selectedCountry)
     );
     let items = Array.isArray(body.items) ? body.items : [];
     if (sectionName === "deportes") {
       items = items.filter(item => String(item.category || "").toLowerCase() === "sports");
+    }
+    if (subcategory && (sectionName === "peliculas" || sectionName === "series")) {
+      const wanted = String(subcategory).trim().toLowerCase();
+      items = items.filter(item => {
+        const genres = Array.isArray(item.genres) ? item.genres : [];
+        if (item.genre) genres.push(item.genre);
+        return genres.some(genre => String(genre).toLowerCase() === wanted);
+      });
     }
     return {
       title: ({ tv_en_vivo: "Televisión en Vivo", deportes: "Deportes en Vivo", peliculas: "Películas", series: "Series" })[sectionName],
@@ -152,7 +175,17 @@ export class AppMediaManager {
     };
   }
 
-  async play(sectionName, itemId, nativeVideoComponent) {
+  // API de compatibilidad en español para pantallas y módulos existentes.
+  async getContenidoPorPais(seccion, subcategoria) {
+    if (seccion === ADULT_SECTION) {
+      throw new MediaManagerError("La sección para adultos permanece vacía y protegida.", 403);
+    }
+    const country = normalizeCountry(subcategoria, this.country);
+    const result = await this.getCatalog(seccion, { country });
+    return result.items;
+  }
+
+  async play(sectionName, itemId, nativeVideoComponent, country = this.country) {
     if (sectionName === ADULT_SECTION) {
       throw new MediaManagerError("La sección para adultos permanece vacía y deshabilitada.", 403);
     }
@@ -163,12 +196,20 @@ export class AppMediaManager {
     }
     const body = await this.request(
       "/api/v2/resolve/" + encodeURIComponent(category) + "/" +
-      encodeURIComponent(this.country) + "/" + encodeURIComponent(itemId)
+      encodeURIComponent(normalizeCountry(country, this.country)) + "/" + encodeURIComponent(itemId)
     );
     if (body.mode !== "direct_stream") {
       throw new MediaManagerError("Este contenido no ofrece reproducción directa integrada. No se abrirán aplicaciones externas.");
     }
     return this.adapter.play(nativeVideoComponent, body);
+  }
+
+  // Mantiene la firma solicitada por la interfaz de catálogo en español.
+  async reproducirEnApp(seccion, subcategoria, itemId, nativeVideoComponent) {
+    if (seccion === ADULT_SECTION) {
+      throw new MediaManagerError("La sección para adultos permanece vacía y protegida.", 403);
+    }
+    return this.play(seccion, itemId, nativeVideoComponent, normalizeCountry(subcategoria, this.country));
   }
 
   stop(nativeVideoComponent) {
