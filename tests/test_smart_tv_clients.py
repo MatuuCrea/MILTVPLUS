@@ -84,6 +84,8 @@ class SmartTvClientTests(unittest.TestCase):
             self.assertIn("api/v2/catalog/", script)
             self.assertIn("api/v2/resolve/", script)
             self.assertIn("playCatalogItem", script)
+            self.assertIn("optimizer.virtualizarLista(rows,root", script)
+            self.assertIn("allChannels", script)
             self.assertIn("official-sidebar", css)
             self.assertIn("adult-hero", css)
             self.assertIn("settings-layout", css)
