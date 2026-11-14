@@ -3,6 +3,8 @@ package com.matuucrea.miltvplus.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -55,6 +57,7 @@ fun TmdbCatalogScreen(
         scope.launch {
             loading = true
             error = null
+            notice = null
             runCatching { repository.fetch(action, token, search) }
                 .onSuccess { response ->
                     titles = repository.readTitles(response)
@@ -80,9 +83,10 @@ fun TmdbCatalogScreen(
             Icon(if (isSeries) Icons.Default.Tv else Icons.Default.Movie, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(26.dp))
             Column(Modifier.weight(1f)) {
                 Text(if (isSeries) "Series" else "Películas", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                Text("Catálogo de metadatos oficiales de TMDB · Argentina", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Catálogo de metadatos de TMDB · Argentina", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
+        Text("This product uses the TMDB API but is not endorsed or certified by TMDB.", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         OutlinedTextField(
             value = query,
             onValueChange = { query = it },
@@ -142,7 +146,7 @@ fun TmdbCatalogScreen(
 
 @Composable
 private fun TmdbDetailPanel(item: TmdbTitle, details: JSONObject?, isSeries: Boolean, onBack: () -> Unit) {
-    Column(Modifier.fillMaxWidth().padding(bottom = 20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom = 20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         TextButton(onClick = onBack) { Text("← Volver al catálogo") }
         AsyncImage(
             model = item.backdropUrl ?: item.posterUrl,
