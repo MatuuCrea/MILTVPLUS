@@ -14,14 +14,14 @@ Este documento reúne el orden de trabajo y los criterios de salida. Una tarea s
 - No guardar secretos en el cliente, repositorio, documentación ni mensajes. No alterar secretos ni servicios de backend sin necesidad y autorización explícitas.
 - Preservar identidad visual y funciones existentes. Marcar como pendiente cualquier función sin prueba integral.
 
-## Estado verificado al iniciar esta hoja
+## Estado verificado al 14 de noviembre de 2026
 
 | Área | Estado comprobable | Qué falta |
 |---|---|---|
-| Android CI | Pruebas JVM y APK debug pasan en el commit de referencia previo | Revalidar el último SHA tras cada cambio y ejecutar QA físico |
-| Windows CI | Publicación x64 e instalador Inno Setup pasan en el commit de referencia previo | Revalidar el último SHA y probar instalación limpia/DPI |
+| Android CI | **Aprobado** en SHA `117e25a12990e6dd1c12c43d8d266f01016ceaef`; run #324: pruebas JVM, APK debug y artefacto correctos | QA físico móvil y TV sigue pendiente |
+| Windows CI | **Aprobado** en SHA `117e25a12990e6dd1c12c43d8d266f01016ceaef`; run #165: publicación x64 e instalador Inno Setup correctos | Instalación limpia, WebView2/LibVLC y DPI en equipos reales siguen pendientes |
 | Android responsive | Navegación compacta inferior y sidebar en pantallas amplias incorporadas en PR #10 | D-pad, foco, Back y reproducción con mando en hardware |
-| Windows responsive | Ajuste de ancho mínimo, sidebar, márgenes y barra de herramientas incorporados en esta rama | Verificar resoluciones bajas, escalado 100–200 % y controles no recortados |
+| Windows responsive | Ajuste de ancho mínimo, sidebar, márgenes y barra de herramientas incorporados; el cambio pasó Windows CI en el SHA indicado arriba | Verificar resoluciones bajas, escalado 100–200 % y controles no recortados en hardware real |
 | TV en vivo | Directorio de páginas oficiales; monitor de disponibilidad | No hay endpoints HLS/DASH directos con derechos de redistribución verificados |
 | Música | Reproductor/cola en clientes; búsquedas hacia proveedores oficiales en Windows | Catálogo propio de pistas y URLs de reproducción autorizadas: actualmente cero |
 | Películas y series | Pantallas/metadatos TMDB en Android según documentación del proyecto | Temporadas/episodios, acciones completas y derechos de reproducción; TMDB no entrega licencias ni streams |
@@ -30,7 +30,7 @@ Este documento reúne el orden de trabajo y los criterios de salida. Una tarea s
 | Publicación | Workflows Android/Windows preparados | Release firmada, instalación limpia, QA, atribuciones y notas de versión |
 | Samsung/LG | No son objetivos del APK Android | Apps nativas independientes para Tizen y webOS |
 
-## Prioridad P0 · estabilizar la rama actual
+## Prioridad P0 · estabilizar la rama actual\n\n**Estado CI actual:** Android #324 y Windows #165 terminaron con conclusión `success` en el SHA `117e25a12990e6dd1c12c43d8d266f01016ceaef`. Esto verifica compilación, pruebas automatizadas y empaquetado; no equivale a QA físico ni a publicación. El PR #10 sigue abierto y no se fusionó.
 
 1. Mantener PR #10 abierto hasta validar el último SHA y revisar los dos workflows.
 2. Corregir únicamente fallos reproducibles de CI; no ocultar errores ni relajar pruebas para conseguir un verde artificial.
