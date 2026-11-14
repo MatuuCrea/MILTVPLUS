@@ -34,7 +34,7 @@ function bearerToken(req) {
 }
 
 function validateCategory(category) {
-  return ["tv_en_vivo", "peliculas", "series", "adultos"].includes(category);
+  return ["tv_en_vivo", "peliculas", "series", "adultos", "musica"].includes(category);
 }
 
 function validateCountry(value) {
@@ -73,6 +73,15 @@ function mediaResponse(row, category, region) {
       throw new CatalogError("La reproducción integrada está bloqueada: faltan derechos vigentes para esta región o una fuente válida.", 403);
     }
     return { success: true, title, mode: "direct_stream", protocol: row.playback_type, streamUrl: row.stream_url, directPlayback: true };
+  }
+
+  if (category === "musica") {
+    if (!isSafeHttpsUrl(row.stream_url) || !hasActiveRights(row, region)) {
+      throw new CatalogError("Esta pista no tiene una URL de audio directa con autorización vigente para esta región.", 403);
+    }
+    return { success: true, title, creator: row.creator || null, album: row.album || null, genre: row.genre || null,
+      artworkUrl: isSafeHttpsUrl(row.artwork_url) ? row.artwork_url : null,
+      mode: "direct_stream", mediaType: "audio", protocol: "audio", streamUrl: row.stream_url, directPlayback: true };
   }
 
   if (category === "adultos" && row.is_adult_content !== true) {
@@ -118,6 +127,9 @@ app.get("/api/v2/catalog/:category/:country", async (req, res, next) => {
       .filter((row) => category === "adultos" ? row.is_adult_content === true : row.is_adult_content !== true)
       .map((row) => {
         const directRights = hasActiveRights(row, country === "ALL" ? "" : country);
+        if (category === "musica") {
+          return { ...row, stream_url: directRights && isSafeHttpsUrl(row.stream_url) ? row.stream_url : null };
+        }
         if (category === "tv_en_vivo") {
           const directMode = row.playback_type === "hls" || row.playback_type === "dash";
           const healthy = row.source_status === "online" && isRecentCheck(row.last_checked_at);
