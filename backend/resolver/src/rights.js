@@ -27,3 +27,10 @@ export function isSafeHttpsUrl(value) {
     return false;
   }
 }
+
+export function isRecentCheck(value, now = new Date(), maxAgeMs = 15 * 60 * 1000) {
+  const checked = Date.parse(value ?? "");
+  if (!Number.isFinite(checked)) return false;
+  const age = now.getTime() - checked;
+  return age >= -60_000 && age <= maxAgeMs;
+}
