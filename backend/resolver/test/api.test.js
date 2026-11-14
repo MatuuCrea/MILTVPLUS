@@ -16,6 +16,12 @@ const activeRights = {
   rights_valid_from: new Date(now - 86_400_000).toISOString(),
   rights_valid_until: new Date(now + 86_400_000).toISOString()
 };
+const musicRows = [
+  { id: "55555555-5555-4555-8555-555555555555", title: "Licensed song", creator: "Artist", album: "Album", genre: "Rock",
+    stream_url: "https://audio.example/track.mp3", artwork_url: "https://images.example/cover.jpg", ...activeRights },
+  { id: "66666666-6666-4666-8666-666666666666", title: "Unlicensed song", creator: "Artist", genre: "Jazz",
+    stream_url: "https://audio.example/unlicensed.mp3", ...activeRights, rights_verified: false }
+];
 const tvRows = [
   {
     id: "11111111-1111-4111-8111-111111111111", title: "Official YouTube",
@@ -51,6 +57,10 @@ globalThis.fetch = async (input, init) => {
   if (url.pathname === "/rest/v1/tv_channels") {
     const id = url.searchParams.get("id")?.replace("eq.", "");
     return new Response(JSON.stringify(id ? tvRows.filter((row) => row.id === id) : tvRows), { status: 200 });
+  }
+  if (url.pathname === "/rest/v1/music_items") {
+    const id = url.searchParams.get("id")?.replace("eq.", "");
+    return new Response(JSON.stringify(id ? musicRows.filter((row) => row.id === id) : musicRows), { status: 200 });
   }
   if (url.pathname === "/rest/v1/catalog_items") {
     const adult = url.searchParams.get("is_adult_content") === "eq.true";
@@ -115,4 +125,27 @@ test("adult catalogue requires a signed-in account and recorded consent", async 
   assert.equal(allowed.status, 200);
   assert.equal(body.count, 1);
   assert.equal(body.items[0].is_adult_content, true);
+});
+
+
+test("music catalog is isolated and redacts streams without active regional rights", async () => {
+  const response = await originalFetch(baseUrl + "/api/v2/catalog/musica/AR");
+  const body = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(body.category, "musica");
+  assert.equal(body.count, 2);
+  assert.equal(body.items.find((item) => item.title === "Licensed song").stream_url, "https://audio.example/track.mp3");
+  assert.equal(body.items.find((item) => item.title === "Unlicensed song").stream_url, null);
+});
+
+test("music resolver returns only direct audio streams and never a browser fallback", async () => {
+  const valid = await originalFetch(baseUrl + "/api/v2/resolve/musica/AR/55555555-5555-4555-8555-555555555555");
+  const body = await valid.json();
+  assert.equal(valid.status, 200);
+  assert.equal(body.mediaType, "audio");
+  assert.equal(body.mode, "direct_stream");
+  assert.equal(body.streamUrl, "https://audio.example/track.mp3");
+  assert.equal("watchUrl" in body, false);
+  const invalid = await originalFetch(baseUrl + "/api/v2/resolve/musica/AR/66666666-6666-4666-8666-666666666666");
+  assert.equal(invalid.status, 403);
 });
