@@ -18,10 +18,10 @@ Este documento reúne el orden de trabajo y los criterios de salida. Una tarea s
 
 | Área | Estado comprobable | Qué falta |
 |---|---|---|
-| Android CI | **Aprobado** en SHA `117e25a12990e6dd1c12c43d8d266f01016ceaef`; run #324: pruebas JVM, APK debug y artefacto correctos | QA físico móvil y TV sigue pendiente |
-| Windows CI | **Aprobado** en SHA `117e25a12990e6dd1c12c43d8d266f01016ceaef`; run #165: publicación x64 e instalador Inno Setup correctos | Instalación limpia, WebView2/LibVLC y DPI en equipos reales siguen pendientes |
+| Android CI | **Aprobado** en SHA `6ee906f0536f387eb99387b449787e06078c249f`; run #327: pruebas JVM, APK debug y artefacto correctos | QA físico móvil y TV sigue pendiente |
+| Windows CI | **Aprobado** en SHA `6ee906f0536f387eb99387b449787e06078c249f`; run #168: publicación x64 e instalador Inno Setup correctos | Instalación limpia, WebView2/LibVLC y DPI en equipos reales siguen pendientes |
 | Android responsive | Navegación compacta inferior y sidebar en pantallas amplias incorporadas en PR #10 | D-pad, foco, Back y reproducción con mando en hardware |
-| Windows responsive | Ajuste de ancho mínimo, sidebar, márgenes y barra de herramientas incorporados; el cambio pasó Windows CI en el SHA indicado arriba | Verificar resoluciones bajas, escalado 100–200 % y controles no recortados en hardware real |
+| Windows responsive | Ajuste de ancho mínimo, sidebar, márgenes y barra de herramientas incorporados; el cambio pasó Windows CI #168 en el SHA indicado arriba | Verificar resoluciones bajas, escalado 100–200 % y controles no recortados en hardware real |
 | TV en vivo | Directorio de páginas oficiales; monitor de disponibilidad | No hay endpoints HLS/DASH directos con derechos de redistribución verificados |
 | Música | Reproductor/cola en clientes; búsquedas hacia proveedores oficiales en Windows | Catálogo propio de pistas y URLs de reproducción autorizadas: actualmente cero |
 | Películas y series | Pantallas/metadatos TMDB en Android según documentación del proyecto | Temporadas/episodios, acciones completas y derechos de reproducción; TMDB no entrega licencias ni streams |
@@ -30,16 +30,18 @@ Este documento reúne el orden de trabajo y los criterios de salida. Una tarea s
 | Publicación | Workflows Android/Windows preparados | Release firmada, instalación limpia, QA, atribuciones y notas de versión |
 | Samsung/LG | No son objetivos del APK Android | Apps nativas independientes para Tizen y webOS |
 
-## Prioridad P0 · estabilizar la rama actual\n\n**Último CI completado:** Android #324 y Windows #165 terminaron con conclusión `success` en el SHA `117e25a12990e6dd1c12c43d8d266f01016ceaef`. Después se actualizó la interfaz (rótulo +18) y documentación; por eso el SHA actual `48ce8b963e2d974ac3e36af18a0b241593086d98` tiene Android #326 y Windows #167 en ejecución al momento de esta actualización. Esto verifica compilación, pruebas automatizadas y empaquetado sólo cuando esos nuevos runs concluyan; no equivale a QA físico ni a publicación. El PR #10 sigue abierto y no se fusionó.
+## Prioridad P0 · estabilizar la rama actual
 
-1. Mantener PR #10 abierto hasta validar el último SHA y revisar los dos workflows.
+**Último CI completado y verificado:** Android #327 (run ID `43551644184`) y Windows #168 (run ID `43551644194`) finalizaron con conclusión `success` sobre el SHA `6ee906f0536f387eb99387b449787e06078c249f`. Android completó `:app:testDebugUnitTest`, `:app:assembleDebug` y carga del artefacto APK. Windows completó publicación x64, generación del instalador Inno Setup y carga del artefacto. Las ejecuciones #326 y #167 que aparecieron como canceladas no son el resultado final de este SHA. El PR #10 sigue abierto, sin fusionar ni publicar.
+
+1. Mantener PR #10 abierto hasta completar revisión de cambios y QA manual; no fusionar automáticamente.
 2. Corregir únicamente fallos reproducibles de CI; no ocultar errores ni relajar pruebas para conseguir un verde artificial.
 3. Android móvil: probar instalación, navegación inferior, búsqueda, TV, reproducción autorizada, favoritos, cuenta, ajustes, rotación y recuperación de errores.
 4. Android TV/Google TV/TV Box/TV Stick Android: probar foco visible, D-pad, OK, Back, navegación sin pantalla táctil, teclado/mando y controles de Media3. Registrar marca/modelo, versión de Android, ABI, RAM y códecs.
 5. Windows 10/11: probar ventana compacta y maximizada, resoluciones 1280×720 y 1366×768, escalado DPI 100/125/150/200 %, búsqueda, barra de herramientas, pantalla completa, importación M3U/M3U8, LibVLC y WebView2. Confirmar que el scroll horizontal de la barra superior es accesible.
 6. Revisar los textos y recursos de interfaz para que no sugieran planes «Premium» o monetización. El compromiso visible debe seguir siendo gratuito y sin anuncios.
 
-**Salida P0:** CI verde para el SHA exacto, revisión del diff y registro de pruebas manuales. No fusionar ni publicar automáticamente.
+**Salida P0:** CI verde para el SHA exacto, revisión del diff y registro de pruebas manuales. CI ya está verde en el último SHA; quedan la revisión funcional y las pruebas en hardware. No fusionar ni publicar automáticamente.
 
 ## Prioridad P1 · completar funciones y probarlas de punta a punta
 
