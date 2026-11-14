@@ -70,7 +70,7 @@ private val panel: Color
     @Composable get() = MaterialTheme.colorScheme.surface
 private val cyan=Color(0xFF00D9F5); private val blue=Color(0xFF087BFF); private val orange=Color(0xFFFF7900)
 class MainActivity:ComponentActivity(){
-    override fun onCreate(savedInstanceState:Bundle?){super.onCreate(savedInstanceState);window.statusBarColor=android.graphics.Color.rgb(5,9,27);window.navigationBarColor=android.graphics.Color.rgb(5,9,27);setContent {
+    override fun onCreate(savedInstanceState:Bundle?){super.onCreate(savedInstanceState);window.statusBarColor=android.graphics.Color.rgb(5,9,27);window.navigationBarColor=android.graphics.Color.rgb(5,9,27);if(getSharedPreferences("miltvplus_preferences",0).getBoolean("keep_screen_on",false))window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);setContent {
         var themeMode by remember { mutableStateOf(getSharedPreferences("miltvplus_preferences",0).getString("theme","dark") ?: "dark") }
         var accentColor by remember { mutableStateOf(getSharedPreferences("miltvplus_preferences",0).getString("accent_color","electric-blue") ?: "electric-blue") }
         val accent = when(accentColor) { "violet" -> Color(0xFF9B6BFF); "emerald" -> Color(0xFF20C997); else -> cyan }
