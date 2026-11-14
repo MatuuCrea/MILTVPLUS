@@ -248,6 +248,7 @@
     </StackPanel>
     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
      <ComboBox x:Name="CountryFilter" Width="125" Height="36" Margin="4,0" VerticalContentAlignment="Center" SelectionChanged="Filter_SelectionChanged" ToolTip="Filtrar por país"/>
+      <TextBlock x:Name="CountryPhrase" Text="Argentina · Siempre en tu corazón 🇦🇷" Foreground="#7DD3FC" FontSize="10" VerticalAlignment="Center" Margin="6,0" TextTrimming="CharacterEllipsis" MaxWidth="180"/>
      <ComboBox x:Name="CategoryFilter" Width="145" Height="36" Margin="4,0" VerticalContentAlignment="Center" SelectionChanged="Filter_SelectionChanged" ToolTip="Filtrar por categoría"/>
      <Button Content="◀ Anterior" Click="PreviousAnyChannel_Click" Padding="10,7"/>
      <Button Content="Siguiente ▶" Click="NextAnyChannel_Click" Padding="10,7"/>
