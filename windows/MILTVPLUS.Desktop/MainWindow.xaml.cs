@@ -595,10 +595,16 @@ public partial class MainWindow : Window
         }
     }
 
-    private void MoreEpg_Click(object sender, RoutedEventArgs e) => Sections.SelectedItem = HiddenEpg;
-    private void MoreCountries_Click(object sender, RoutedEventArgs e) => Sections.SelectedItem = HiddenCountries;
-    private void MoreRadios_Click(object sender, RoutedEventArgs e) => Sections.SelectedItem = HiddenRadios;
-    private void MoreTheater_Click(object sender, RoutedEventArgs e) => Sections.SelectedItem = HiddenTheater;
+    private void NavigateMoreSection(string tag)
+    {
+        var destination = Sections.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == tag);
+        if (destination is not null) Sections.SelectedItem = destination;
+    }
+
+    private void MoreEpg_Click(object sender, RoutedEventArgs e) => NavigateMoreSection("Guía EPG");
+    private void MoreCountries_Click(object sender, RoutedEventArgs e) => NavigateMoreSection("Países");
+    private void MoreRadios_Click(object sender, RoutedEventArgs e) => NavigateMoreSection("Radios");
+    private void MoreTheater_Click(object sender, RoutedEventArgs e) => NavigateMoreSection("Teatro");
 
     private async void Sections_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
