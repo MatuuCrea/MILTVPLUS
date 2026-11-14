@@ -256,11 +256,6 @@ class MainActivity:ComponentActivity(){
         else -> tab
     }
 
-    val deviceConfiguration = androidx.compose.ui.platform.LocalConfiguration.current
-    val isTelevision = (deviceConfiguration.uiMode and android.content.res.Configuration.UI_MODE_TYPE_MASK) == android.content.res.Configuration.UI_MODE_TYPE_TELEVISION ||
-        context.packageManager.hasSystemFeature("amazon.hardware.fire_tv")
-    // TV interfaces always use the side navigation, even on low-resolution/720p panels.
-    val compactWidth = deviceConfiguration.screenWidthDp < 840 && !isTelevision
     Scaffold(
         containerColor = bg,
     ) { pad ->
