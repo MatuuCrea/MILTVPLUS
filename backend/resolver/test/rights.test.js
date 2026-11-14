@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { hasActiveRights, isSafeHttpsUrl } from "../src/rights.js";
+import { hasActiveRights, isRecentCheck, isSafeHttpsUrl } from "../src/rights.js";
 
 const active = {
   rights_verified: true,
@@ -37,4 +37,12 @@ test("only credential-free HTTPS URLs are accepted", () => {
   assert.equal(isSafeHttpsUrl("https://user:pass@example.org/video"), false);
   assert.equal(isSafeHttpsUrl("javascript:alert(1)"), false);
   assert.equal(isSafeHttpsUrl("not a url"), false);
+});
+
+test("TV health checks must be recent and not from the future", () => {
+  const now = new Date("2026-11-14T12:00:00Z");
+  assert.equal(isRecentCheck("2026-11-14T11:59:00Z", now), true);
+  assert.equal(isRecentCheck("2026-11-14T11:00:00Z", now), false);
+  assert.equal(isRecentCheck("2026-11-14T12:05:00Z", now), false);
+  assert.equal(isRecentCheck(null, now), false);
 });
