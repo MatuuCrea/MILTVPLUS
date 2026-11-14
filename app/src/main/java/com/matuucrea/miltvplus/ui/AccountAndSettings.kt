@@ -233,6 +233,7 @@ fun SettingsScreen(
                 FilterChip(selected = quality == value, onClick = { quality = value; persist() }, label = { Text(label) })
             }
         }
+        SettingSwitch("Modo Oscuro", theme == "dark") { theme = if (it) "dark" else "light"; persist() }
         Text("Color de acento", style = MaterialTheme.typography.titleMedium)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf("electric-blue" to "Azul eléctrico", "violet" to "Violeta", "emerald" to "Verde").forEach { (value, label) ->
@@ -270,7 +271,11 @@ fun SettingsScreen(
         Text("Acerca de", style = MaterialTheme.typography.titleMedium)
         HorizontalDivider()
         Text("Privacidad y seguridad", style = MaterialTheme.typography.titleMedium)
-        Text("Control Parental · Protección +18 activa. La sección de Adultos requiere su propio control de acceso y permanece vacía.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text("Control Parental · Protección +18 activa", Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+            Switch(checked = true, onCheckedChange = {}, enabled = false)
+        }
+        Text("La sección de Adultos requiere su propio control de acceso y permanece vacía; la protección se aplica también en el servidor.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text("Las sesiones Android se cifran con Android Keystore; los datos de cuenta se aíslan con RLS. No se integra publicidad ni analítica de terceros en esta versión. Podés cerrar sesión desde Cuenta y administrar el acceso +18 desde su sección.", style = MaterialTheme.typography.bodySmall)
         Text("Créditos de catálogo: This product uses the TMDB API but is not endorsed or certified by TMDB. TMDB aporta metadatos e imágenes, no derechos de reproducción. Más información: themoviedb.org/about/logos-attribution.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         HorizontalDivider()
