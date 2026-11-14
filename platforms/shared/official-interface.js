@@ -132,7 +132,7 @@ export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()
       b.innerHTML='<span class="country-flag">'+flag+'</span><span class="country-name"></span><small class="country-count"></small><span class="country-check"></span>';
       b.querySelector(".country-name").textContent=name;b.querySelector(".country-count").textContent=Number.isFinite(count)?("Canales publicados: "+count):"Canales publicados: —";
       b.querySelector(".country-check").textContent=code===selectedCountry?"✓":"";
-      b.addEventListener("click",()=>{selectedCountry=code;localStorage.setItem("miltvplus.country",code);countries.querySelector(".country-identity").textContent=name+" · "+phrase+" "+flag;renderCountries();onCountryChange(code);});
+      b.addEventListener("click",()=>{selectedCountry=code;localStorage.setItem("miltvplus.country",code);countries.querySelector(".country-identity").textContent=name+" - "+phrase+" "+flag;renderCountries();onCountryChange(code);});
       list.append(b);
     });
     const item=COUNTRIES.find(x=>x[0]===selectedCountry)||COUNTRIES[0];countries.querySelector(".country-identity").textContent=item[2]+" · "+item[3]+" "+item[1];
