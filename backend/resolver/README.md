@@ -5,8 +5,8 @@ Node.js 22 + Express service for the MILTVPLUS catalogue and playback hand-off. 
 ## Capabilities
 
 - Reads only published rows through Supabase REST and existing Row Level Security.
-- Organizes TV, movies, series/episodes and the separately gated adult catalogue.
-- Returns native HLS/DASH URLs only when the rights grant is verified, current, region-matched and the source is online.
+- Organizes TV, movies, series/episodes, music and the separately gated adult catalogue.
+- Returns native HLS/DASH URLs and direct audio streams only when the rights grant is verified, current and region-matched; TV additionally requires a recent online check.
 - Returns the broadcaster's official HTTPS page for `official_web` and `youtube_live`; playback stays in the broadcaster's official player.
 - Refuses unverified, expired, out-of-region, offline or malformed sources.
 - TV pages and direct streams require an `online` health check no older than 15 minutes; stale checks are hidden from playback until the monitor refreshes them.
@@ -38,7 +38,7 @@ The service uses the public key and caller's JWT only. Do not put a Supabase ser
 - `GET /api/v2/catalog/tv_en_vivo/AR`
 - `GET /api/v2/catalog/peliculas/AR`
 - `GET /api/v2/catalog/series/AR`
-- `GET /api/v2/catalog/adultos/AR` (requires `Authorization: Bearer <Supabase user access token>` and a recorded 18+ consent)
+- `GET /api/v2/catalog/musica/AR` (music items only; stream URLs are redacted without current regional rights)\n- `GET /api/v2/catalog/adultos/AR` (requires `Authorization: Bearer <Supabase user access token>` and a recorded 18+ consent)
 - `GET /api/v2/resolve/tv_en_vivo/AR/<uuid>`
 - `GET /api/v2/resolve/peliculas/AR/<uuid>`
 - `GET /api/v2/resolve/series/AR/<uuid>`
@@ -53,7 +53,7 @@ Country is an ISO 3166-1 alpha-2 code; `global` is accepted for directory browsi
 | TV `official_web` | Official HTTPS viewing page |
 | TV `youtube_live` | Official YouTube Live page; never extracted |
 | TV `hls` / `dash` | Direct URL only with current rights and online status |
-| Movie/series with licensed stream | Direct URL only with current rights |
+| Movie/series with licensed stream | Direct URL only with current rights |\n| Music item with a direct audio stream | Direct audio URL only with current regional rights; no external-app or browser fallback |
 | Movie/series with official source page | Official page, not an extracted stream |
 | Missing/expired/region-mismatched rights | HTTP 403/503; no playable URL |
 
@@ -69,4 +69,4 @@ The existing Supabase TV health monitor checks registered official pages periodi
 
 ## Deployment
 
-The included Dockerfile can be used on a Node-compatible host. Provide the environment variables through the host's secret/configuration manager. Hosting, outbound bandwidth and any paid plan are infrastructure costs outside the app; do not silently add a paid dependency to MILTVPLUS. This repository change does not create a hosted service or claim a public endpoint exists.
+The included Dockerfile can be used on a Node-compatible host. Provide the environment variables through the host's secret/configuration manager. Hosting, outbound bandwidth and any paid plan are infrastructure costs outside the app; do not silently add a paid dependency to MILTVPLUS. The Render resolver is configured as a separate free-plan web service. Its live status must be checked in Render before the public endpoint is treated as operational.
