@@ -113,7 +113,13 @@ main.tv-with-categories #channels{margin-left:174px}
 @media(max-width:700px){.tv-categories{float:none;width:100%;height:auto;flex-direction:row;overflow-x:auto;overflow-y:hidden;padding:8px 2px 14px}.tv-category{white-space:nowrap}main.tv-with-categories #channels{margin-left:0}}
 
 body.official-interface-active>header,body.official-interface-active>footer{display:none!important}
-body.official-interface-active>main{margin-left:var(--official-sidebar-width,248px);padding:24px clamp(16px,3vw,48px);height:100vh;overflow:auto}
+body.official-interface-active{grid-template-rows:0 minmax(0,1fr) 0}body.official-interface-active>main{margin-left:0;padding:24px clamp(16px,3vw,48px);height:100vh;overflow:auto}
 @media(max-width:760px){body.official-interface-active>main{margin-left:76px;padding:16px 12px}}
 
 .section-nav[hidden]{display:none!important}
+
+body.official-sidebar-collapsed{grid-template-columns:76px minmax(0,1fr)!important}
+body.official-sidebar-collapsed .official-logo{justify-content:center;padding-left:2px;padding-right:2px}
+body.official-sidebar-collapsed .official-logo small,body.official-sidebar-collapsed .nav-label,body.official-sidebar-collapsed .official-brand-card span,body.official-sidebar-collapsed .official-brand-card small,body.official-sidebar-collapsed .official-brand-card strong{display:none!important}
+body.official-sidebar-collapsed .official-nav-item{justify-content:center;padding-left:2px;padding-right:2px}
+body.official-sidebar-collapsed .official-nav-item .nav-icon{width:auto}
