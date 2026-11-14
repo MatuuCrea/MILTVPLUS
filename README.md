@@ -1,5 +1,7 @@
 # MILTVPLUS V22.34.9
 
+**Compromiso del producto:** MILTVPLUS es 100 % gratuita, sin anuncios, suscripciones, compras ni monetización. Ver [Política de producto](docs/PRODUCT-POLICY.md).
+
 MILTVPLUS es un producto de aplicaciones instalables nativas: Android (teléfonos, Android TV, TV Box y TV Stick con Android compatible) y Windows x64. No se ofrece una PWA ni una página web como aplicación.
 
 ## Android
