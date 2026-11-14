@@ -38,7 +38,7 @@ class SmartTvClientTests(unittest.TestCase):
         webos = (ROOT / "platforms/webos/app.js").read_text(encoding="utf-8")
         self.assertIn('c.playback_type==="hls"||c.playback_type==="dash"', tizen)
         self.assertIn('c.playback_type==="hls"', webos)
-        self.assertNotIn('c.playback_type==="hls"||c.playback_type==="dash"', webos)
+        self.assertIn('if(c.playback_type==="hls"&&safe(c.stream_url)&&hasActivePlaybackRights(c))', webos)
         for source in (tizen, webos):
             self.assertIn('x.protocol==="https:"', source)
             self.assertIn("official", source.lower())
@@ -51,8 +51,8 @@ class SmartTvClientTests(unittest.TestCase):
         for path in ("platforms/tizen/app.js", "platforms/webos/app.js"):
             source = (ROOT / path).read_text(encoding="utf-8")
             self.assertIn("e.keyCode===13", source)
-            self.assertIn("e.keyCode===37", source)
-            self.assertIn("e.keyCode===39", source)
+            self.assertIn("if([37,38,39,40,35,36].includes(e.keyCode))", source)
+            self.assertIn("move(e.keyCode)", source)
 
 
     def test_android_tv_uses_television_mode_and_free_branding(self):
