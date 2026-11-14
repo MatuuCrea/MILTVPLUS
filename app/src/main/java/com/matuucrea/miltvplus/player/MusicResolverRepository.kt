@@ -32,8 +32,8 @@ class MusicResolverRepository(
             require(base.startsWith("https://")) { "El servicio de música todavía no está configurado." }
             val connection = (URL("$base/api/v2/resolve/musica/$country/$id").openConnection() as HttpURLConnection).apply {
                 requestMethod = "GET"
-                connectTimeout = 10_000
-                readTimeout = 12_000
+                connectTimeout = 90_000
+                readTimeout = 90_000
                 instanceFollowRedirects = false
                 useCaches = false
                 setRequestProperty("Accept", "application/json")
