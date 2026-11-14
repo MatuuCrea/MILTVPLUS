@@ -78,3 +78,5 @@ footer{grid-column:1/-1;grid-row:3;position:static;height:48px;padding:14px 24px
 .epg-row{grid-template-columns:180px minmax(980px,1fr);overflow:hidden}
 .epg-timeline{display:flex;gap:6px;min-width:0;overflow-x:auto;padding:3px 0}
 .epg-program{flex:1 1 150px;min-width:130px;min-height:68px;white-space:pre-line;line-height:1.4;overflow:hidden;text-overflow:ellipsis}
+
+.official-count{align-self:center;color:#8ddfff;font-size:13px;font-weight:800;white-space:nowrap;padding:0 8px;text-shadow:0 0 8px #087bff55}
