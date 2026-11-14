@@ -2,3 +2,25 @@
 /* Rendimiento en catálogos largos: el navegador conserva sólo el coste visual necesario. */
 .channel { content-visibility: auto; contain-intrinsic-size: 1px 92px; }
 .channels { contain: layout style; }
+
+
+.section-nav{display:flex;gap:12px;margin:16px 0 20px}
+.section-nav button[aria-pressed="true"]{border-color:#38bdf8;background:#193b65}
+.music-toolbar{display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin:10px 0 18px}
+.music-toolbar label,.music-controls label{display:flex;gap:8px;align-items:center;color:#b9c8df;font-size:16px}
+.music-toolbar select{background:#111b30;color:#fff;border:1px solid #50617d;border-radius:8px;padding:10px 14px;font-size:16px}
+.music-description{color:#aab6ce;font-size:16px}
+.music-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(250px,100%),1fr));gap:14px;max-height:calc(100vh - 420px);min-height:120px;overflow:auto;padding:6px 8px 16px;contain:layout style}
+.music-card{display:flex;flex-direction:column;gap:12px;min-height:130px;padding:18px;border:1px solid #293650;border-radius:14px;background:#111b30;color:#fff;content-visibility:auto;contain-intrinsic-size:1px 130px}
+.music-card span{color:#9fb3d1;font-size:14px;min-height:32px}
+.music-card button{align-self:flex-start}
+.music-card button:disabled{opacity:.5}
+.music-player{display:grid;grid-template-columns:minmax(180px,1fr) minmax(220px,2fr);gap:12px;align-items:center;margin-top:18px;padding:16px;border:1px solid #293650;border-radius:14px;background:#0c1424}
+.music-now{display:flex;flex-direction:column;gap:6px;min-width:0}
+.music-now span,#music-status,.music-empty{color:#aab6ce;font-size:14px}
+#music-audio{width:100%;max-width:100%}
+.music-controls{grid-column:1/-1;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.music-immersive .music-player{min-height:180px;background:radial-gradient(ellipse at center,#17355f,#080d19 70%);border-color:#38bdf8}
+.music-immersive .music-now strong{font-size:26px}
+.music-empty{padding:24px}
+@media(max-width:700px){.music-player{grid-template-columns:1fr}.music-controls{grid-column:auto}.music-grid{max-height:calc(100vh - 470px)}}
