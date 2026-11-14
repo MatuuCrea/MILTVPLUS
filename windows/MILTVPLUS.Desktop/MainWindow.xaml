@@ -56,16 +56,6 @@
      <TextBlock Text="Tu mundo en una sola app 🇦🇷" FontSize="10" Foreground="#B8AFC6"/>
      <Separator Margin="0,16,0,8" Background="#34283B"/>
     </StackPanel>
-    <Border DockPanel.Dock="Bottom" Margin="2,10,2,2" Padding="10" CornerRadius="13" BorderBrush="#A8792A" BorderThickness="1">
-     <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#49300D"/><GradientStop Color="#1C1020" Offset="1"/></LinearGradientBrush></Border.Background>
-     <StackPanel HorizontalAlignment="Center">
-      <TextBlock Text="♛" FontSize="25" Foreground="#FFC247" HorizontalAlignment="Center"/>
-      <TextBlock Text="MILTVPLUS Premium" FontWeight="Bold" FontSize="12" Foreground="White" HorizontalAlignment="Center"/>
-      <TextBlock Text="Más entretenimiento para vos..." FontSize="9" Foreground="#FFD98A" HorizontalAlignment="Center" Margin="0,3,0,5"/>
-      <Border Height="5" CornerRadius="4"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#7DD3FC"/><GradientStop Color="White" Offset=".5"/><GradientStop Color="#7DD3FC" Offset="1"/></LinearGradientBrush></Border.Background></Border>
-      <TextBlock Text="🇦🇷" HorizontalAlignment="Center" Margin="0,4,0,0"/>
-     </StackPanel>
-    </Border>
     <ListBox x:Name="Sections" Background="Transparent" BorderThickness="0" Foreground="White"
              SelectionChanged="Sections_SelectionChanged" ScrollViewer.VerticalScrollBarVisibility="Auto">
      <ListBoxItem Content="⌂   Inicio" Tag="Inicio" IsSelected="True"/>
@@ -197,12 +187,11 @@
       <TextBlock Grid.Column="2" Text="♡" Foreground="#FF4D9D" FontSize="42" VerticalAlignment="Center"/>
      </Grid>
     </Border>
-    <UniformGrid Columns="6" Margin="0,0,0,7">
+    <UniformGrid Columns="5" Margin="0,0,0,7">
      <Button Content="💋&#x0a;Romance" Tag="Romance" Click="AdultCategory_Click" Background="#6A1454" Margin="2"/>
      <Button Content="🔥&#x0a;Eróticos" Tag="Eróticos" Click="AdultCategory_Click" Background="#65152F" Margin="2"/>
      <Button Content="💞&#x0a;Parejas" Tag="Parejas" Click="AdultCategory_Click" Background="#511044" Margin="2"/>
      <Button Content="⭐&#x0a;Hot" Tag="Hot" Click="AdultCategory_Click" Background="#5C183C" Margin="2"/>
-     <Button Content="💎&#x0a;Premium" Tag="Premium" Click="AdultCategory_Click" Background="#102E70" Margin="2"/>
      <Button Content="🔞&#x0a;Solo Adultos" Tag="Solo Adultos" Click="AdultCategory_Click" Background="#68152A" Margin="2"/>
     </UniformGrid>
     <DockPanel Margin="2,3,2,5">
