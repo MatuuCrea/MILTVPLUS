@@ -71,7 +71,8 @@ public partial class MainWindow : Window
         var compact = ActualWidth < 1080;
         SidebarColumn.Width = new GridLength(compact ? 184 : 232);
         MainContentGrid.Margin = new Thickness(compact ? 12 : 22);
-        SearchBox.Width = compact ? 150 : 220;
+        SearchBox.Width = compact ? 120 : 220;
+        ToolbarScroll.MaxWidth = compact ? 280 : 720;
     }
 
     private void LoadDesktopSettings()
