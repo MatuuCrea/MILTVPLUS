@@ -3,6 +3,12 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Versión numérica de MILTVPLUS (ej. 22.34.10)'
+        required: true
+        default: '22.34.10'
 permissions:
   contents: write
 jobs:
@@ -42,13 +48,22 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]; then
+            echo "::error::La versión debe ser numérica, por ejemplo 22.34.10"
+            exit 1
+          fi
           gradle :app:testDebugUnitTest
           gradle -PappVersionName="$VERSION" :app:assembleRelease
+          cp app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/MILTVPLUS.apk
       - uses: actions/upload-artifact@v4
         with:
-          name: android-release-apk
-          path: app/build/outputs/apk/release/app-release.apk
+          name: MILTVPLUS-Android
+          path: app/build/outputs/apk/release/MILTVPLUS.apk
           if-no-files-found: error
   windows:
     name: Build native Windows installer
@@ -61,7 +76,12 @@ jobs:
       - name: Set Windows release version
         shell: pwsh
         run: |
-          $version = $env:GITHUB_REF_NAME.TrimStart("v")
+          if ($env:GITHUB_EVENT_NAME -eq "workflow_dispatch") {
+            $version = "${{ inputs.version }}"
+          } else {
+            $version = $env:GITHUB_REF_NAME.TrimStart("v")
+          }
+          if ($version -notmatch '^\d+\.\d+(\.\d+)?$') { throw "La versión debe ser numérica, por ejemplo 22.34.10" }
           "MILTVPLUS_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append
       - name: Generate Windows icon
         shell: pwsh
@@ -79,27 +99,28 @@ jobs:
         run: iscc "/DAppVersion=$env:MILTVPLUS_VERSION" windows/installer/MILTVPLUS.iss
       - uses: actions/upload-artifact@v4
         with:
-          name: windows-installer
+          name: MILTVPLUS-Windows
           path: dist/MILTVPLUS-Setup-x64.exe
           if-no-files-found: error
   publish:
     name: Attach verified platform installers to GitHub Release
+    if: startsWith(github.ref, 'refs/tags/v')
     needs: [android, windows]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
         with:
-          pattern: '*'
+          pattern: 'MILTVPLUS-*'
           merge-multiple: true
           path: release-assets
       - name: Generate SHA-256 manifest
-        run: cd release-assets && sha256sum app-release.apk MILTVPLUS-Setup-x64.exe > SHA256SUMS
+        run: cd release-assets && sha256sum MILTVPLUS.apk MILTVPLUS-Setup-x64.exe > SHA256SUMS
       - name: Publish signed APK, Windows installer and checksums
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           files: |
-            release-assets/app-release.apk
+            release-assets/MILTVPLUS.apk
             release-assets/MILTVPLUS-Setup-x64.exe
             release-assets/SHA256SUMS
           fail_on_unmatched_files: true
