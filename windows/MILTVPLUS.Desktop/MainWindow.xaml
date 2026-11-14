@@ -92,7 +92,7 @@
      <ListBoxItem Content="🔞   Adultos 18+" Tag="Adultos 18+"/>
      <ListBoxItem Content="☆   Favoritos" Tag="Favoritos"/>
      <ListBoxItem Content="⚙   Configuración" Tag="Configuración"/>
-     <ListBoxItem Content="•••   Más Opciones" Tag="Más Opciones">
+     <ListBoxItem Content="•••   Más Opciones" Tag="Más Opciones" PreviewMouseLeftButtonDown="MoreOptions_MouseLeftButtonDown">
       <ListBoxItem.ContextMenu>
        <ContextMenu>
         <MenuItem Header="Guía EPG" Click="MoreEpg_Click"/>
