@@ -41,6 +41,7 @@ fun MusicExperience(
     onRefresh: () -> Unit,
 ) {
     var genre by remember { mutableStateOf("Todo") }
+    var era by remember { mutableStateOf("Todas") }
     var isPlaying by remember(player) { mutableStateOf(player.isPlaying) }
     var currentTitle by remember(player) { mutableStateOf(player.currentMediaItem?.mediaMetadata?.title?.toString().orEmpty()) }
     DisposableEffect(player) {
@@ -54,8 +55,18 @@ fun MusicExperience(
         onDispose { player.removeListener(listener) }
     }
     val genres = listOf("Todo") + entries.map { it.category }.filter { it.isNotBlank() }.distinct().sorted()
+    val decades = entries.mapNotNull { it.releaseYear?.let { year -> (year / 10) * 10 } }.distinct().sorted()
+    val eras = listOf("Todas", "Nuevas", "Clásicos") + decades.map { "$it" }
+    val currentYear = java.util.Calendar.getInstance().get(java.util.Calendar.YEAR)
     val visible = entries.filter { item ->
-        (genre == "Todo" || item.category.equals(genre, true)) &&
+        val year = item.releaseYear
+        val eraMatches = when (era) {
+            "Todas" -> true
+            "Nuevas" -> year != null && year >= currentYear - 2
+            "Clásicos" -> year != null && year <= 1999
+            else -> era.toIntOrNull()?.let { decade -> year != null && year in decade..(decade + 9) } ?: true
+        }
+        eraMatches && (genre == "Todo" || item.category.equals(genre, true)) &&
             (query.isBlank() || item.title.contains(query, true) || item.subtitle.contains(query, true) || item.category.contains(query, true))
     }
     Column(
@@ -103,6 +114,29 @@ fun MusicExperience(
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
             genres.forEach { value ->
                 FilterChip(selected = genre == value, onClick = { genre = value }, label = { Text(value.replaceFirstChar { it.uppercase() }) })
+            }
+        }
+        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+            eras.forEach { value ->
+                FilterChip(selected = era == value, onClick = { era = value }, label = {
+                    Text(when (value) { "Nuevas" -> "Nuevas"; "Clásicos" -> "Clásicos"; "Todas" -> "Todas las épocas"; else -> "$value" })
+                })
+            }
+        }
+        if (genres.size > 1) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text("Playlists continuas", color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    genres.drop(1).forEach { playlistGenre ->
+                        val playlist = entries.filter { it.category.equals(playlistGenre, true) && it.actionUrl != null }
+                        AssistChip(
+                            onClick = { playlist.firstOrNull()?.let { onPlay(it, playlist) } },
+                            enabled = playlist.isNotEmpty(),
+                            label = { Text("Mix · $playlistGenre") },
+                            leadingIcon = { Icon(Icons.Default.QueueMusic, null, tint = MusicPink) }
+                        )
+                    }
+                }
             }
         }
         if (currentTitle.isNotBlank()) {
