@@ -64,6 +64,10 @@ export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()
     const page=label==="Inicio"?home:label==="Adultos 18+"?adult:label==="Países"?countries:label==="Configuración"?settings:label==="Guía EPG"?epg:null;
     [home,adult,countries,settings,epg].forEach(p=>p.hidden=p!==page);
     const showTv=!page&&!isMusic;
+    if(label==="Deportes") category="sports";
+    else if(label==="Infantil") category="kids";
+    else if(label==="Documentales") category="documentary";
+    else if(label==="TV en Vivo"||label==="Inicio") category="all";
     channels.hidden=!showTv;empty.hidden=!showTv;
     tvCats.hidden=!(label==="TV en Vivo"||label==="Deportes"||label==="Infantil"||label==="Documentales");
     if(showTv){main.querySelector("h1").textContent=label;filterChannels()}
@@ -81,9 +85,14 @@ export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()
     channels.querySelectorAll(".channel").forEach(card=>{
       const text=card.textContent.toLowerCase();
       const matchQ=!q||text.includes(q);
-      const matchC=category==="all"||text.includes(category)||category==="sports"&&text.includes("deportes");
+      const item=getChannels()[Number(card.dataset.index)];
+      const value=String(item?.category||"").toLowerCase();
+      const aliases={sports:["sports","sport","deportes"],kids:["kids","infantil","children"],documentary:["documentary","documentales"],news:["news","noticias"],entertainment:["entertainment","entretenimiento"],movies:["movie","movies","peliculas"],music:["music","musica"],religious:["religious","religioso"],local:["local","locales"]};
+      const matchC=category==="all"||(aliases[category]||[category]).some(v=>value.includes(v));
       card.hidden=!(matchQ&&matchC);
     });
+    if(["Inicio","Adultos 18+","Países","Configuración","Guía EPG","Música","Películas","Series"].includes(active)) empty.hidden=true;
+    else empty.hidden=channels.querySelectorAll(".channel:not([hidden])").length>0;
   }
   search.addEventListener("input",filterChannels);
   filter.addEventListener("click",()=>{category="all";search.value="";filterChannels();tvCats.querySelectorAll("button").forEach(x=>x.classList.toggle("active",x.dataset.category==="all"))});
