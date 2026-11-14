@@ -3,11 +3,14 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "start": "node src/server.js",
     "test": "node --test",
-    "check": "node --check src/server.js && node --check src/catalog.js && node --check src/rights.js"
+    "check": "node --check src/server.js && node --check src/catalog.js && node --check src/rights.js",
+    "sync:catalog": "node src/sync-open-catalog.js"
   },
   "dependencies": {
     "express": "4.21.2",

@@ -181,6 +181,32 @@ app.get("/api/v2/resolve/:category/:country/:contentId", async (req, res, next) 
   } catch (error) { next(error); }
 });
 
+// Strict native playback endpoint: never returns browser pages, YouTube URLs, or third-party app links.
+app.get("/api/v2/native/resolve/:category/:country/:contentId", async (req, res, next) => {
+  try {
+    const { category, contentId } = req.params;
+    if (!validateCategory(category)) throw new CatalogError("Categoría no admitida.", 400);
+    if (!/^[0-9a-f-]{36}$/i.test(contentId)) throw new CatalogError("Identificador de contenido inválido.", 400);
+    if (category === "adultos") {
+      await catalog?.verifyAdultConsent(bearerToken(req));
+      throw new CatalogError("La sección +18 permanece vacía y no tiene streams activos.", 403);
+    }
+    if (!catalog) throw new CatalogError("El catálogo no está configurado.", 503);
+    const country = validateCountry(req.params.country);
+    const region = country === "ALL" ? "" : country;
+    const row = await catalog.find({ category, country, id: contentId, accessToken: bearerToken(req) });
+    const result = mediaResponse(row, category, region);
+    if (result.directPlayback !== true || typeof result.streamUrl !== "string" ||
+        !/^https:\/\//i.test(result.streamUrl) ||
+        /(^|\.)youtube\.com$/i.test(new URL(result.streamUrl).hostname) ||
+        /(^|\.)youtu\.be$/i.test(new URL(result.streamUrl).hostname)) {
+      throw new CatalogError("Este contenido no dispone de un stream directo autorizado para reproducción nativa.", 409);
+    }
+    res.set("Cache-Control", "private, no-store");
+    res.json({ ...result, mode: "native_stream" });
+  } catch (error) { next(error); }
+});
+
 app.use((error, _req, res, _next) => {
   const status = Number.isInteger(error?.status) ? error.status : 500;
   if (status >= 500) console.error("[resolver]", error?.message || "unknown error");
