@@ -58,11 +58,20 @@ public partial class MainWindow : Window
         AdultAgeConfirm.IsChecked = File.Exists(Path.Combine(AdultDataDirectory, "adult-age-confirmed"));
         Client.DefaultRequestHeaders.TryAddWithoutValidation("apikey", PublicKey);
         Client.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "application/json");
-        Loaded += async (_, _) => { await LoadCatalog(); if (_desktopSettings.AutoCheckUpdates) await CheckForUpdates(silent: true); if (_desktopSettings.StartMaximized) WindowState = WindowState.Maximized; };
+        Loaded += async (_, _) => { Window_SizeChanged(this, null!); await LoadCatalog(); if (_desktopSettings.AutoCheckUpdates) await CheckForUpdates(silent: true); if (_desktopSettings.StartMaximized) WindowState = WindowState.Maximized; };
         Closed += (_, _) => { _catalogRefreshTimer.Stop(); _clockTimer.Stop(); DisposePlayer(); };
         _catalogRefreshTimer.Tick += async (_, _) => { if (table == "tv_channels" && !_localPlaylistLoaded) await LoadCatalog(); };
         _catalogRefreshTimer.Start();
         VideoSurface.MouseLeftButtonDown += (_, e) => { if (e.ClickCount == 2) ToggleFullscreen(); };
+    }
+
+    private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        // Keep the desktop layout usable on compact Windows windows without changing its navigation model.
+        var compact = ActualWidth < 1080;
+        SidebarColumn.Width = new GridLength(compact ? 184 : 232);
+        MainContentGrid.Margin = new Thickness(compact ? 12 : 22);
+        SearchBox.Width = compact ? 150 : 220;
     }
 
     private void LoadDesktopSettings()
