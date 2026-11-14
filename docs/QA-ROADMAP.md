@@ -4,7 +4,7 @@
 - Proyecto Supabase MILTVPLUS activo y saludable.
 - Las 9 migraciones del repositorio están aplicadas en la base productiva.
 - Las tablas públicas revisadas tienen RLS habilitado; el asesor de seguridad devolvió cero alertas.
-- El catálogo editorial está vacío (0 filas en las tablas principales). No hay emisiones ni títulos reproducibles hasta incorporar fuentes y metadatos autorizados.
+- El catálogo editorial de películas/series (`catalog_items`) está vacío: no hay títulos publicados. La tabla de TV `tv_channels` contiene 48 fichas (46 publicadas y 2 no publicadas en la auditoría del 14/11/2026). Las 46 fichas publicadas no equivalen a 46 señales reproducibles: la auditoría encontró 0 URLs HLS/DASH directas y 0 registros con derechos de redistribución verificados. La disponibilidad de una página oficial tampoco acredita que exista un directo integrado.
 - Android CI ya produjo APK debug en una ejecución anterior; una APK debug no es una release apta para distribución.
 - No hay GitHub Releases publicadas todavía.
 - Los actualizadores Android y Windows ya consultan releases y exigen verificar SHA-256 antes de abrir el instalador. Su recorrido completo queda pendiente hasta publicar la primera release estable firmada.
