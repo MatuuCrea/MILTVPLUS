@@ -30,4 +30,5 @@ jobs:
         run: deno lint supabase/functions/tv-channel-health/index.ts supabase/functions/tmdb-catalog/index.ts supabase/functions/tmdb-catalog/routes.ts
       - name: Type-check Edge Functions
         run: deno check supabase/functions/tv-channel-health/index.ts supabase/functions/tmdb-catalog/index.ts
-deno test supabase/functions/tmdb-catalog/index.test.ts
+      - name: Test TMDB route validation
+        run: deno test supabase/functions/tmdb-catalog/index.test.ts
