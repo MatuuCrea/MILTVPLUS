@@ -28,4 +28,4 @@ jobs:
           node --check platforms/tizen/app.js
           node --check platforms/webos/app.js
       - name: Validate manifests and platform safety rules
-        run: python -m unittest discover -s tests -p 'test_smart_tv_clients.py' -v
+        run: python -m unittest discover -s tests -p 'test_*.py' -v
