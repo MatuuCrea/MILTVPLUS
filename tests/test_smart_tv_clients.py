@@ -105,6 +105,8 @@ class SmartTvClientTests(unittest.TestCase):
         self.assertIn("entry.HasActivePlaybackRights", windows)
         self.assertIn("entry.HasActivePlaybackRights", playback)
         self.assertIn("IsUserProvidedSource = true", windows)
+        self.assertIn("until == null) null else parseRightsDate(untilRaw) ?: return false", android)
+        self.assertIn("entry.IsUserProvidedSource || (IsHttps(entry.StreamUrl) && entry.HasActivePlaybackRights)", playback)
 
     def test_all_native_tv_clients_are_marked_as_source_not_signed_packages(self):
         docs = (ROOT / "docs/NATIVE-TV-CLIENTS.md").read_text(encoding="utf-8")
