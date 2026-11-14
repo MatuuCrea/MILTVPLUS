@@ -13,8 +13,10 @@ const SPORTS_FIELDS = [
   "rights_reference", "rights_regions", "rights_valid_from", "rights_valid_until", "is_published"
 ].join(",");
 
+// Keep this selection aligned with public.music_items. That table does not
+// have a description column; requesting one makes PostgREST reject the query.
 const MUSIC_FIELDS = [
-  "id", "title", "creator", "description", "country_code", "item_type", "album", "genre",
+  "id", "title", "creator", "country_code", "item_type", "album", "genre",
   "release_year", "external_url", "artwork_url", "stream_url", "rights_verified",
   "rights_holder", "rights_reference", "rights_regions", "rights_valid_from", "rights_valid_until",
   "is_published"
