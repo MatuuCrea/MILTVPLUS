@@ -155,7 +155,7 @@ public partial class MainWindow : Window
         {
             StatusText.Text = "No se pudo cargar el catálogo: " + ex.Message;
             entries = [];
-            Catalog.ItemsSource = entries;
+            CatalogScroll.ItemsSource = entries;
         }
     }
 
@@ -183,7 +183,7 @@ public partial class MainWindow : Window
         var term = SearchBox.Text.Trim();
         var country = CountryFilter.SelectedItem?.ToString();
         var category = CategoryFilter.SelectedItem?.ToString();
-        Catalog.ItemsSource = entries.Where(x =>
+        CatalogScroll.ItemsSource = entries.Where(x =>
             (string.IsNullOrEmpty(term) ||
                 (x.Title + " " + x.Description + " " + x.Genre + " " + x.Creator + " " + x.CountryCode + " " + x.Category + " " + x.LanguageCode + " " + x.SourceStatus + " " + x.AccessModel)
                 .Contains(term, StringComparison.OrdinalIgnoreCase)) &&
@@ -291,7 +291,7 @@ public partial class MainWindow : Window
 
     private List<CatalogEntry> CurrentPlayableEntries()
     {
-        if (Catalog.ItemsSource is IEnumerable<CatalogEntry> visible)
+        if (CatalogScroll.ItemsSource is IEnumerable<CatalogEntry> visible)
         {
             var filtered = visible.Where(x => x.HasActivePlaybackRights || x.IsUserProvidedSource).Where(x => Uri.TryCreate(x.StreamUrl, UriKind.Absolute, out var u) && u.Scheme == Uri.UriSchemeHttps).ToList();
             if (filtered.Count > 0) return filtered;
@@ -571,7 +571,7 @@ public partial class MainWindow : Window
         if (section == "Configuración")
         {
             entries = [];
-            Catalog.ItemsSource = entries;
+            CatalogScroll.ItemsSource = entries;
             PageTitle.Text = "Configuración";
             StatusText.Text = "Administrá actualizaciones, comportamiento de ventana y volumen de reproducción.";
             return;
@@ -579,7 +579,7 @@ public partial class MainWindow : Window
         if (isAdult && !_adultUnlocked)
         {
             entries = [];
-            Catalog.ItemsSource = entries;
+            CatalogScroll.ItemsSource = entries;
             PageTitle.Text = "Adultos 18+ · Acceso protegido";
             StatusText.Text = "Confirmá tu edad y validá tu PIN parental para continuar.";
             return;
