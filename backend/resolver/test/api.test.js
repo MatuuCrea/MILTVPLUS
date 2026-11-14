@@ -125,8 +125,12 @@ test("adult catalogue requires a signed-in account and recorded consent", async 
   });
   const body = await allowed.json();
   assert.equal(allowed.status, 200);
-  assert.equal(body.count, 1);
-  assert.equal(body.items[0].is_adult_content, true);
+  assert.equal(body.count, 0);
+  assert.deepEqual(body.items, []);
+  const blockedPlayback = await originalFetch(baseUrl + "/api/v2/resolve/adultos/AR/44444444-4444-4444-8444-444444444444", {
+    headers: { Authorization: "Bearer test-user-jwt" }
+  });
+  assert.equal(blockedPlayback.status, 403);
 });
 
 
