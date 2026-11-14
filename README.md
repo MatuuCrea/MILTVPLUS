@@ -2,7 +2,9 @@
 
 **Compromiso del producto:** MILTVPLUS es 100 % gratuita, sin anuncios, suscripciones, compras ni monetización. Ver [Política de producto](docs/PRODUCT-POLICY.md).
 
-MILTVPLUS es un producto de aplicaciones instalables nativas: Android (teléfonos, Android TV, TV Box y TV Stick con Android compatible) y Windows x64. No se ofrece una PWA ni una página web como aplicación.
+MILTVPLUS mantiene clientes nativos por plataforma: Android (teléfonos, Android TV/Google TV, TV Box Android y Fire TV sujeto a validación), Windows x64, Samsung Tizen (`platforms/tizen/`) y LG webOS (`platforms/webos/`). Los proyectos Tizen/webOS están en fase inicial y aún no tienen paquetes firmados ni QA físico. No se ofrece una PWA genérica.
+
+Matriz de paquetes y estado real: [Clientes nativos Smart TV](docs/NATIVE-TV-CLIENTS.md).
 
 ## Android
 
