@@ -364,7 +364,6 @@ fun AdultAccessScreen(
     val screenScrollState = rememberScrollState()
     val screenScope = rememberCoroutineScope()
     val store = remember { ParentalAccessStore(context) }
-    val catalog = remember { SupabaseCatalogRepository() }
     var ageConfirmed by remember { mutableStateOf(store.ageConfirmed) }
     var pinExists by remember { mutableStateOf(store.hasPin) }
     var unlocked by remember { mutableStateOf(false) }
@@ -384,30 +383,9 @@ fun AdultAccessScreen(
     }
     var catalogRefresh by remember { mutableIntStateOf(0) }
     LaunchedEffect(unlocked, countryCode, catalogRefresh) {
-        if (unlocked) {
-            var firstLoad = true
-            while (true) {
-                // Keep existing cards visible during background refreshes; show the spinner
-                // only on the first load or when the catalog is currently empty.
-                if (firstLoad || adultItems.isEmpty()) loading = true
-                catalog.fetchPublished("catalog_items", countryCode)
-                    .onSuccess { rows ->
-                        adultItems = rows.filter {
-                            val rating = it.ageRating?.trim()?.uppercase().orEmpty()
-                            rating.contains("18") || rating in setOf("NC-17","R18","TV-MA","MA","AO","ADULT","ADULTS ONLY")
-                        }
-                        message = null
-                    }
-                    .onFailure { message = "No se pudo actualizar el catálogo +18. Se conserva el contenido anterior si estaba disponible: ${it.message}" }
-                loading = false
-                firstLoad = false
-                // Refresh every five minutes while the protected section remains unlocked.
-                kotlinx.coroutines.delay(5 * 60 * 1000L)
-            }
-        } else {
-            adultItems = emptyList()
-            loading = false
-        }
+        adultItems = emptyList()
+        loading = false
+        message = "La sección +18 conserva su diseño, pero permanece bloqueada y sin consultar ni cargar URLs de contenido."
     }
 
     Column(
