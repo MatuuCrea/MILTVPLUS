@@ -2,7 +2,7 @@ import express from "express";
 import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
 import { CatalogError, SupabaseCatalog } from "./catalog.js";
-import { hasActiveRights, isSafeHttpsUrl } from "./rights.js";
+import { hasActiveRights, isRecentCheck, isSafeHttpsUrl } from "./rights.js";
 
 const app = express();
 const port = Number(process.env.PORT || 3000);
@@ -48,7 +48,7 @@ function mediaResponse(row, category, region) {
   if (!row) throw new CatalogError("Contenido no encontrado o no publicado.", 404);
   const title = row.title;
   if (category === "tv_en_vivo") {
-    if (row.source_status !== "online") throw new CatalogError("La página o señal oficial no está disponible ahora.", 503);
+    if (row.source_status !== "online" || !isRecentCheck(row.last_checked_at)) throw new CatalogError("La fuente oficial no tiene una comprobación reciente y disponible.", 503);
     if (row.playback_type === "official_web" || row.playback_type === "youtube_live") {
       if (!isSafeHttpsUrl(row.official_watch_url)) throw new CatalogError("La página oficial no tiene una URL HTTPS válida.", 503);
       return { success: true, title, mode: "official_web", protocol: "https_page", watchUrl: row.official_watch_url, directPlayback: false };
@@ -102,9 +102,11 @@ app.get("/api/v2/catalog/:category/:country", async (req, res, next) => {
         const directRights = hasActiveRights(row, country === "ALL" ? "" : country);
         if (category === "tv_en_vivo") {
           const directMode = row.playback_type === "hls" || row.playback_type === "dash";
+          const healthy = row.source_status === "online" && isRecentCheck(row.last_checked_at);
           return {
             ...row,
-            stream_url: directMode && row.source_status === "online" && directRights ? row.stream_url : null
+            source_status: healthy ? "online" : "pending_review",
+            stream_url: directMode && healthy && directRights ? row.stream_url : null
           };
         }
         return { ...row, stream_url: directRights ? row.stream_url : null };
