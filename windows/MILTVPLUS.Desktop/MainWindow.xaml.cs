@@ -621,7 +621,7 @@ public partial class MainWindow : Window
         };
         PageTitle.Text = section ?? "MILTVPLUS";
         if (section == "Configuración") StatusText.Text = "Pantalla completa: F11 · Cambio de canal: Ctrl + ← / →.";
-        if (section == "Favoritos") StatusText.Text = "Los favoritos sincronizados se administran desde la cuenta MILTVPLUS.";
+        if (section == "Favoritos") StatusText.Text = "Tus favoritos locales se guardan en esta computadora.";
         if (section == "Más Opciones") StatusText.Text = "Más opciones: Fuentes M3U, Control parental +18 y Soporte.";
         await LoadCatalog();
     }
