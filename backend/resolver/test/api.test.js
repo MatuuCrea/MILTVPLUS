@@ -115,4 +115,4 @@ test("adult catalogue requires a signed-in account and recorded consent", async 
   assert.equal(allowed.status, 200);
   assert.equal(body.count, 1);
   assert.equal(body.items[0].is_adult_content, true);
-});, last_checked_at: new Date().toISOString(), last_checked_at: new Date().toISOString()
+});
