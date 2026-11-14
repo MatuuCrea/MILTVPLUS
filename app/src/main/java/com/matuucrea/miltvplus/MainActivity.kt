@@ -428,19 +428,26 @@ class MainActivity:ComponentActivity(){
                     query = query,
                     onQueryChange = { query = it },
                     player = musicController ?: exoPlayer,
-                    onPlay = { item ->
-                        val stream = item.actionUrl
-                        if (stream != null && isSafeHttpsUrl(stream)) {
-                            val controller = musicController
-                            if (controller == null) {
-                                remoteError = "El reproductor de música se está conectando. Probá nuevamente en un instante."
-                            } else {
-                                controller.setMediaItem(MediaItem.Builder().setUri(stream).setMediaMetadata(
-                                    androidx.media3.common.MediaMetadata.Builder().setTitle(item.title).setArtist(item.subtitle).build()
-                                ).build())
-                                controller.prepare()
-                                controller.play()
+                    onPlay = { item, queue ->
+                        val playable = queue.filter { it.actionUrl?.let(::isSafeHttpsUrl) == true }
+                        val startIndex = playable.indexOfFirst { it.id == item.id }
+                        val controller = musicController
+                        if (controller == null) {
+                            remoteError = "El reproductor de música se está conectando. Probá nuevamente en un instante."
+                        } else if (startIndex >= 0) {
+                            val mediaItems = playable.map { track ->
+                                MediaItem.Builder().setUri(track.actionUrl!!)
+                                    .setMediaMetadata(
+                                        androidx.media3.common.MediaMetadata.Builder()
+                                            .setTitle(track.title)
+                                            .setArtist(track.subtitle)
+                                            .setArtworkUri(track.artworkUrl?.let(Uri::parse))
+                                            .build()
+                                    ).build()
                             }
+                            controller.setMediaItems(mediaItems, startIndex, 0L)
+                            controller.prepare()
+                            controller.play()
                         }
                     },
                     onOpenOfficialItem = { item ->
