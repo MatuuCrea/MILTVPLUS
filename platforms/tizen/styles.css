@@ -111,3 +111,7 @@ footer{grid-column:1/-1;grid-row:3;position:static;height:48px;padding:14px 24px
 .tv-category{text-align:left;white-space:normal;border-radius:10px;min-height:38px}
 main.tv-with-categories #channels{margin-left:174px}
 @media(max-width:700px){.tv-categories{float:none;width:100%;height:auto;flex-direction:row;overflow-x:auto;overflow-y:hidden;padding:8px 2px 14px}.tv-category{white-space:nowrap}main.tv-with-categories #channels{margin-left:0}}
+
+body.official-interface-active>header,body.official-interface-active>footer{display:none!important}
+body.official-interface-active>main{margin-left:var(--official-sidebar-width,248px);padding:24px clamp(16px,3vw,48px);height:100vh;overflow:auto}
+@media(max-width:760px){body.official-interface-active>main{margin-left:76px;padding:16px 12px}}
