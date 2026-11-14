@@ -76,3 +76,39 @@ Películas y series permanecen sin implementación de catálogo/contenido. No im
 
 
 El inventario internacional se amplió con páginas de señal en vivo de MXPlus para canales públicos mexicanos, RTVE Play para señales españolas, ABC iview para ABC News, TVN Play para TV Chile y la WebTV oficial de TV Brasil. Algunos servicios limitan contenido por país o por derechos de programas; cada ficha conserva ese estado y no se convierte en stream HLS/DASH.
+
+
+## Auditoría específica de señales públicas argentinas
+
+Se agregó `data/catalog/argentina-public-channel-audit.json`. Es un inventario de descubrimiento separado del catálogo de producción: **no inserta canales en Supabase, no los marca como disponibles y no crea URLs de reproducción**.
+
+### Señales públicas con operador institucional identificado
+
+CAISAU identifica oficialmente a Encuentro, Pakapaka y DeporTV como señales bajo su conducción y enlaza sus respectivos sitios. Se incorporan al inventario como páginas oficiales candidatas, pero su emisión online actual y su compatibilidad de reproducción todavía deben probarse. Televisión Pública, Senado TV y Diputados TV también están identificados con páginas institucionales/oficiales para una nueva verificación.
+
+Fuente primaria de titularidad: [CAISAU — Argentina.gob.ar](https://www.argentina.gob.ar/jefatura/contenidos-artisticos-e-informativos-sau).
+
+### Señales TDA y canales provinciales
+
+El archivo contiene candidatos de señales nacionales TDA (AUNAR, Cine.Ar, TEC, Construir TV) y medios locales/provinciales de 20 jurisdicciones para investigación. Los nombres provinciales proceden de un directorio secundario y **no se consideran confirmación de titularidad pública, página oficial, emisión online ni permiso de retransmisión**. Cada candidato necesita verificación individual en el dominio de su titular.
+
+La televisión digital abierta terrestre puede ser gratuita mediante antena, pero eso no implica que exista una señal online, ni que MILTVPLUS pueda redistribuirla. El catálogo debe distinguir:
+- **Pública estatal/parlamentaria:** titularidad u operación pública documentada.
+- **Abierta privada:** señal de aire gratuita cuyo titular es privado.
+- **TDA terrestre:** recepción por antena y cobertura geográfica; no es una URL de streaming.
+- **Página oficial online:** acceso mediante el reproductor/sitio del titular, sujeto a sus restricciones.
+- **Stream integrado:** sólo con endpoint técnico y autorización expresa de distribución para MILTVPLUS.
+
+Ninguna de las fichas nuevas se considera «en vivo» hasta probar el reproductor en el dispositivo y territorio correspondientes. Ninguna queda habilitada para retransmisión integrada sin referencia documental de derechos vigente.
+
+
+### Corte de la base productiva verificado el 14/11/2026
+
+Consulta de sólo lectura a `public.tv_channels` en el proyecto conectado:
+- 48 fichas en total, 46 publicadas y 2 sin publicar.
+- Argentina: 10 fichas, 9 publicadas, 9 con `source_status='online'` y 1 pendiente de revisión (Diputados TV).
+- Argentina tiene 1 ficha parlamentaria clasificada `public` (Senado TV). Televisión Pública figura actualmente en `general`, por lo que la clasificación del catálogo necesita revisión versionada antes de alterarla.
+- **0 streams directos configurados** y **0 derechos de redistribución verificados** en las fichas consultadas.
+- `source_status='online'` sólo significa que el chequeo de página respondió; no confirma que haya vídeo en vivo ni que el player funcione en teléfono/TV.
+
+Las señales Encuentro, Pakapaka y DeporTV ya están identificadas por CAISAU en el inventario de auditoría, pero todavía no están incorporadas a la base productiva. Sus sitios requieren prueba individual del reproductor; la página oficial de DeporTV respondió y mostró contenido editorial, lo que no acredita una emisión en directo permanente.
