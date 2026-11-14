@@ -626,45 +626,54 @@ public partial class MainWindow : Window
     private async Task LoadFavorites()
     {
         StatusText.Text = "Cargando tus favoritos guardados en esta computadora…";
-        var loaded = new List<CatalogEntry>();
-        var keys = _desktopSettings.FavoriteKeys ?? [];
-        foreach (var group in keys.Select(key => key.Split('|', 2))
-                     .Where(parts => parts.Length == 2 && Guid.TryParse(parts[1], out _) &&
-                         (parts[0] == "tv_channels" || parts[0] == "catalog_items"))
-                     .GroupBy(parts => parts[0], parts => parts[1]))
+        try
         {
-            var ids = group.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
-            if (ids.Length == 0) continue;
-            var sourceTable = group.Key;
-            var projection = sourceTable == "tv_channels"
-                ? "id,title,description,country_code,created_at,category,language_code,access_model,logo_url,official_watch_url,stream_url,playback_type,is_free_to_air,source_status,last_checked_at,last_check_detail"
-                : "id,title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url,official_watch_url";
-            var fields = projection.Split(',').Concat(new[] { "rights_verified", "rights_holder", "rights_reference", "rights_regions", "rights_valid_from", "rights_valid_until" }).Distinct(StringComparer.OrdinalIgnoreCase);
-            var query = "?select=" + Uri.EscapeDataString(string.Join(",", fields)) + "&id=in.(" + string.Join(",", ids) + ")&is_published=eq.true&limit=500";
-            using var response = await Client.GetAsync(Api + sourceTable + query);
-            if (!response.IsSuccessStatusCode) throw new HttpRequestException($"No se pudieron recuperar favoritos de {sourceTable}: HTTP {(int)response.StatusCode}.");
-            await using var stream = await response.Content.ReadAsStreamAsync();
-            var rows = await JsonSerializer.DeserializeAsync<List<CatalogEntry>>(stream, JsonOptions) ?? [];
-            foreach (var row in rows)
+            var loaded = new List<CatalogEntry>();
+            var keys = _desktopSettings.FavoriteKeys ?? [];
+            foreach (var group in keys.Select(key => key.Split('|', 2))
+                         .Where(parts => parts.Length == 2 && Guid.TryParse(parts[1], out _) &&
+                             (parts[0] == "tv_channels" || parts[0] == "catalog_items"))
+                         .GroupBy(parts => parts[0], parts => parts[1]))
             {
-                row.SourceTable = sourceTable;
-                row.IsFavorite = true;
-                if (sourceTable == "catalog_items" && !_adultUnlocked && IsAdultRating(row.AgeRating)) continue;
-                loaded.Add(row);
+                var ids = group.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+                if (ids.Length == 0) continue;
+                var sourceTable = group.Key;
+                var projection = sourceTable == "tv_channels"
+                    ? "id,title,description,country_code,created_at,category,language_code,access_model,logo_url,official_watch_url,stream_url,playback_type,is_free_to_air,source_status,last_checked_at,last_check_detail"
+                    : "id,title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url,official_watch_url";
+                var fields = projection.Split(',').Concat(new[] { "rights_verified", "rights_holder", "rights_reference", "rights_regions", "rights_valid_from", "rights_valid_until" }).Distinct(StringComparer.OrdinalIgnoreCase);
+                var query = "?select=" + Uri.EscapeDataString(string.Join(",", fields)) + "&id=in.(" + string.Join(",", ids) + ")&is_published=eq.true&limit=500";
+                using var response = await Client.GetAsync(Api + sourceTable + query);
+                if (!response.IsSuccessStatusCode) throw new HttpRequestException($"No se pudieron recuperar favoritos de {sourceTable}: HTTP {(int)response.StatusCode}.");
+                await using var stream = await response.Content.ReadAsStreamAsync();
+                var rows = await JsonSerializer.DeserializeAsync<List<CatalogEntry>>(stream, JsonOptions) ?? [];
+                foreach (var row in rows)
+                {
+                    row.SourceTable = sourceTable;
+                    row.IsFavorite = true;
+                    if (sourceTable == "catalog_items" && !_adultUnlocked && IsAdultRating(row.AgeRating)) continue;
+                    loaded.Add(row);
+                }
             }
+            entries = loaded;
+            UpdateFilterOptions();
+            StatusText.Text = entries.Count == 0
+                ? "Todavía no guardaste favoritos publicados en este dispositivo. Usá ☆ Guardar en una ficha para agregarla."
+                : $"{entries.Count} favoritos guardados localmente en esta computadora.";
         }
-        entries = loaded;
-        UpdateFilterOptions();
-        StatusText.Text = entries.Count == 0
-            ? "Todavía no guardaste favoritos publicados en este dispositivo. Usá ☆ Guardar en una ficha para agregarla."
-            : $"{entries.Count} favoritos guardados localmente en esta computadora.";
+        catch (Exception ex)
+        {
+            entries = [];
+            Catalog.ItemsSource = entries;
+            StatusText.Text = "No se pudieron cargar tus favoritos: " + ex.Message;
+        }
     }
 
     private void ToggleFavorite_Click(object sender, RoutedEventArgs e)
     {
         if ((sender as FrameworkElement)?.DataContext is not CatalogEntry item || !Guid.TryParse(item.Id, out _))
         {
-            StatusText.Text = "Esta fuente local no tiene un identificador editorial; no se puede guardar como favorito sincronizable.";
+            StatusText.Text = "Esta fuente local no tiene un identificador editorial; no se puede guardar como favorito.";
             return;
         }
         var source = string.IsNullOrWhiteSpace(item.SourceTable) ? table : item.SourceTable;
@@ -689,7 +698,11 @@ public partial class MainWindow : Window
         }
         PersistDesktopSettings();
         if (Sections.SelectedItem is ListBoxItem selected && selected.Tag?.ToString() == "Favoritos") _ = LoadFavorites();
-        else ApplySearch();
+        else
+        {
+            Catalog.ItemsSource = entries.ToList();
+            ApplySearch();
+        }
     }
 
     private void OpenSupportCenter_Click(object sender, RoutedEventArgs e) => OpenSupportCenter();
@@ -767,6 +780,7 @@ public partial class MainWindow : Window
         [JsonPropertyName("id")] public string? Id { get; set; }
         [JsonIgnore] public string? SourceTable { get; set; }
         [JsonIgnore] public bool IsFavorite { get; set; }
+        [JsonIgnore] public string FavoriteLabel => IsFavorite ? "★ Guardado" : "☆ Guardar";
         public string? Title { get; set; }
         public string? Description { get; set; }
         [JsonPropertyName("country_code")] public string? CountryCode { get; set; }
