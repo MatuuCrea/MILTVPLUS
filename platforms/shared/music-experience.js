@@ -25,7 +25,9 @@ export function mountMusicExperience({ statusElement } = {}) {
 
   const nav = document.createElement("nav");
   nav.className = "section-nav";
-  nav.setAttribute("aria-label", "Secciones principales");
+  nav.hidden = true;
+  nav.setAttribute("aria-hidden", "true");
+  nav.setAttribute("aria-label", "Control interno de sección");
   nav.innerHTML = '<button type="button" id="nav-tv" aria-pressed="true">TV en vivo</button><button type="button" id="nav-music" aria-pressed="false">Música</button>';
   main.insertBefore(nav, channelGrid);
 
