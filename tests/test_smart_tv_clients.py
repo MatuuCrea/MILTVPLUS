@@ -74,6 +74,25 @@ class SmartTvClientTests(unittest.TestCase):
         self.assertIn("Vega OS", matrix)
         self.assertIn("Fire OS 6 o posterior", matrix)
 
+    def test_smart_tv_navigation_uses_grid_geometry_and_scrollable_catalog(self):
+        for platform in ("tizen", "webos"):
+            script = (ROOT / f"platforms/{platform}/app.js").read_text(encoding="utf-8")
+            css = (ROOT / f"platforms/{platform}/styles.css").read_text(encoding="utf-8")
+            self.assertIn("function gridColumns()", script)
+            self.assertIn("selected+cols", script)
+            self.assertIn("scrollTop", script)
+            self.assertIn("grid-template-columns:repeat(auto-fill", css)
+            self.assertIn("overflow-y:auto", css)
+
+    def test_smart_tv_direct_playback_requires_current_regional_rights(self):
+        for platform in ("tizen", "webos"):
+            script = (ROOT / f"platforms/{platform}/app.js").read_text(encoding="utf-8")
+            self.assertIn("rights_verified,rights_holder,rights_reference,rights_regions", script)
+            self.assertIn("function hasActivePlaybackRights(c)", script)
+            self.assertIn("regions.includes(region)", script)
+            self.assertIn("rights_valid_until", script)
+            self.assertIn("hasActivePlaybackRights(c)", script)
+
     def test_all_native_tv_clients_are_marked_as_source_not_signed_packages(self):
         docs = (ROOT / "docs/NATIVE-TV-CLIENTS.md").read_text(encoding="utf-8")
         self.assertIn("WGT firmado", docs)
