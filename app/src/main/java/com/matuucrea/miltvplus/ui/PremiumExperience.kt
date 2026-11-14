@@ -44,19 +44,19 @@ fun PremiumSidebar(activeTab: String, onNavigate: (String) -> Unit) {
         val entries = listOf(
             NavDestination("Inicio", Icons.Default.Home),
             NavDestination("TV en Vivo", Icons.Default.LiveTv),
-            NavDestination("Guía EPG", Icons.Default.CalendarMonth),
             NavDestination("Películas", Icons.Default.Movie),
             NavDestination("Series", Icons.Default.VideoLibrary),
             NavDestination("Deportes", Icons.Default.EmojiEvents),
             NavDestination("Infantil", Icons.Default.ChildCare),
             NavDestination("Documentales", Icons.Default.MenuBook),
             NavDestination("Música", Icons.Default.MusicNote),
-            NavDestination("Países", Icons.Default.Public),
             NavDestination("Adultos 18+", Icons.Default.Lock),
             NavDestination("Favoritos", Icons.Default.Star),
             NavDestination("Configuración", Icons.Default.Settings)
         )
         val extras = listOf(
+            NavDestination("Guía EPG", Icons.Default.CalendarMonth),
+            NavDestination("Países", Icons.Default.Public),
             NavDestination("Apps", Icons.Default.Apps),
             NavDestination("Fuentes", Icons.Default.PlaylistAdd),
             NavDestination("Cuenta", Icons.Default.AccountCircle),
