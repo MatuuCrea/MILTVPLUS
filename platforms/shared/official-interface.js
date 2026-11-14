@@ -80,6 +80,7 @@ export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()
     else if(label==="Documentales") category="documentary";
     else if(label==="TV en Vivo"||label==="Inicio") category="all";
     channels.hidden=!showTv;empty.hidden=!showTv;
+    top.hidden=!showTv&&!isMusic;
     tvCats.hidden=!(label==="TV en Vivo"||label==="Deportes"||label==="Infantil"||label==="Documentales");
     if(showTv){main.querySelector("h1").textContent=label;filterChannels()}
     main.querySelector("p")?.toggleAttribute("hidden",!showTv);
@@ -110,7 +111,7 @@ export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()
     else empty.hidden=visibleCount>0;
   }
   search.addEventListener("input",filterChannels);
-  filter.addEventListener("click",()=>{category="all";search.value="";filterChannels();tvCats.querySelectorAll("button").forEach(x=>x.classList.toggle("active",x.dataset.category==="all"))});
+  filter.addEventListener("click",()=>{tvCats.hidden=false;tvCats.scrollIntoView({behavior:"smooth",block:"nearest"});});
   function showFavorites(){filterChannels()}
   async function renderCountries(){
     const list=countries.querySelector(".country-list");list.replaceChildren();
