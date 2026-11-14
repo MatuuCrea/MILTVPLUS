@@ -386,7 +386,7 @@ class MainActivity:ComponentActivity(){
                 TextButton(onClick={tab="Países"},modifier=Modifier.padding(horizontal=16.dp)){Text("🌎 País y región")}
                 TextButton(onClick={tab="Cuenta"},modifier=Modifier.padding(horizontal=16.dp)){Text("👤 Cuenta y sincronización")}
                 TextButton(onClick={tab="Adultos"},modifier=Modifier.padding(horizontal=16.dp)){Text("🔞 Control parental +18")}
-                TextButton(onClick={tab="Música"},modifier=Modifier.padding(horizontal=16.dp)){Text("🎧 Conectar con Spotify")}
+                TextButton(onClick={remoteCategory="music_items";tab="Música"},modifier=Modifier.padding(horizontal=16.dp)){Text("🎧 Conectar con Spotify")}
             }
             "Apps"->{
                 Title("Apps y servicios","Accesos disponibles y conexiones oficiales")
@@ -396,7 +396,7 @@ class MainActivity:ComponentActivity(){
                         Text("Tus servicios, en un solo lugar",color=MaterialTheme.colorScheme.onSurface,fontWeight=FontWeight.Bold)
                         Text("Las integraciones que todavía no están conectadas se mostrarán como no disponibles. No instalamos aplicaciones ni reproducimos servicios externos sin autorización.",color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=12.sp)
                         Button(onClick={tab="Fuentes"},modifier=Modifier.fillMaxWidth()) { Icon(Icons.Default.PlaylistAdd,null); Spacer(Modifier.width(8.dp)); Text("Administrar fuentes M3U") }
-                        OutlinedButton(onClick={tab="Música"},modifier=Modifier.fillMaxWidth()) { Icon(Icons.Default.MusicNote,null); Spacer(Modifier.width(8.dp)); Text("Abrir música") }
+                        OutlinedButton(onClick={remoteCategory="music_items";tab="Música"},modifier=Modifier.fillMaxWidth()) { Icon(Icons.Default.MusicNote,null); Spacer(Modifier.width(8.dp)); Text("Abrir música") }
                         OutlinedButton(onClick={tab="Ajustes"},modifier=Modifier.fillMaxWidth()) { Icon(Icons.Default.Settings,null); Spacer(Modifier.width(8.dp)); Text("Configuración") }
                     }
                 }
