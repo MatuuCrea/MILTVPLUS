@@ -12,6 +12,7 @@ La arquitectura de producto es nativa por plataforma: Android y Windows tienen c
 | Favoritos y preferencias | Sincronización Supabase con RLS | Conflictos offline y QA multi-dispositivo |
 | +18 Android | PIN PBKDF2, bloqueo temporal, declaración y filtros | Verificación de edad conforme a cada jurisdicción |
 | Catálogo editorial | Tablas y reglas RLS/derechos | Catálogo vacío; incorporar proveedores y derechos reales |
+| Backend Node.js resolver | Express 4 / Node 22, Supabase REST con RLS, rutas de catálogo/resolución, derechos regionales y vigentes, fallback oficial, rate limit, Helmet, CORS exacto, pruebas automatizadas y Dockerfile | Aplicar migración de segregación +18, desplegar host y configurar endpoint en clientes; QA E2E con proveedores autorizados |
 | TMDB películas/series | Edge Function con rutas permitidas, JWT requerido, secretos servidor, búsqueda, listas, fichas y reparto; pantallas Android | Configurar secretos en Supabase, validar licencia TMDB y desplegar función; QA en móvil/TV |
 | Series | Modelo de series/temporadas/episodios | Pantalla dedicada y contenido real |
 | EPG | Consulta ordenada y agrupada por canal | Grilla temporal y datos de varios días |
