@@ -75,6 +75,16 @@ function mediaResponse(row, category, region) {
     return { success: true, title, mode: "direct_stream", protocol: row.playback_type, streamUrl: row.stream_url, directPlayback: true };
   }
 
+  if (category === "deportes") {
+    if (isSafeHttpsUrl(row.stream_url) && hasActiveRights(row, region)) {
+      return { success: true, title, mode: "direct_stream", protocol: "https", streamUrl: row.stream_url, directPlayback: true, startsAt: row.starts_at || null, endsAt: row.ends_at || null };
+    }
+    if (isSafeHttpsUrl(row.official_info_url)) {
+      return { success: true, title, mode: "official_web", protocol: "https_page", watchUrl: row.official_info_url, directPlayback: false, startsAt: row.starts_at || null, endsAt: row.ends_at || null };
+    }
+    throw new CatalogError("El evento no tiene una transmisión ni una página oficial disponible.", 503);
+  }
+
   if (category === "musica") {
     if (!isSafeHttpsUrl(row.stream_url) || !hasActiveRights(row, region)) {
       throw new CatalogError("Esta pista no tiene una URL de audio directa con autorización vigente para esta región.", 403);
@@ -129,6 +139,9 @@ app.get("/api/v2/catalog/:category/:country", async (req, res, next) => {
       .filter((row) => category === "adultos" ? row.is_adult_content === true : row.is_adult_content !== true)
       .map((row) => {
         const directRights = hasActiveRights(row, country === "ALL" ? "" : country);
+        if (category === "deportes") {
+          return { ...row, stream_url: directRights && isSafeHttpsUrl(row.stream_url) ? row.stream_url : null };
+        }
         if (category === "musica") {
           return { ...row, stream_url: directRights && isSafeHttpsUrl(row.stream_url) ? row.stream_url : null };
         }
