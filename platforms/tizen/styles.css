@@ -88,3 +88,5 @@ footer{grid-column:1/-1;grid-row:3;position:static;height:48px;padding:14px 24px
 .vod-poster{width:92px;min-width:92px;height:136px;object-fit:cover;border-radius:8px;background:#080d19}
 .vod-info{display:flex;flex-direction:column;gap:8px;min-width:0}
 .vod-info strong{color:#fff;font-size:15px}.vod-info span,.vod-info p{color:#aab6ce;font-size:12px;line-height:1.4}.vod-info p{margin:0;max-height:55px;overflow:hidden}.vod-play{margin-top:auto;align-self:flex-start;border:1px solid #1679ca;background:#0d3d72;color:#fff;border-radius:18px;padding:8px 14px}
+
+.epg-logo{width:64px;height:42px;object-fit:contain;border-radius:6px;background:#fff;padding:3px;align-self:center}
