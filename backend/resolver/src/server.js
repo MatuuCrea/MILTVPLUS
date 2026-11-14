@@ -60,11 +60,11 @@ function mediaResponse(row, category, region) {
     return { success: true, title, mode: "direct_stream", protocol: row.playback_type, streamUrl: row.stream_url, directPlayback: true };
   }
 
+  if (category === "adultos" && row.is_adult_content !== true) {
+    throw new CatalogError("El contenido no está clasificado para el espacio +18.", 403);
+  }
   if (row.is_adult_content === true && category !== "adultos") {
     throw new CatalogError("Este contenido pertenece al espacio +18.", 403);
-  }
-  if (row.is_adult_content === true && category === "adultos" && row.is_adult_content !== true) {
-    throw new CatalogError("Contenido no clasificado para el espacio +18.", 403);
   }
   if (isSafeHttpsUrl(row.stream_url) && hasActiveRights(row, region)) {
     return { success: true, title, mode: "direct_stream", protocol: "https", streamUrl: row.stream_url, directPlayback: true };
@@ -96,10 +96,19 @@ app.get("/api/v2/catalog/:category/:country", async (req, res, next) => {
     }
     if (!catalog) throw new CatalogError("El catálogo no está configurado.", 503);
     const rows = await catalog.list({ category, country, accessToken });
-    const items = rows.filter((row) => {
-      if (category === "adultos") return row.is_adult_content === true;
-      return row.is_adult_content !== true;
-    });
+    const items = rows
+      .filter((row) => category === "adultos" ? row.is_adult_content === true : row.is_adult_content !== true)
+      .map((row) => {
+        const directRights = hasActiveRights(row, country === "ALL" ? "" : country);
+        if (category === "tv_en_vivo") {
+          const directMode = row.playback_type === "hls" || row.playback_type === "dash";
+          return {
+            ...row,
+            stream_url: directMode && row.source_status === "online" && directRights ? row.stream_url : null
+          };
+        }
+        return { ...row, stream_url: directRights ? row.stream_url : null };
+      });
     res.set("Cache-Control", category === "adultos" ? "private, no-store" : "public, max-age=30");
     res.json({ success: true, category, country, count: items.length, items });
   } catch (error) { next(error); }
