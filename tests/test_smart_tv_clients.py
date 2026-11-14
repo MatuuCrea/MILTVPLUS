@@ -81,4 +81,6 @@ class SmartTvClientTests(unittest.TestCase):
         self.assertIn("SDK/certificado/QA pendientes", docs)
         self.assertIn("WGT/IPK no se generan", docs)
 
+
+if __name__ == "__main__":
     unittest.main()
