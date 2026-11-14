@@ -36,9 +36,12 @@ class SmartTvClientTests(unittest.TestCase):
     def test_direct_playback_requires_platform_supported_type_and_https(self):
         tizen = (ROOT / "platforms/tizen/app.js").read_text(encoding="utf-8")
         webos = (ROOT / "platforms/webos/app.js").read_text(encoding="utf-8")
-        self.assertIn('c.playback_type==="hls"||c.playback_type==="dash"', tizen)
-        self.assertIn('c.playback_type==="hls"', webos)
-        self.assertIn('(c.playback_type==="hls"||c.playback_type==="mp4")&&safe(c.stream_url)&&hasActivePlaybackRights(c)', webos)
+        self.assertIn('RESOLVER+"/api/v2/resolve/tv_en_vivo/"', tizen)
+        self.assertIn('RESOLVER+"/api/v2/resolve/tv_en_vivo/"', webos)
+        self.assertIn('body.mode!=="direct_stream"', tizen)
+        self.assertIn('body.mode!=="direct_stream"', webos)
+        self.assertIn('safe(body.streamUrl)', tizen)
+        self.assertIn('safe(body.streamUrl)', webos)
         self.assertIn('p.setDisplayRect(0,0,window.innerWidth||1920,window.innerHeight||1080)', tizen)
         for source in (tizen, webos):
             self.assertIn('x.protocol==="https:"', source)
@@ -155,11 +158,11 @@ class SmartTvClientTests(unittest.TestCase):
     def test_smart_tv_direct_playback_requires_current_regional_rights(self):
         for platform in ("tizen", "webos"):
             script = (ROOT / f"platforms/{platform}/app.js").read_text(encoding="utf-8")
-            self.assertIn("rights_verified,rights_holder,rights_reference,rights_regions", script)
-            self.assertIn("function hasActivePlaybackRights(c)", script)
-            self.assertIn("regions.some(value=>String(value).toUpperCase()===region)", script)
-            self.assertIn("rights_valid_until", script)
-            self.assertIn("hasActivePlaybackRights(c)", script)
+            self.assertIn('RESOLVER+"/api/v2/catalog/tv_en_vivo/"', script)
+            self.assertIn('RESOLVER+"/api/v2/resolve/tv_en_vivo/"', script)
+            self.assertIn('body.mode!=="direct_stream"', script)
+            self.assertIn('safe(body.streamUrl)', script)
+            self.assertIn("no abrirá aplicaciones ni navegadores externos", script)
 
     def test_android_and_windows_gate_direct_streams_on_active_rights(self):
         android = (ROOT / "app/src/main/java/com/matuucrea/miltvplus/data/SupabaseCatalogRepository.kt").read_text(encoding="utf-8")
