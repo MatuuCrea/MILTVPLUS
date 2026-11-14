@@ -70,8 +70,7 @@ export class PerformanceOptimizer {
     const itemHeight = Number(options.itemHeight);
     if (!(itemHeight > 0)) {
       const fragment = doc.createDocumentFragment();
-      const limit = Math.min(itemsArray.length, this.maxDomNodes);
-      for (let i = 0; i < limit; i++) {
+      for (let i = 0; i < itemsArray.length; i++) {
         const node = renderizarCallback(itemsArray[i], i);
         if (node) fragment.appendChild(node);
       }
@@ -87,7 +86,7 @@ export class PerformanceOptimizer {
     spacer.style.height = (itemsArray.length * rowHeight) + "px";
     spacer.style.width = "1px";
     spacer.style.pointerEvents = "none";
-    spacer.style.position = "absolute";
+    spacer.style.position = "relative";
     spacer.style.top = "0";
     spacer.style.left = "0";
     const layer = doc.createElement("div");
