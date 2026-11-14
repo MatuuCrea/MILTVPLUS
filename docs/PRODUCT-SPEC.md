@@ -13,6 +13,13 @@
 - movie/series/episode, póster, backdrop, género, año, duración, clasificación, idioma, proveedor, licencia y disponibilidad.
 - Relaciones serie/temporada/episodio. Falta ficha y navegación dedicada de temporadas.
 
+## 3 bis. Catálogo TMDB
+- Películas populares, mejor valoradas y próximos estrenos; series populares y en emisión.
+- Búsqueda separada de películas/series, fichas, pósteres, fondos, reparto y temporadas.
+- Idioma `es-AR` y región `AR` donde corresponde.
+- TMDB aporta metadatos e imágenes, no archivos de vídeo, licencias de reproducción ni disponibilidad territorial.
+- Credenciales exclusivamente en secretos de Supabase Edge Functions; cliente Android requiere sesión autenticada.
+
 ## 4. Deportes
 - Disciplina, competición, región, horarios, póster e información oficial.
 - Transmisión sólo con `authorized_stream_url` y derechos publicados.
