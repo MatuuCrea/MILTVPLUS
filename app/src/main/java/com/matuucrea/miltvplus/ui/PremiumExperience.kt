@@ -36,9 +36,9 @@ private val PremiumGold = Color(0xFFFFC247)
 private data class NavDestination(val label: String, val icon: androidx.compose.ui.graphics.vector.ImageVector)
 
 @Composable
-fun PremiumSidebar(activeTab: String, onNavigate: (String) -> Unit) {
+fun PremiumSidebar(activeTab: String, onNavigate: (String) -> Unit, compactMode: Boolean? = null) {
     BoxWithConstraints(Modifier.fillMaxHeight()) {
-        val compact = maxWidth < 600.dp
+        val compact = compactMode ?: (maxWidth < 600.dp)
         var expanded by remember(compact) { mutableStateOf(!compact) }
         var drawerOpen by remember(compact) { mutableStateOf(false) }
         var moreExpanded by remember { mutableStateOf(false) }
