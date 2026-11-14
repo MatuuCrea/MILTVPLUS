@@ -141,7 +141,12 @@ public partial class MainWindow : Window
                 loaded.AddRange(page);
                 if (page.Count < pageSize) break;
             }
-            foreach (var row in loaded) row.SourceTable = table;
+            foreach (var row in loaded)
+            {
+                row.SourceTable = table;
+                row.IsFavorite = !string.IsNullOrWhiteSpace(row.Id) &&
+                    (_desktopSettings.FavoriteKeys ?? []).Contains(table + "|" + row.Id, StringComparer.OrdinalIgnoreCase);
+            }
             if (table == "catalog_items")
             {
                 var adultSection = Sections.SelectedItem is ListBoxItem selectedItem && selectedItem.Tag?.ToString() == "Adultos 18+";
