@@ -66,5 +66,19 @@ class SmartTvClientTests(unittest.TestCase):
         self.assertNotIn('Text("Experiencia Premium"', ui)
 
 
-if __name__ == "__main__":
+    def test_fire_tv_compatibility_is_bounded_by_android_min_sdk(self):
+        gradle = (ROOT / "app/build.gradle.kts").read_text(encoding="utf-8")
+        matrix = (ROOT / "docs/DEVICE-RELEASE-MATRIX.md").read_text(encoding="utf-8")
+        self.assertIn("minSdk = 23", gradle)
+        self.assertIn("Fire OS 5 (Android API 22) queda excluido", matrix)
+        self.assertIn("Vega OS", matrix)
+        self.assertIn("Fire OS 6 o posterior", matrix)
+
+    def test_all_native_tv_clients_are_marked_as_source_not_signed_packages(self):
+        docs = (ROOT / "docs/NATIVE-TV-CLIENTS.md").read_text(encoding="utf-8")
+        self.assertIn("WGT firmado", docs)
+        self.assertIn("IPK firmado", docs)
+        self.assertIn("SDK/certificado/QA pendientes", docs)
+        self.assertIn("WGT/IPK no se generan", docs)
+
     unittest.main()
