@@ -255,7 +255,8 @@ public partial class MainWindow : Window
             }
             if (IsHttps(item.OfficialWatchUrl))
             {
-                StatusText.Text = "Esta señal no tiene derechos directos activos y verificables para esta región. Se abrirá únicamente la página oficial si está disponible.";
+                StatusText.Text = "No hay derechos activos para reproducción directa en esta región. Abriendo únicamente la página oficial del emisor.";
+                _ = WatchEntryAsync(item);
                 return;
             }
             StatusText.Text = "Este canal todavía no tiene una señal HTTPS verificada ni una página oficial de visualización.";
