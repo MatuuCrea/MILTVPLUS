@@ -39,7 +39,9 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _clockTimer = new() { Interval = TimeSpan.FromSeconds(1) };
     private bool _adultUnlocked;
     private string? _contentCategoryFilter;
+    private DesktopSettings _desktopSettings = new();
     private string AdultDataDirectory => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MILTVPLUS");
+    private string DesktopSettingsPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MILTVPLUS", "desktop-settings.json");
 
     public MainWindow()
     {
@@ -47,6 +49,7 @@ public partial class MainWindow : Window
         _libVlc = new LibVLC("--no-video-title-show", "--network-caching=2000", "--live-caching=1500", "--http-reconnect", "--avcodec-hw=any");
         _mediaPlayer = new MediaPlayer(_libVlc);
         InitializeComponent();
+        LoadDesktopSettings();
         VideoSurface.MediaPlayer = _mediaPlayer;
         UpdateClock();
         _clockTimer.Tick += (_, _) => UpdateClock();
@@ -54,11 +57,43 @@ public partial class MainWindow : Window
         AdultAgeConfirm.IsChecked = File.Exists(Path.Combine(AdultDataDirectory, "adult-age-confirmed"));
         Client.DefaultRequestHeaders.TryAddWithoutValidation("apikey", PublicKey);
         Client.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "application/json");
-        Loaded += async (_, _) => { await LoadCatalog(); await CheckForUpdates(silent: true); };
+        Loaded += async (_, _) => { await LoadCatalog(); if (_desktopSettings.AutoCheckUpdates) await CheckForUpdates(silent: true); if (_desktopSettings.StartMaximized) WindowState = WindowState.Maximized; };
         Closed += (_, _) => { _catalogRefreshTimer.Stop(); _clockTimer.Stop(); DisposePlayer(); };
         _catalogRefreshTimer.Tick += async (_, _) => { if (table == "tv_channels" && !_localPlaylistLoaded) await LoadCatalog(); };
         _catalogRefreshTimer.Start();
         VideoSurface.MouseLeftButtonDown += (_, e) => { if (e.ClickCount == 2) ToggleFullscreen(); };
+    }
+
+    private void LoadDesktopSettings()
+    {
+        try
+        {
+            if (File.Exists(DesktopSettingsPath))
+                _desktopSettings = JsonSerializer.Deserialize<DesktopSettings>(File.ReadAllText(DesktopSettingsPath), JsonOptions) ?? new DesktopSettings();
+        }
+        catch { _desktopSettings = new DesktopSettings(); }
+        AutoCheckUpdatesCheckBox.IsChecked = _desktopSettings.AutoCheckUpdates;
+        AlwaysOnTopCheckBox.IsChecked = _desktopSettings.AlwaysOnTop;
+        StartMaximizedCheckBox.IsChecked = _desktopSettings.StartMaximized;
+        DesktopVolumeSlider.Value = Math.Clamp(_desktopSettings.MusicVolume, 0, 100);
+        Topmost = _desktopSettings.AlwaysOnTop;
+        _mediaPlayer.Volume = (int)DesktopVolumeSlider.Value;
+    }
+
+    private void SaveDesktopSettings_Click(object sender, RoutedEventArgs e)
+    {
+        _desktopSettings = new DesktopSettings
+        {
+            AutoCheckUpdates = AutoCheckUpdatesCheckBox.IsChecked == true,
+            AlwaysOnTop = AlwaysOnTopCheckBox.IsChecked == true,
+            StartMaximized = StartMaximizedCheckBox.IsChecked == true,
+            MusicVolume = Math.Clamp((int)DesktopVolumeSlider.Value, 0, 100)
+        };
+        Directory.CreateDirectory(Path.GetDirectoryName(DesktopSettingsPath)!);
+        File.WriteAllText(DesktopSettingsPath, JsonSerializer.Serialize(_desktopSettings, new JsonSerializerOptions { WriteIndented = true }));
+        Topmost = _desktopSettings.AlwaysOnTop;
+        _mediaPlayer.Volume = _desktopSettings.MusicVolume;
+        StatusText.Text = "¡Listo! Tu configuración quedó guardada en esta computadora.";
     }
 
     private async Task LoadCatalog()
@@ -190,8 +225,19 @@ public partial class MainWindow : Window
 
     private void PlayEntry(CatalogEntry item)
     {
-        if (!Uri.TryCreate(item.StreamUrl, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps)
+        if (!Uri.TryCreate(item.StreamUrl ?? item.AuthorizedStreamUrl, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps)
         {
+            var officialMusicUrl = item.ExternalUrl ?? item.OfficialWatchUrl;
+            if (Sections.SelectedItem is ListBoxItem selected && selected.Tag?.ToString() == "Música" && IsHttps(officialMusicUrl))
+            {
+                try
+                {
+                    Process.Start(new ProcessStartInfo(officialMusicUrl!) { UseShellExecute = true });
+                    StatusText.Text = "Abriendo la fuente musical oficial en tu navegador.";
+                }
+                catch (Exception ex) { StatusText.Text = "No se pudo abrir la fuente oficial: " + ex.Message; }
+                return;
+            }
             if (IsHttps(item.OfficialWatchUrl))
             {
                 StatusText.Text = "Esta señal debe iniciarse desde el visor integrado de MILTVPLUS.";
@@ -287,6 +333,18 @@ public partial class MainWindow : Window
 
     private void OpenNotifications_Click(object sender, RoutedEventArgs e) => StatusText.Text = "No hay un servicio de notificaciones push conectado en esta compilación.";
     private void OpenSettings_Click(object sender, RoutedEventArgs e) => QuickSelect("Configuración");
+    private void SearchYouTubeMusic_Click(object sender, RoutedEventArgs e) => OpenOfficialMusicSearch("https://music.youtube.com/search?q=");
+    private void SearchSpotify_Click(object sender, RoutedEventArgs e) => OpenOfficialMusicSearch("https://open.spotify.com/search/");
+    private void OpenOfficialMusicSearch(string baseUrl)
+    {
+        try
+        {
+            var term = Uri.EscapeDataString(SearchBox.Text?.Trim() ?? string.Empty);
+            Process.Start(new ProcessStartInfo(baseUrl + term) { UseShellExecute = true });
+            StatusText.Text = "Abriendo la búsqueda musical oficial en tu navegador.";
+        }
+        catch (Exception ex) { StatusText.Text = "No se pudo abrir la búsqueda musical: " + ex.Message; }
+    }
     private void OpenAccount_Click(object sender, RoutedEventArgs e) =>
         MessageBox.Show(this, "La gestión de cuenta y sincronización está disponible en el cliente Android. Esta compilación de escritorio usa el catálogo público y fuentes locales.", "MILTVPLUS · Cuenta", MessageBoxButton.OK, MessageBoxImage.Information);
 
@@ -455,13 +513,23 @@ public partial class MainWindow : Window
         _localPlaylistLoaded = false;
         _contentCategoryFilter = section == "Infantil" ? "kids" : section == "Documentales" ? "documentary" : null;
         HomePanel.Visibility = section == "Inicio" ? Visibility.Visible : Visibility.Collapsed;
+        MusicPanel.Visibility = section == "Música" ? Visibility.Visible : Visibility.Collapsed;
+        SettingsPanel.Visibility = section == "Configuración" ? Visibility.Visible : Visibility.Collapsed;
         var isAdult = section == "Adultos 18+";
         AdultGatePanel.Visibility = isAdult && !_adultUnlocked ? Visibility.Visible : Visibility.Collapsed;
         AdultPanel.Visibility = isAdult && _adultUnlocked ? Visibility.Visible : Visibility.Collapsed;
-        VideoContainer.Visibility = isAdult ? Visibility.Collapsed : Visibility.Visible;
-        CatalogScroll.Visibility = isAdult && !_adultUnlocked ? Visibility.Collapsed : Visibility.Visible;
-        Grid.SetRow(CatalogScroll, isAdult ? 3 : 4);
-        Grid.SetRowSpan(CatalogScroll, isAdult ? 2 : 1);
+        VideoContainer.Visibility = isAdult || section == "Música" || section == "Configuración" ? Visibility.Collapsed : Visibility.Visible;
+        CatalogScroll.Visibility = section == "Configuración" || (isAdult && !_adultUnlocked) ? Visibility.Collapsed : Visibility.Visible;
+        Grid.SetRow(CatalogScroll, isAdult || section == "Música" ? 3 : 4);
+        Grid.SetRowSpan(CatalogScroll, isAdult || section == "Música" ? 2 : 1);
+        if (section == "Configuración")
+        {
+            entries = [];
+            Catalog.ItemsSource = entries;
+            PageTitle.Text = "Configuración";
+            StatusText.Text = "Administrá actualizaciones, comportamiento de ventana y volumen de reproducción.";
+            return;
+        }
         if (isAdult && !_adultUnlocked)
         {
             entries = [];
@@ -479,7 +547,7 @@ public partial class MainWindow : Window
             "Documentales" => ("catalog_items", "id,title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url", "created_at.desc", null),
             "Adultos 18+" => ("catalog_items", "id,title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url", "created_at.desc", null),
             "Deportes" => ("sports_events", "id,title,description,country_code,starts_at,competition,sport,poster_url,official_info_url", "starts_at.asc", null),
-            "Música" => ("music_items", "id,title,creator,country_code,created_at,item_type,album,genre,release_year,external_url,artwork_url", "created_at.desc", null),
+            "Música" => ("music_items", "id,title,creator,country_code,created_at,item_type,album,genre,release_year,external_url,artwork_url,stream_url", "created_at.desc", null),
             "Radios" => ("radio_stations", "id,title,description,country_code,created_at,genre,language_code,logo_url,stream_url,website_url", "created_at.desc", null),
             "Teatro" => ("theater_events", "id,title,description,country_code,starts_at,venue,genre,poster_url,info_url", "starts_at.asc", null),
             "Guía EPG" => ("epg_programs", "id,title,description,country_code,starts_at,ends_at,category,language_code,channel_external_id", "starts_at.asc", null),
@@ -492,6 +560,15 @@ public partial class MainWindow : Window
         if (section == "Favoritos") StatusText.Text = "Los favoritos sincronizados se administran desde la cuenta MILTVPLUS.";
         if (section == "Más Opciones") StatusText.Text = "Más opciones: Fuentes M3U, Control parental +18 y Soporte.";
         await LoadCatalog();
+    }
+
+    private sealed class DesktopSettings
+    {
+        public DesktopSettings() { }
+        public bool AutoCheckUpdates { get; set; } = true;
+        public bool AlwaysOnTop { get; set; }
+        public bool StartMaximized { get; set; }
+        public int MusicVolume { get; set; } = 100;
     }
 
     private sealed class CatalogEntry
@@ -512,6 +589,9 @@ public partial class MainWindow : Window
         [JsonPropertyName("ends_at")] public DateTimeOffset? EndsAt { get; set; }
         [JsonPropertyName("channel_external_id")] public string? ChannelExternalId { get; set; }
         [JsonPropertyName("stream_url")] public string? StreamUrl { get; set; }
+        [JsonPropertyName("authorized_stream_url")] public string? AuthorizedStreamUrl { get; set; }
+        [JsonPropertyName("external_url")] public string? ExternalUrl { get; set; }
+        [JsonPropertyName("artwork_url")] public string? ArtworkUrl { get; set; }
         [JsonPropertyName("official_watch_url")] public string? OfficialWatchUrl { get; set; }
         [JsonPropertyName("logo_url")] public string? LogoUrl { get; set; }
         public string? Category { get; set; }

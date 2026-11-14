@@ -35,6 +35,9 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.C
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
+import com.matuucrea.miltvplus.player.MusicPlaybackService
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.matuucrea.miltvplus.data.Channel
 import com.matuucrea.miltvplus.auth.AuthSession
@@ -48,9 +51,11 @@ import com.matuucrea.miltvplus.ui.RemoteSourcesScreen
 import com.matuucrea.miltvplus.ui.PremiumHomeDashboard
 import com.matuucrea.miltvplus.ui.PremiumSidebar
 import com.matuucrea.miltvplus.ui.PremiumAppTopBar
+import com.matuucrea.miltvplus.ui.MusicExperience
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import android.content.Intent
+import android.content.ComponentName
 import android.net.Uri
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
@@ -69,7 +74,7 @@ private val panel: Color
     @Composable get() = MaterialTheme.colorScheme.surface
 private val cyan=Color(0xFF00D9F5); private val blue=Color(0xFF087BFF); private val orange=Color(0xFFFF7900)
 class MainActivity:ComponentActivity(){
-    override fun onCreate(savedInstanceState:Bundle?){super.onCreate(savedInstanceState);window.statusBarColor=android.graphics.Color.rgb(5,9,27);window.navigationBarColor=android.graphics.Color.rgb(5,9,27);setContent {
+    override fun onCreate(savedInstanceState:Bundle?){super.onCreate(savedInstanceState);window.statusBarColor=android.graphics.Color.rgb(5,9,27);window.navigationBarColor=android.graphics.Color.rgb(5,9,27);if(getSharedPreferences("miltvplus_preferences",0).getBoolean("keep_screen_on",false))window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);setContent {
         var themeMode by remember { mutableStateOf(getSharedPreferences("miltvplus_preferences",0).getString("theme","dark") ?: "dark") }
         var accentColor by remember { mutableStateOf(getSharedPreferences("miltvplus_preferences",0).getString("accent_color","electric-blue") ?: "electric-blue") }
         val accent = when(accentColor) { "violet" -> Color(0xFF9B6BFF); "emerald" -> Color(0xFF20C997); else -> cyan }
@@ -83,7 +88,34 @@ class MainActivity:ComponentActivity(){
 }
 @Composable private fun App(onThemeChanged:(String,String)->Unit, authCallback:Uri?=null, vm:PlayerViewModel=viewModel()){
     val context=LocalContext.current
-    val exoPlayer = remember(context) { ExoPlayer.Builder(context).build() }
+    val exoPlayer = remember(context) {
+        ExoPlayer.Builder(context)
+            .setAudioAttributes(
+                androidx.media3.common.AudioAttributes.Builder()
+                    .setUsage(C.USAGE_MEDIA)
+                    .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+                    .build(),
+                true
+            )
+            .build()
+    }
+    var musicVolume by remember { mutableFloatStateOf(context.getSharedPreferences("miltvplus_preferences", 0).getFloat("music_volume", 1f).coerceIn(0f, 1f)) }
+    val musicControllerFuture = remember(context) {
+        val token = SessionToken(context, ComponentName(context, MusicPlaybackService::class.java))
+        MediaController.Builder(context, token).buildAsync()
+    }
+    var musicController by remember { mutableStateOf<MediaController?>(null) }
+    DisposableEffect(musicControllerFuture) {
+        val listener = Runnable {
+            musicController = runCatching { musicControllerFuture.get() }.getOrNull()
+        }
+        musicControllerFuture.addListener(listener, androidx.core.content.ContextCompat.getMainExecutor(context))
+        onDispose { MediaController.releaseFuture(musicControllerFuture) }
+    }
+    LaunchedEffect(musicVolume, musicController) {
+        exoPlayer.volume = musicVolume
+        musicController?.volume = musicVolume
+    }
     DisposableEffect(exoPlayer) { onDispose { exoPlayer.release() } }
     var tab by remember { mutableStateOf("Inicio") }; var query by remember { mutableStateOf("") }; var updateNotice by remember { mutableStateOf<String?>(null) }
     val remoteRepository = remember { SupabaseCatalogRepository() }
@@ -136,7 +168,7 @@ class MainActivity:ComponentActivity(){
     var catalogRefresh by remember { mutableIntStateOf(0) }
     var remoteError by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(tab, remoteCategory, catalogRefresh, countryCode) {
-        if (tab == "Catálogo" || (tab == "Inicio" && remoteCategory == "tv_channels")) {
+        if (tab == "Catálogo" || (tab == "Inicio" && remoteCategory == "tv_channels") || (tab == "Música" && remoteCategory == "music_items")) {
             remoteError = null
             while (true) {
                 if (remoteItems.isEmpty()) remoteLoading = true
@@ -188,7 +220,7 @@ class MainActivity:ComponentActivity(){
             "Documentales" -> { remoteCategory = "catalog_items"; remoteKindFilter = "documentary"; tab = "Catálogo" }
             "Apps" -> { remoteKindFilter = null; tab = "Apps" }
             "Fuentes" -> { remoteKindFilter = null; tab = "Fuentes" }
-            "Música" -> { remoteKindFilter = null; tab = "Música" }
+            "Música" -> { remoteCategory = "music_items"; remoteItems = emptyList(); remoteError = null; remoteKindFilter = null; tab = "Música" }
             "Cuenta" -> { remoteKindFilter = null; tab = "Cuenta" }
             "Radios" -> { remoteCategory = "radio_stations"; remoteKindFilter = null; tab = "Catálogo" }
             "Teatro" -> { remoteCategory = "theater_events"; remoteKindFilter = null; tab = "Catálogo" }
@@ -360,11 +392,20 @@ class MainActivity:ComponentActivity(){
                 val prefs=context.getSharedPreferences("miltvplus_preferences",0)
                 uiScope.launch { if(authSession!=null) runCatching { userRepository.savePreferences(prefs.getString("theme","dark")?:"dark",country.code,prefs.getString("language","es")?:"es",prefs.getBoolean("subtitles",true),prefs.getBoolean("notifications",true),prefs.getBoolean("autoplay",false),prefs.getString("accent_color","electric-blue")?:"electric-blue",prefs.getString("audio_language","original")?.takeIf{it!="original"}) } }
             }}
-            "Ajustes"->{Title("Ajustes","Personalizá tu experiencia");SettingsScreen(onThemeChanged,userRepository,authSession!=null)
+            "Ajustes"->{Title("Ajustes","Personalizá tu experiencia");SettingsScreen(
+                onThemeChanged, userRepository, authSession!=null,
+                onKeepScreenOnChanged = { keep ->
+                    (context as? MainActivity)?.window?.let { window ->
+                        if (keep) window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                        else window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                    }
+                },
+                onMusicVolumeChanged = { value -> musicVolume = value }
+            )
                 TextButton(onClick={tab="Países"},modifier=Modifier.padding(horizontal=16.dp)){Text("🌎 País y región")}
                 TextButton(onClick={tab="Cuenta"},modifier=Modifier.padding(horizontal=16.dp)){Text("👤 Cuenta y sincronización")}
                 TextButton(onClick={tab="Adultos"},modifier=Modifier.padding(horizontal=16.dp)){Text("🔞 Control parental +18")}
-                TextButton(onClick={tab="Música"},modifier=Modifier.padding(horizontal=16.dp)){Text("🎧 Conectar con Spotify")}
+                TextButton(onClick={remoteCategory="music_items";remoteItems=emptyList();remoteError=null;tab="Música"},modifier=Modifier.padding(horizontal=16.dp)){Text("🎧 Conectar con Spotify")}
             }
             "Apps"->{
                 Title("Apps y servicios","Accesos disponibles y conexiones oficiales")
@@ -374,15 +415,54 @@ class MainActivity:ComponentActivity(){
                         Text("Tus servicios, en un solo lugar",color=MaterialTheme.colorScheme.onSurface,fontWeight=FontWeight.Bold)
                         Text("Las integraciones que todavía no están conectadas se mostrarán como no disponibles. No instalamos aplicaciones ni reproducimos servicios externos sin autorización.",color=MaterialTheme.colorScheme.onSurfaceVariant,fontSize=12.sp)
                         Button(onClick={tab="Fuentes"},modifier=Modifier.fillMaxWidth()) { Icon(Icons.Default.PlaylistAdd,null); Spacer(Modifier.width(8.dp)); Text("Administrar fuentes M3U") }
-                        OutlinedButton(onClick={tab="Música"},modifier=Modifier.fillMaxWidth()) { Icon(Icons.Default.MusicNote,null); Spacer(Modifier.width(8.dp)); Text("Abrir música") }
+                        OutlinedButton(onClick={remoteCategory="music_items";remoteItems=emptyList();remoteError=null;tab="Música"},modifier=Modifier.fillMaxWidth()) { Icon(Icons.Default.MusicNote,null); Spacer(Modifier.width(8.dp)); Text("Abrir música") }
                         OutlinedButton(onClick={tab="Ajustes"},modifier=Modifier.fillMaxWidth()) { Icon(Icons.Default.Settings,null); Spacer(Modifier.width(8.dp)); Text("Configuración") }
                     }
                 }
             }
-            "Música"->{Title("Música","Artistas, álbumes y listas publicadas")
-                Button(onClick={ { runCatching { context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse("https://open.spotify.com/"))) }.onFailure { remoteError="No se pudo abrir Spotify." } } },modifier=Modifier.padding(horizontal=16.dp)){Icon(Icons.Default.OpenInNew,null);Text("Abrir Spotify")}
-                Text("La conexión con Spotify abre su servicio oficial. El inicio de sesión OAuth y la reproducción integrada requieren una aplicación Spotify registrada y aprobada.",Modifier.padding(16.dp),color=MaterialTheme.colorScheme.onSurfaceVariant)
-                TextButton(onClick={remoteCategory="music_items";tab="Catálogo"}){Text("Ver música publicada en MILTVPLUS")}
+            "Música"->{
+                MusicExperience(
+                    entries = remoteItems.filterNot { isAdultRating(it.ageRating) },
+                    loading = remoteLoading,
+                    error = remoteError,
+                    query = query,
+                    onQueryChange = { query = it },
+                    player = musicController ?: exoPlayer,
+                    onPlay = { item, queue ->
+                        val playable = queue.filter { it.actionUrl?.let(::isSafeHttpsUrl) == true }
+                        val startIndex = playable.indexOfFirst { it.id == item.id }
+                        val controller = musicController
+                        if (controller == null) {
+                            remoteError = "El reproductor de música se está conectando. Probá nuevamente en un instante."
+                        } else if (startIndex >= 0) {
+                            val mediaItems = playable.map { track ->
+                                MediaItem.Builder().setUri(track.actionUrl!!)
+                                    .setMediaMetadata(
+                                        androidx.media3.common.MediaMetadata.Builder()
+                                            .setTitle(track.title)
+                                            .setArtist(track.subtitle)
+                                            .setArtworkUri(track.artworkUrl?.let(Uri::parse))
+                                            .build()
+                                    ).build()
+                            }
+                            controller.setMediaItems(mediaItems, startIndex, 0L)
+                            controller.prepare()
+                            controller.play()
+                        }
+                    },
+                    onOpenOfficialItem = { item ->
+                        val officialUrl = item.infoUrl
+                        if (officialUrl != null && isSafeHttpsUrl(officialUrl)) {
+                            runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(officialUrl))) }
+                                .onFailure { remoteError = "No se pudo abrir la fuente oficial de música." }
+                        }
+                    },
+                    onRefresh = { catalogRefresh++ },
+                    onOpenOfficialService = { url ->
+                        runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
+                            .onFailure { remoteError = "No se pudo abrir el servicio oficial." }
+                    }
+                )
             }
             else->{Title(if(tab=="TV")"Televisión en vivo" else "Tus favoritos","Elegí un canal para reproducir");OutlinedTextField(query,{query=it},Modifier.fillMaxWidth().padding(horizontal=16.dp),placeholder={Text("Buscar canal o categoría")},singleLine=true);val list=channels.filter{(tab!="Favoritos"||it.id in favorites)&&(it.name.contains(query,true)||it.group.contains(query,true))};if(list.isEmpty())Empty("No hay canales para mostrar","Agregá una lista autorizada desde Fuentes.");LazyColumn(contentPadding=PaddingValues(14.dp)){items(list,key={it.id}){c->ChannelItem(c,c.id in favorites,{launchChannelPlayer(context,channels,channels.indexOfFirst { it.id==c.id })},{vm.toggleFavorite(c.id)})}};selected?.let{channel->Card(Modifier.fillMaxWidth().padding(14.dp),colors=CardDefaults.cardColors(containerColor=Color.Black)){Column(Modifier.padding(12.dp)){Text("REPRODUCIENDO · "+channel.name,color=cyan,fontWeight=FontWeight.Bold);AndroidView(factory={ctx->PlayerView(ctx).apply{player=exoPlayer;useController=true;setShowBuffering(PlayerView.SHOW_BUFFERING_WHEN_PLAYING)}},update={it.player=exoPlayer},modifier=Modifier.fillMaxWidth().height(220.dp));Row(horizontalArrangement=Arrangement.spacedBy(8.dp)){TextButton(onClick={launchChannelPlayer(context,channels,channels.indexOfFirst { it.id==channel.id }.coerceAtLeast(0))}){Text("Pantalla completa")};TextButton(onClick={vm.stop()}){Text("Detener reproducción")}}}}};errorMessage?.let{Text(it,color=orange,modifier=Modifier.padding(12.dp))}}
         }
