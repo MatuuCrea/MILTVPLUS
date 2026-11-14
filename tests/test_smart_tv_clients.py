@@ -38,7 +38,7 @@ class SmartTvClientTests(unittest.TestCase):
         webos = (ROOT / "platforms/webos/app.js").read_text(encoding="utf-8")
         self.assertIn('c.playback_type==="hls"||c.playback_type==="dash"', tizen)
         self.assertIn('c.playback_type==="hls"', webos)
-        self.assertNotIn('c.playback_type==="hls"||c.playback_type==="dash"', webos)
+        self.assertIn('if(c.playback_type==="hls"&&safe(c.stream_url)&&hasActivePlaybackRights(c))', webos)
         for source in (tizen, webos):
             self.assertIn('x.protocol==="https:"', source)
             self.assertIn("official", source.lower())
@@ -51,8 +51,8 @@ class SmartTvClientTests(unittest.TestCase):
         for path in ("platforms/tizen/app.js", "platforms/webos/app.js"):
             source = (ROOT / path).read_text(encoding="utf-8")
             self.assertIn("e.keyCode===13", source)
-            self.assertIn("e.keyCode===37", source)
-            self.assertIn("e.keyCode===39", source)
+            self.assertIn("if([37,38,39,40,35,36].includes(e.keyCode))", source)
+            self.assertIn("move(e.keyCode)", source)
 
 
     def test_android_tv_uses_television_mode_and_free_branding(self):
@@ -73,6 +73,25 @@ class SmartTvClientTests(unittest.TestCase):
         self.assertIn("Fire OS 5 (Android API 22) queda excluido", matrix)
         self.assertIn("Vega OS", matrix)
         self.assertIn("Fire OS 6 o posterior", matrix)
+
+    def test_smart_tv_navigation_uses_grid_geometry_and_scrollable_catalog(self):
+        for platform in ("tizen", "webos"):
+            script = (ROOT / f"platforms/{platform}/app.js").read_text(encoding="utf-8")
+            css = (ROOT / f"platforms/{platform}/styles.css").read_text(encoding="utf-8")
+            self.assertIn("function gridColumns()", script)
+            self.assertIn("selected+cols", script)
+            self.assertIn("scrollTop", script)
+            self.assertIn("grid-template-columns:repeat(auto-fill", css)
+            self.assertIn("overflow-y:auto", css)
+
+    def test_smart_tv_direct_playback_requires_current_regional_rights(self):
+        for platform in ("tizen", "webos"):
+            script = (ROOT / f"platforms/{platform}/app.js").read_text(encoding="utf-8")
+            self.assertIn("rights_verified,rights_holder,rights_reference,rights_regions", script)
+            self.assertIn("function hasActivePlaybackRights(c)", script)
+            self.assertIn("regions.some(value=>String(value).toUpperCase()===region)", script)
+            self.assertIn("rights_valid_until", script)
+            self.assertIn("hasActivePlaybackRights(c)", script)
 
     def test_all_native_tv_clients_are_marked_as_source_not_signed_packages(self):
         docs = (ROOT / "docs/NATIVE-TV-CLIENTS.md").read_text(encoding="utf-8")

@@ -26,3 +26,9 @@
 - Samsung Tizen y LG webOS ya tienen proyectos nativos iniciales en `platforms/tizen/` y `platforms/webos/`; faltan SDKs, certificados del propietario, WGT/IPK firmados y QA físico por modelo/versión.
 - Fire TV comparte APK Android como candidato; falta validar instalación, launcher, D-pad, codecs y APIs Fire OS por modelo.
 - El workflow Smart TV valida sintaxis/manifiestos/reglas estáticas; no reemplaza compilación de fabricante ni pruebas físicas.
+
+## Correcciones Smart TV incorporadas
+- La navegación Tizen/webOS calcula columnas reales del grid; izquierda/derecha mueven dentro de la fila y arriba/abajo conservan la columna, con foco visible y desplazamiento vertical para catálogos largos.
+- Los clientes Tizen/webOS consultan los campos de derechos y sólo habilitan HLS/DASH directo cuando la autorización está verificada, vigente y cubre el territorio detectado por la configuración regional del televisor. Si no puede determinarse el territorio, no se habilita reproducción directa.
+- La página oficial del emisor continúa disponible como alternativa; abrir esa página no se presenta como reproducción integrada ni como autorización de redistribución.
+- Estas reglas tienen pruebas automatizadas. Aún requieren validar con mandos y televisores físicos de varias generaciones.
