@@ -17,7 +17,7 @@ const COUNTRIES = [
 const $ = id => document.getElementById(id);
 const node = (tag, cls, text) => { const el=document.createElement(tag); if(cls)el.className=cls; if(text!==undefined)el.textContent=text; return el; };
 
-export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()=>[], getChannels=()=>[], onFilterChange=()=>{}, getSelectedChannel=()=>null, getCountryCounts=async()=>({}), loadCatalog=async()=>[], onCatalogItemPlay=()=>{} }={}) {
+export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()=>[], getChannels=()=>[], onFilterChange=()=>{}, getSelectedChannel=()=>null, getCountryCounts=async()=>({}), loadCatalog=async()=>[], onCatalogItemPlay=()=>{}, onCatalogItemsChange=()=>{} }={}) {
   const main=$("main") || document.querySelector("main");
   const channels=$("channels"), empty=$("empty"), header=document.querySelector("header");
   if(!main||!channels||!header||$("official-sidebar")) return ()=>{};
@@ -47,7 +47,10 @@ export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()
   top.append(search,filter,countBadge);main.insertBefore(top,main.querySelector("h1")?.nextSibling||channels);
   const tvCats=node("nav","tv-categories");tvCats.setAttribute("aria-label","Categorías de TV en Vivo");
   const categories=[["Todos","▦","all"],["Noticias","▤","news"],["Deportes","🏆","sports"],["Entretenimiento","★","entertainment"],["Infantiles","☺","kids"],["Películas","▧","movies"],["Documentales","▤","documentary"],["Música","♫","music"],["Religiosos","✝","religious"],["Locales","⌖","local"]];
-  categories.forEach(([label,icon,key])=>{const b=node("button","tv-category",icon+"  "+label);b.type="button";b.dataset.category=key;b.addEventListener("click",()=>{category=key;tvCats.querySelectorAll("button").forEach(x=>x.classList.toggle("active",x===b));filterChannels()});tvCats.append(b)});
+  let sportsCatalogActive=false;
+  const activateSports=()=>{sportsCatalogActive=true;category="all";countBadge.textContent="Cargando eventos…";loadCatalog("deportes").then(items=>{onCatalogItemsChange(items,"sports");countBadge.textContent=items.length+" eventos deportivos";empty.hidden=items.length>0;}).catch(error=>{onCatalogItemsChange([],"sports");countBadge.textContent="Deportes no disponible";empty.hidden=false;});};
+  const restoreTvCatalog=()=>{if(sportsCatalogActive){sportsCatalogActive=false;onCatalogItemsChange(null,"tv");}};
+  categories.forEach(([label,icon,key])=>{const b=node("button","tv-category",icon+"  "+label);b.type="button";b.dataset.category=key;b.addEventListener("click",()=>{tvCats.querySelectorAll("button").forEach(x=>x.classList.toggle("active",x===b));if(key==="sports"){activateSports();return;}restoreTvCatalog();category=key;filterChannels()});tvCats.append(b)});
   main.insertBefore(tvCats,channels);
   const home=node("section","official-page official-home");home.hidden=true;home.innerHTML='<div class="home-hero"><div class="hero-copy"><small>🇦🇷 MILTVPLUS · ARGENTINA Y EL MUNDO</small><h2>Bienvenido a<br><b>MILTVPLUS</b></h2><p>La mejor experiencia de entretenimiento en Argentina y el mundo.</p><p>✓ TV en Vivo · Películas · Series · Deportes<br>✓ Canales públicos y fuentes autorizadas<br>✓ Guía EPG, favoritos y mucho más</p><button type="button" data-go="TV en Vivo">▶ Ver Televisión</button></div><div class="hero-flag">☀<br>🇦🇷<br><small>ARGENTINA</small></div></div>';
   const adult=node("section","official-page adult-page");adult.hidden=true;adult.innerHTML='<div class="adult-hero"><div class="adult-mark">18+<small>Solo para adultos</small></div><div class="adult-copy"><small>♛ CONTENIDO PRIVADO</small><h2>Contenido <b>Adulto</b></h2><p>Experiencia privada y protegida para mayores de 18 años.</p><button type="button" disabled>Ingresar ahora · Temporalmente bloqueado</button></div><div class="adult-script">Pasión<br>sin límites ♡</div></div><div class="adult-categories"></div><h3>▶ Recomendados para vos</h3><div class="adult-empty">El catálogo +18 permanece vacío y protegido. No hay fuentes ni reproducciones activas.</div><div class="adult-footer">🛡 Contenido seguro　│　🔒 Acceso +18　│　♛ Calidad según la fuente</div>';
@@ -93,7 +96,7 @@ export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()
     top.hidden=!showTv&&!isMusic;
     tvCats.hidden=!(label==="TV en Vivo"||label==="Deportes"||label==="Infantil"||label==="Documentales");
     main.classList.toggle("tv-with-categories",showTv&&!tvCats.hidden);
-    if(showTv){main.querySelector("h1").textContent=label;filterChannels()}
+    if(showTv){main.querySelector("h1").textContent=label;if(label!=="Deportes")filterChannels()}
     main.querySelector("p")?.toggleAttribute("hidden",!showTv);
     sidebar.querySelectorAll("[data-section]").forEach(b=>b.classList.toggle("active",b.dataset.section===label));
     if(label==="Países")renderCountries();
