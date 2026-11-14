@@ -5,6 +5,12 @@ const TV_FIELDS = [
   "rights_regions", "rights_valid_from", "rights_valid_until", "is_published"
 ].join(",");
 
+const SPORTS_FIELDS = [
+  "id", "title", "description", "country_code", "sport", "competition", "starts_at", "ends_at",
+  "poster_url", "official_info_url", "stream_url", "rights_verified", "rights_holder",
+  "rights_reference", "rights_regions", "rights_valid_from", "rights_valid_until", "is_published"
+].join(",");
+
 const MUSIC_FIELDS = [
   "id", "title", "creator", "description", "country_code", "item_type", "album", "genre",
   "release_year", "external_url", "artwork_url", "stream_url", "rights_verified",
@@ -72,12 +78,17 @@ export class SupabaseCatalog {
   }
 
   async list({ category, country, accessToken }) {
-    const query = new URLSearchParams({ select: category === "tv_en_vivo" ? TV_FIELDS : category === "musica" ? MUSIC_FIELDS : MEDIA_FIELDS, is_published: "eq.true", order: "title.asc", limit: "500" });
+    const query = new URLSearchParams({ select: category === "tv_en_vivo" ? TV_FIELDS : category === "deportes" ? SPORTS_FIELDS : category === "musica" ? MUSIC_FIELDS : MEDIA_FIELDS, is_published: "eq.true", order: "title.asc", limit: "500" });
     if (country !== "ALL") query.set("country_code", "eq." + country);
 
     if (category === "tv_en_vivo") {
       query.set("playback_type", "in.(official_web,hls,dash,youtube_live)");
       return this.request("/rest/v1/tv_channels?" + query, accessToken);
+    }
+
+    if (category === "deportes") {
+      query.set("order", "starts_at.asc");
+      return this.request("/rest/v1/sports_events?" + query, accessToken);
     }
 
     if (category === "musica") {
@@ -108,7 +119,7 @@ export class SupabaseCatalog {
 
   async find({ category, country, id, accessToken }) {
     const query = new URLSearchParams({
-      select: category === "tv_en_vivo" ? TV_FIELDS : category === "musica" ? MUSIC_FIELDS : MEDIA_FIELDS,
+      select: category === "tv_en_vivo" ? TV_FIELDS : category === "deportes" ? SPORTS_FIELDS : category === "musica" ? MUSIC_FIELDS : MEDIA_FIELDS,
       id: "eq." + id,
       is_published: "eq.true",
       limit: "1"
@@ -118,6 +129,8 @@ export class SupabaseCatalog {
     let path;
     if (category === "tv_en_vivo") {
       path = "/rest/v1/tv_channels?" + query;
+    } else if (category === "deportes") {
+      path = "/rest/v1/sports_events?" + query;
     } else {
       if (category === "musica") {
         path = "/rest/v1/music_items?" + query;

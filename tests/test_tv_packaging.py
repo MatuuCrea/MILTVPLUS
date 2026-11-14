@@ -5,28 +5,23 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 
 class SmartTvPackagingTests(unittest.TestCase):
-    def test_packaging_script_requires_vendor_signing_material(self):
+    def test_packaging_script_builds_vendor_development_packages(self):
         script = (ROOT / "scripts/package-smart-tvs.sh").read_text(encoding="utf-8")
-        self.assertIn("TIZEN_CERT_PROFILE", script)
-        self.assertIn("WEBOS_PRIVATE_KEY", script)
-        self.assertIn("WEBOS_KEY_PASSPHRASE", script)
-        self.assertIn("tizen package -t wgt", script)
-        self.assertIn("ares-package --sign", script)
-        self.assertIn("*.wgt", script)
-        self.assertIn("*.ipk", script)
-        self.assertIn("SHA256SUMS", script)
+        for value in ("TIZEN_CERT_PROFILE", "tizen build-web", "tizen package -t wgt -s",
+                      "ares-package --no-minify", "*.wgt", "*.ipk", "SHA256SUMS"):
+            self.assertIn(value, script)
+        self.assertNotIn("ares-package --sign", script)
+        self.assertNotIn("WEBOS_KEY_PASSPHRASE", script)
 
-    def test_signing_example_contains_placeholders_not_private_material(self):
+    def test_signing_example_contains_only_non_secret_profile_settings(self):
         sample = (ROOT / "scripts/tv-signing.env.example").read_text(encoding="utf-8")
         self.assertIn("TIZEN_CERT_PROFILE=", sample)
-        self.assertIn("WEBOS_PRIVATE_KEY=", sample)
-        self.assertIn("WEBOS_KEY_PASSPHRASE=", sample)
-        self.assertIn("replace-with-secret", sample)
+        self.assertNotIn("PRIVATE_KEY", sample)
+        self.assertNotIn("PASSPHRASE", sample)
 
     def test_sports_catalog_is_separate_and_adult_catalog_stays_empty(self):
         manager = (ROOT / "platforms/shared/media-manager.js").read_text(encoding="utf-8")
-        self.assertIn('deportes: { api: "tv_en_vivo"', manager)
-        self.assertIn('filter: "sports"', manager)
+        self.assertIn('deportes: { api: "deportes"', manager)
         self.assertIn('if (sectionName === ADULT_SECTION) return { title: "Contenido para Adultos", items: [] }', manager)
         self.assertIn("this.adultCatalogEnabled = false", manager)
 

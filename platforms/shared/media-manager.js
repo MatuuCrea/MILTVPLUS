@@ -17,7 +17,7 @@
 
 const SECTION_CONFIG = Object.freeze({
   tv_en_vivo: { api: "tv_en_vivo", title: "Televisión en Vivo", partition: "country" },
-  deportes: { api: "tv_en_vivo", title: "Deportes en Vivo", partition: "country", filter: "sports" },
+  deportes: { api: "deportes", title: "Deportes en Vivo", partition: "country" },
   peliculas: { api: "peliculas", title: "Películas", partition: "genre" },
   series: { api: "series", title: "Series", partition: "genre" }
 });
@@ -256,10 +256,6 @@ export class AppMediaManager {
     );
     let items = Array.isArray(body.items) ? body.items.slice() : [];
 
-    // Deportes es una vista separada: nunca mezcla canales no clasificados como deportes.
-    if (config.filter) {
-      items = items.filter(item => String(item.category || "").toLowerCase() === config.filter);
-    }
     if (subcategory && config.partition === "genre") {
       const wanted = String(subcategory).trim().toLowerCase();
       items = items.filter(item => {

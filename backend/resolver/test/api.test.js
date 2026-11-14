@@ -16,6 +16,12 @@ const activeRights = {
   rights_valid_from: new Date(now - 86_400_000).toISOString(),
   rights_valid_until: new Date(now + 86_400_000).toISOString()
 };
+const sportsRows = [{
+  id: "88888888-8888-4888-8888-888888888888", title: "Licensed sports event", sport: "Football", competition: "Friendly",
+  country_code: "AR", starts_at: new Date(now - 60_000).toISOString(), ends_at: new Date(now + 3_600_000).toISOString(),
+  stream_url: "https://sports.example/live.m3u8", official_info_url: "https://sports.example/event", ...activeRights
+}];
+
 const musicRows = [
   { id: "55555555-5555-4555-8555-555555555555", title: "Licensed song", creator: "Artist", album: "Album", genre: "Rock",
     stream_url: "https://audio.example/track.mp3", artwork_url: "https://images.example/cover.jpg", ...activeRights },
@@ -59,6 +65,10 @@ globalThis.fetch = async (input, init) => {
   if (url.pathname === "/rest/v1/tv_channels") {
     const id = url.searchParams.get("id")?.replace("eq.", "");
     return new Response(JSON.stringify(id ? tvRows.filter((row) => row.id === id) : tvRows), { status: 200 });
+  }
+  if (url.pathname === "/rest/v1/sports_events") {
+    const id = url.searchParams.get("id")?.replace("eq.", "");
+    return new Response(JSON.stringify(id ? sportsRows.filter((row) => row.id === id) : sportsRows), { status: 200 });
   }
   if (url.pathname === "/rest/v1/music_items") {
     const id = url.searchParams.get("id")?.replace("eq.", "");
@@ -159,4 +169,20 @@ test("music resolver returns only direct audio streams and never a browser fallb
   assert.equal(externalOnly.status, 403);
   const wrongRegion = await originalFetch(baseUrl + "/api/v2/resolve/musica/BR/55555555-5555-4555-8555-555555555555");
   assert.equal(wrongRegion.status, 403);
+});
+
+test("sports catalog is a dedicated shared source and resolves only authorized streams", async () => {
+  const response = await originalFetch(baseUrl + "/api/v2/catalog/deportes/AR");
+  const body = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(body.category, "deportes");
+  assert.equal(body.count, 1);
+  assert.equal(body.items[0].sport, "Football");
+  assert.equal(body.items[0].stream_url, "https://sports.example/live.m3u8");
+
+  const resolved = await originalFetch(baseUrl + "/api/v2/resolve/deportes/AR/88888888-8888-4888-8888-888888888888");
+  const playback = await resolved.json();
+  assert.equal(resolved.status, 200);
+  assert.equal(playback.mode, "direct_stream");
+  assert.equal(playback.streamUrl, "https://sports.example/live.m3u8");
 });
