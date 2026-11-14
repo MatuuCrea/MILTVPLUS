@@ -137,13 +137,15 @@ export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()
   async function renderEpg(){
     const grid=epg.querySelector(".epg-grid"),days=epg.querySelector(".epg-days");grid.replaceChildren();days.replaceChildren();
     const base=new Date(Date.now()+epgOffset*86400000);
-    for(let i=0;i<5;i++){const d=new Date(base.getTime()+i*86400000);days.append(node("span","epg-day",new Intl.DateTimeFormat("es-AR",{weekday:"short",day:"2-digit"}).format(d)))}
+    for(let i=0;i<7;i++){const d=new Date(base.getTime()+i*86400000);days.append(node("span","epg-day",new Intl.DateTimeFormat("es-AR",{weekday:"short",day:"2-digit"}).format(d)))}
+    const timeScale=node("div","epg-times");["00:00","06:00","12:00","18:00","24:00"].forEach(t=>timeScale.append(node("span","",t)));grid.append(timeScale);
     epg.querySelector(".epg-status").textContent="Consultando programación publicada…";
     const rows=await loadEpg(base).catch(()=>[]);
     if(!rows.length){epg.querySelector(".epg-status").textContent="No hay programación EPG publicada para este período.";return;}
-    const channelsById=new Map(getChannels().map(x=>[x.id,x]));
-    rows.forEach(p=>{const row=node("article","epg-row");const ch=channelsById.get(p.channel_external_id);row.append(node("strong","epg-channel",ch?.title||p.channel_external_id||"Canal"));const start=new Date(p.starts_at);const end=new Date(p.ends_at);const card=node("button","epg-program",p.title+" · "+start.toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"})+"–"+end.toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"}));card.addEventListener("click",()=>{selectedProgram=p;epg.querySelector(".epg-status").textContent=p.title+" — "+(p.description||"Sin descripción publicada");});row.append(card);grid.append(row)});
-    epg.querySelector(".epg-status").textContent=rows.length+" programas publicados.";
+    const channelsById=new Map();getChannels().forEach(x=>{if(x.slug)channelsById.set(x.slug,x);if(x.id)channelsById.set(x.id,x)});
+    const groups=new Map();rows.forEach(p=>{const key=p.channel_external_id||"unknown";if(!groups.has(key))groups.set(key,[]);groups.get(key).push(p)});
+    [...groups.entries()].forEach(([channelId,programs])=>{const row=node("article","epg-row");const channel=channelsById.get(channelId);row.append(node("strong","epg-channel",channel?.title||channelId));const timeline=node("div","epg-timeline");programs.sort((x,y)=>Date.parse(x.starts_at)-Date.parse(y.starts_at)).forEach(p=>{const start=new Date(p.starts_at),end=new Date(p.ends_at);const duration=Math.max(30,(end-start)/60000);const card=node("button","epg-program",p.title+"\n"+start.toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"})+"–"+end.toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"}));card.style.flexGrow=String(duration);card.style.flexBasis=Math.max(130,duration*1.2)+"px";card.addEventListener("click",()=>{selectedProgram=p;epg.querySelector(".epg-status").textContent=p.title+" — "+(p.description||"Sin descripción publicada")});timeline.append(card)});row.append(timeline);grid.append(row)});
+    epg.querySelector(".epg-status").textContent=rows.length+" programas publicados en "+groups.size+" canales.";
   }
   epg.querySelector('[data-action="next24"]').addEventListener("click",()=>{epgOffset+=1;renderEpg()});
   epg.querySelector('[data-action="remind"]').addEventListener("click",()=>{if(!selectedProgram){epg.querySelector(".epg-status").textContent="Seleccioná un programa primero.";return;}const saved=JSON.parse(localStorage.getItem("miltvplus.reminders")||"[]");saved.push({id:selectedProgram.id,title:selectedProgram.title,starts_at:selectedProgram.starts_at});localStorage.setItem("miltvplus.reminders",JSON.stringify(saved));epg.querySelector(".epg-status").textContent="Recordatorio guardado en este dispositivo."});
