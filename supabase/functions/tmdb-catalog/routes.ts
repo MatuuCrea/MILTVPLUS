@@ -42,14 +42,14 @@ export function buildTmdbRoute(input: RequestInput): TmdbRoute {
     return { path: action === "search_movie" ? "/search/movie" : "/search/tv", params };
   }
 
-  const id = Number(input.id);
-  if (!Number.isSafeInteger(id) || id <= 0) throw new Error("Identificador TMDB inválido.");
+  const id = input.id;
+  if (!Number.isSafeInteger(id) || (id ?? 0) <= 0) throw new Error("Identificador TMDB inválido.");
   if (action === "movie_details") return { path: `/movie/${id}`, params: { ...params, append_to_response: "credits,videos,images" } };
   if (action === "tv_details") return { path: `/tv/${id}`, params: { ...params, append_to_response: "credits,videos,images" } };
   if (action === "movie_credits") return { path: `/movie/${id}/credits`, params };
   if (action === "tv_credits") return { path: `/tv/${id}/credits`, params };
 
-  const season = Number(input.season);
-  if (!Number.isSafeInteger(season) || season < 0 || season > 100) throw new Error("Temporada inválida.");
+  const season = input.season;
+  if (!Number.isSafeInteger(season) || (season ?? -1) < 0 || (season ?? 101) > 100) throw new Error("Temporada inválida.");
   return { path: `/tv/${id}/season/${season}`, params };
 }
