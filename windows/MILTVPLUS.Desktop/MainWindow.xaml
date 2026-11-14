@@ -156,6 +156,10 @@
        <TextBlock Text="MILTVPLUS SOUND  ·  UN AMBIENTE HECHO PARA ESCUCHAR" Foreground="#FFC5E3" FontSize="10" FontWeight="Bold"/>
        <TextBlock Text="Bajá el ruido. Subí el volumen." Foreground="White" FontSize="28" FontWeight="Black" Margin="0,8,0,5"/>
        <TextBlock Text="Descubrí música publicada y escuchá streams autorizados. Las fuentes externas se abren en su servicio oficial." Foreground="#E0D9EE" FontSize="11"/>
+       <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+        <Button Content="Buscar en YouTube Music" Click="SearchYouTubeMusic_Click" Background="#30234A"/>
+        <Button Content="Buscar en Spotify" Click="SearchSpotify_Click" Background="#30234A"/>
+       </StackPanel>
       </StackPanel>
       <TextBlock Grid.Column="1" Text="♫" Foreground="#FF68B4" FontSize="64" VerticalAlignment="Center" Margin="20,0"/>
      </Grid>
