@@ -364,18 +364,9 @@ public partial class MainWindow : Window
 
     private void OpenNotifications_Click(object sender, RoutedEventArgs e) => StatusText.Text = "No hay un servicio de notificaciones push conectado en esta compilación.";
     private void OpenSettings_Click(object sender, RoutedEventArgs e) => QuickSelect("Configuración");
-    private void SearchYouTubeMusic_Click(object sender, RoutedEventArgs e) => OpenOfficialMusicSearch("https://music.youtube.com/search?q=");
-    private void SearchSpotify_Click(object sender, RoutedEventArgs e) => OpenOfficialMusicSearch("https://open.spotify.com/search/");
-    private void OpenOfficialMusicSearch(string baseUrl)
-    {
-        try
-        {
-            var term = Uri.EscapeDataString(SearchBox.Text?.Trim() ?? string.Empty);
-            Process.Start(new ProcessStartInfo(baseUrl + term) { UseShellExecute = true });
-            StatusText.Text = "Abriendo la búsqueda musical oficial en tu navegador.";
-        }
-        catch (Exception ex) { StatusText.Text = "No se pudo abrir la búsqueda musical: " + ex.Message; }
-    }
+    private void SearchYouTubeMusic_Click(object sender, RoutedEventArgs e) => StatusText.Text = "La música se reproduce dentro de MILTVPLUS cuando hay una pista directa disponible.";
+    private void SearchSpotify_Click(object sender, RoutedEventArgs e) => StatusText.Text = "La música se reproduce dentro de MILTVPLUS cuando hay una pista directa disponible.";
+
     private void OpenAccount_Click(object sender, RoutedEventArgs e) =>
         MessageBox.Show(this, "La gestión de cuenta y sincronización está disponible en el cliente Android. Esta compilación de escritorio usa el catálogo público y fuentes locales.", "MILTVPLUS · Cuenta", MessageBoxButton.OK, MessageBoxImage.Information);
 
