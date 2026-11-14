@@ -66,7 +66,11 @@ globalThis.fetch = async (input, init) => {
     const id = url.searchParams.get("id")?.replace("eq.", "");
     return new Response(JSON.stringify(id ? tvRows.filter((row) => row.id === id) : tvRows), { status: 200 });
   }
-  if (url.pathname === "/rest/v1/sports_events") {\n    const id = url.searchParams.get("id")?.replace("eq.", "");\n    return new Response(JSON.stringify(id ? sportsRows.filter((row) => row.id === id) : sportsRows), { status: 200 });\n  }\n  if (url.pathname === "/rest/v1/music_items") {
+  if (url.pathname === "/rest/v1/sports_events") {
+    const id = url.searchParams.get("id")?.replace("eq.", "");
+    return new Response(JSON.stringify(id ? sportsRows.filter((row) => row.id === id) : sportsRows), { status: 200 });
+  }
+  if (url.pathname === "/rest/v1/music_items") {
     const id = url.searchParams.get("id")?.replace("eq.", "");
     return new Response(JSON.stringify(id ? musicRows.filter((row) => row.id === id) : musicRows), { status: 200 });
   }
