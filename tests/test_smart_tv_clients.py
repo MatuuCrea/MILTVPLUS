@@ -59,6 +59,7 @@ class SmartTvClientTests(unittest.TestCase):
         main = (ROOT / "app/src/main/java/com/matuucrea/miltvplus/MainActivity.kt").read_text(encoding="utf-8")
         ui = (ROOT / "app/src/main/java/com/matuucrea/miltvplus/ui/PremiumExperience.kt").read_text(encoding="utf-8")
         self.assertIn("UI_MODE_TYPE_TELEVISION", main)
+        self.assertIn("amazon.hardware.fire_tv", main)
         self.assertIn("&& !isTelevision", main)
         self.assertIn("MILTVPLUS · 100 % GRATIS", ui)
         self.assertNotIn('Text("MILTVPLUS Premium"', ui)
