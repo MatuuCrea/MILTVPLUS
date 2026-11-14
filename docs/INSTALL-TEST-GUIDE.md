@@ -4,12 +4,12 @@
 
 ## Descargas verificadas de CI
 
-Estos artefactos se generaron en los workflows del último commit validado de la PR #11 (ya fusionada en `main`):
+Estos artefactos corresponden a la última compilación Android validada de la PR #13 (ya fusionada en `main`) y al instalador Windows x64 validado en la PR #11:
 
 - **Android móvil + Android TV/Google TV:** [Android CI #335 — artefacto `miltvplus-debug-apk`](https://github.com/MatuuCrea/MILTVPLUS/actions/runs/43552924214). Dentro del ZIP está `app-debug.apk`. Es un único APK universal: el manifiesto incluye launcher normal y Leanback; no son dos instaladores distintos ni dos APK separados.
 - **Windows 10/11 x64:** [Windows Desktop #172 — artefacto `MILTVPLUS-Windows-Setup-x64`](https://github.com/MatuuCrea/MILTVPLUS/actions/runs/43552924265). Dentro del ZIP está `MILTVPLUS-Setup-x64.exe`.
 
-Ambos workflows terminaron en `success` para el commit `33b5a1dfbc7beffb4903676b16e59459b5626873`. SHA-256 de los ZIP de Actions (no del APK/EXE extraído): Android `4a0144b43b8b5bd0d5262f162c38345c5ae387ee1bbec4e8e5b050fc801fc032`; Windows `986f8b979a4fa0784472100c8f0ffab3df1fc8600ce7c37d80e6ddc3ea73d533`.
+Android CI #351 terminó en `success` para el código de la PR #13 (SHA `84bc1bd142973e32f4fad231911538ab706927ad`), fusionado en `main` mediante `863d58c4c298356f3d5cbe82f21758b026dee55e`. Windows Desktop #172 terminó en `success` para el código Windows sin cambios desde la PR #11. SHA-256 de los ZIP de Actions (no del APK/EXE extraído): Android `5bbfabfa31b00b921c77ab991aab649f292c122eed91b62cceea51014f27148c`; Windows `986f8b979a4fa0784472100c8f0ffab3df1fc860ce7c37d80e6ddc3ea73d533`.
 
 En GitHub, abrí el enlace, bajá hasta **Artifacts**, descargá el ZIP correspondiente y extraé su contenido. Los artefactos de Actions tienen retención limitada y pueden caducar; si GitHub ya no los muestra, hay que volver a ejecutar CI desde la rama principal para obtener paquetes nuevos. No descargues instaladores desde páginas de terceros.
 
