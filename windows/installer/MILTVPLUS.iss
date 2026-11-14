@@ -1,6 +1,6 @@
 #define AppName "MILTVPLUS"
 #ifndef AppVersion
-#define AppVersion "22.34.9"
+#define AppVersion "22.34.10"
 #endif
 #define Publisher "MILTVPLUS"
 #define AppExe "MILTVPLUS.exe"
