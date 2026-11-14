@@ -40,7 +40,7 @@ El APK debug no es la versión de publicación y no debe compartirse como instal
 
 ## Android TV / Google TV / TV Box Android — `.apk`
 
-Se instala el mismo `app-debug.apk` universal de Android móvil. No se inventa un `.exe`, `.wgt` ni `.ipk` para estos equipos. El manifiesto Android declara launcher Leanback, banner de TV y pantalla táctil opcional; **todavía falta QA físico de navegación D-pad y reproducción**. Para Fire TV, el APK sólo es candidato en modelos Fire OS compatibles; la instalación y los servicios del dispositivo deben validarse por modelo.
+Se instala el mismo `app-debug.apk` universal de Android móvil. No se inventa un `.exe`, `.wgt` ni `.ipk` para estos equipos. El manifiesto Android declara launcher Leanback, banner de TV y pantalla táctil opcional; **todavía falta QA físico de navegación D-pad y reproducción**. Para Fire TV, el APK es candidato sólo en modelos con **Fire OS basado en Android**. Algunos Fire TV nuevos usan **Vega OS** y no pueden instalar APK Android; quedan excluidos de este paquete. La detección `amazon.hardware.fire_tv` fuerza la interfaz de TV en Fire OS, pero instalación, launcher, códecs y reproducción siguen pendientes de QA por modelo.
 
 ### Instalación por USB
 1. Descargá el mismo `app-debug.apk` indicado en Android móvil.

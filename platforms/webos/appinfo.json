@@ -1,0 +1,3 @@
+{
+  "id":"com.miltvplus.tv","version":"1.0.0","vendor":"MILTVPLUS","type":"web","main":"index.html","title":"MILTVPLUS","icon":"icon.png","largeIcon":"largeIcon.png","resolution":"1920x1080","requiredPermissions":["internet"],"disableBackHistoryAPI":true,"supportTouchMode":false
+}

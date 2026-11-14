@@ -115,10 +115,10 @@ fun PremiumSidebar(activeTab: String, onNavigate: (String) -> Unit) {
                         }
                     }
                 }
-                PremiumSidebarPromo()
+                SidebarBrandFooter()
             } else {
                 Spacer(Modifier.weight(1f))
-                Icon(Icons.Default.WorkspacePremium, "MILTVPLUS Premium", tint = PremiumGold)
+                Icon(Icons.Default.LiveTv, "MILTVPLUS", tint = PremiumCyan)
             }
         }
         if (compact && drawerOpen) {
@@ -164,7 +164,7 @@ fun PremiumSidebar(activeTab: String, onNavigate: (String) -> Unit) {
                                 }
                             }
                         }
-                        PremiumSidebarPromo()
+                        SidebarBrandFooter()
                     }
                 }
             }
@@ -206,7 +206,7 @@ private fun SidebarDestinationRow(
 }
 
 @Composable
-private fun PremiumSidebarPromo() {
+private fun SidebarBrandFooter() {
     Column(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(13.dp))
             .background(Brush.verticalGradient(listOf(Color(0xFF49300D), Color(0xFF1C1020))))
@@ -214,9 +214,9 @@ private fun PremiumSidebarPromo() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        Icon(Icons.Default.WorkspacePremium, null, tint = PremiumGold, modifier = Modifier.size(24.dp))
-        Text("MILTVPLUS Premium", color = Color.White, fontWeight = FontWeight.Black, fontSize = 10.sp)
-        Text("Más entretenimiento para vos...", color = PremiumGold, fontSize = 8.sp)
+        Icon(Icons.Default.LiveTv, null, tint = PremiumCyan, modifier = Modifier.size(24.dp))
+        Text("MILTVPLUS · 100 % GRATIS", color = Color.White, fontWeight = FontWeight.Black, fontSize = 10.sp)
+        Text("Sin anuncios · Sin pagos · Sin suscripciones", color = Color(0xFFD6E8FF), fontSize = 8.sp)
         Text("🇦🇷", fontSize = 15.sp)
     }
 }
@@ -609,12 +609,12 @@ fun PremiumAdultWorkspace(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(5.dp)
                     ) {
-                        Icon(Icons.Default.WorkspacePremium, null, tint = PremiumGold, modifier = Modifier.size(25.dp))
+        Icon(Icons.Default.LiveTv, null, tint = PremiumCyan, modifier = Modifier.size(24.dp))
                         Text("MILTVPLUS", color = Color.White, fontWeight = FontWeight.Black, fontSize = 12.sp)
-                        Text("Experiencia Premium", color = PremiumGold, fontSize = 10.sp)
+                        Text("Contenido destacado", color = PremiumCyan, fontSize = 10.sp)
                     }
                 } else {
-                    Icon(Icons.Default.WorkspacePremium, null, tint = PremiumGold)
+        Icon(Icons.Default.LiveTv, null, tint = PremiumCyan, modifier = Modifier.size(24.dp))
                 }
             }
             Box(

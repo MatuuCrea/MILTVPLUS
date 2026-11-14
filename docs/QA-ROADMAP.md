@@ -23,4 +23,6 @@
 - El propietario/proveedor debe aportar fuentes de contenido con titular, referencia de derechos, territorios y vigencia. No se inventan URLs ni licencias.
 - Las notificaciones push requieren proyecto/credenciales de entrega (por ejemplo, Firebase Cloud Messaging) y configuración de backend; la preferencia local no es una entrega push.
 - Windows requiere pruebas físicas y, para una distribución de confianza, certificado Authenticode.
-- Samsung Tizen y LG webOS necesitan aplicaciones nativas separadas.
+- Samsung Tizen y LG webOS ya tienen proyectos nativos iniciales en `platforms/tizen/` y `platforms/webos/`; faltan SDKs, certificados del propietario, WGT/IPK firmados y QA físico por modelo/versión.
+- Fire TV comparte APK Android como candidato; falta validar instalación, launcher, D-pad, codecs y APIs Fire OS por modelo.
+- El workflow Smart TV valida sintaxis/manifiestos/reglas estáticas; no reemplaza compilación de fabricante ni pruebas físicas.
