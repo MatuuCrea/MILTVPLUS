@@ -187,15 +187,17 @@ private fun SidebarDestinationRow(
     Row(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
             .background(
-                if (selected) Brush.horizontalGradient(listOf(Color(0xFF94104F), Color(0xFF42102F)))
-                else Brush.horizontalGradient(listOf(Color.Transparent, Color.Transparent))
+                if (selected) Brush.horizontalGradient(
+                    if (item.label == "Adultos 18+") listOf(Color(0xFFA81761), Color(0xFF3B0A2B))
+                    else listOf(Color(0xFF075DB4), Color(0xFF10284F))
+                ) else Brush.horizontalGradient(listOf(Color.Transparent, Color.Transparent))
             )
-            .then(if (selected) Modifier.border(1.dp, PremiumCyan, RoundedCornerShape(10.dp)) else Modifier)
+            .then(if (selected) Modifier.border(1.dp, if (item.label == "Adultos 18+") PremiumPink else PremiumCyan, RoundedCornerShape(10.dp)) else Modifier)
             .clickable(onClick = onClick)
             .padding(horizontal = if (compact) 12.dp else 10.dp, vertical = if (compact) 10.dp else 9.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(item.icon, item.label, tint = if (selected) Color(0xFFFF72B9) else Color(0xFFD6D0DE), modifier = Modifier.size(20.dp))
+        Icon(item.icon, item.label, tint = if (item.label == "Adultos 18+") PremiumPink else if (selected) PremiumCyan else Color(0xFFD6D0DE), modifier = Modifier.size(20.dp))
         Spacer(Modifier.width(if (compact) 11.dp else 10.dp))
         Text(
             item.label,
