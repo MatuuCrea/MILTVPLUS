@@ -1,4 +1,5 @@
 import { optimizer } from "../shared/performance-optimizer.js";
+import { mountMusicExperience } from "../shared/music-experience.js";
 (function (){"use strict";
 const API="https://rbnuxapfsnaabrzuxvdy.supabase.co",KEY="sb_publishable_tmBU-IB7P0db0w7RG9TMEw_GD754hb7", $=id=>document.getElementById(id);
 let channels=[],selected=0,avplayOpen=false;
@@ -16,5 +17,5 @@ function closePlayer(){if(avplayOpen){try{webapis.avplay.stop();webapis.avplay.c
 document.addEventListener("keydown",e=>{if(!$("player").hidden){if(e.keyCode===10009||e.key==="Escape"||e.key==="Backspace"){e.preventDefault();closePlayer()}return}if(!channels.length)return;if([37,38,39,40,35,36].includes(e.keyCode)){e.preventDefault();move(e.keyCode)}else if(e.keyCode===13){e.preventDefault();play(selected)}});
 window.addEventListener("pagehide",()=>{if(avplayOpen){try{webapis.avplay.stop();webapis.avplay.close()}catch(_){}avplayOpen=false}optimizer.destruirTodo()});
 window.addEventListener("resize",focus);
-window.addEventListener("load",()=>load().catch(e=>status(e.message)));
+window.addEventListener("load",()=>{mountMusicExperience({statusElement:$("status")});load().catch(e=>status(e.message));});
 }());
