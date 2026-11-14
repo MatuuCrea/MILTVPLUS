@@ -115,12 +115,14 @@ export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()
   filter.addEventListener("click",()=>{tvCats.hidden=false;tvCats.scrollIntoView({behavior:"smooth",block:"nearest"});});
   function showFavorites(){filterChannels()}
   async function renderVod(category){
-    const root=vodPage.querySelector(".vod-grid");root.replaceChildren();
+    const root=vodPage.querySelector(".vod-grid");optimizer.destruirLista(root);root.replaceChildren();
     vodPage.querySelector(".vod-title").textContent=category==="peliculas"?"Películas":"Series";
     vodPage.querySelector(".vod-status").textContent="Consultando catálogo autorizado…";
     const items=await loadCatalog(category).catch(()=>[]);
     if(!items.length){vodPage.querySelector(".vod-status").textContent="No hay contenidos publicados con reproducción autorizada en este catálogo.";return;}
-    items.forEach(item=>{const card=node("article","vod-card");if(typeof item.poster_url==="string"&&item.poster_url.startsWith("https://")){const img=node("img","vod-poster");img.src=item.poster_url;img.alt="";img.loading="lazy";card.append(img)}const info=node("div","vod-info");info.append(node("strong","",item.title||"Contenido"));info.append(node("span","",[item.release_year,item.genre,item.duration].filter(Boolean).join(" · ")));info.append(node("p","",item.description||""));const play=node("button","vod-play","▶ Reproducir");play.addEventListener("click",()=>onCatalogItemPlay(item,category));info.append(play);card.append(info);root.append(card)});
+    const renderCard=item=>{const card=node("article","vod-card");if(typeof item.poster_url==="string"&&item.poster_url.startsWith("https://")){const img=node("img","vod-poster");img.src=item.poster_url;img.alt="";img.loading="lazy";card.append(img)}const info=node("div","vod-info");info.append(node("strong","",item.title||"Contenido"));info.append(node("span","",[item.release_year,item.genre,item.duration].filter(Boolean).join(" · ")));info.append(node("p","",item.description||""));const play=node("button","vod-play","▶ Reproducir");play.addEventListener("click",()=>onCatalogItemPlay(item,category));info.append(play);card.append(info);return card};
+    const rows=[];for(let i=0;i<items.length;i+=2)rows.push(items.slice(i,i+2));
+    optimizer.virtualizarLista(rows,root,(rowItems)=>{const row=node("div","vod-row");rowItems.forEach(item=>row.append(renderCard(item)));return row},{itemHeight:180,overscan:2});
     vodPage.querySelector(".vod-status").textContent=items.length+" publicaciones autorizadas.";
   }
   async function renderCountries(){
