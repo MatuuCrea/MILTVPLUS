@@ -55,11 +55,11 @@ public partial class MainWindow : Window
         VideoSurface.MediaPlayer = _mediaPlayer;
         _mediaPlayer.EndReached += (_, _) =>
         {
-            Dispatcher.BeginInvoke(() =>
+            Dispatcher.BeginInvoke(new Action(() =>
             {
                 if (Sections.SelectedItem is ListBoxItem selected && selected.Tag?.ToString() == "Música")
                     ChangeChannel(1);
-            });
+            }));
         };
         UpdateClock();
         _clockTimer.Tick += (_, _) => UpdateClock();
