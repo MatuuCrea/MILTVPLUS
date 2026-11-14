@@ -1,8 +1,8 @@
 # MILTVPLUS · hoja única de trabajo, QA y publicación
 
 **Actualizado:** 14 de noviembre de 2026  
-**Rama de trabajo actual:** `feat/native-smart-tv-clients`  
-**Referencia de base:** PR #10 fusionada; esta rama incorpora clientes iniciales Tizen/webOS.
+**Rama principal actual:** `main`  
+**Integraciones recientes:** PR #10 (navegación responsive), #13 (clientes nativos Tizen/webOS y Fire TV), #15 (navegación Smart TV y derechos regionales) y #16 (vigencia de derechos en Android/Windows) están fusionadas.
 
 Este documento reúne el orden de trabajo y los criterios de salida. Una tarea sólo pasa a «completa» cuando existe implementación verificable y la prueba correspondiente; compilar no equivale a probar en un dispositivo real.
 
@@ -32,18 +32,18 @@ Este documento reúne el orden de trabajo y los criterios de salida. Una tarea s
 | LG webOS | Cliente nativo inicial en `platforms/webos/`, catálogo RLS, D-pad y HTML5 video | IPK firmado, SDK y QA físico por versión |
 | Fire TV | APK Android compartido como punto de partida | Validar sideload, launcher, D-pad y codecs por modelo |
 
-## Prioridad P0 · estabilizar la rama actual
+## Prioridad P0 · estabilizar main tras PR #16
 
-**Último CI completado y verificado:** Android #327 (run ID `43551644184`) y Windows #168 (run ID `43551644194`) finalizaron con conclusión `success` sobre el SHA `6ee906f0536f387eb99387b449787e06078c249f`. Android completó `:app:testDebugUnitTest`, `:app:assembleDebug` y carga del artefacto APK. Windows completó publicación x64, generación del instalador Inno Setup y carga del artefacto. Las ejecuciones #326 y #167 que aparecieron como canceladas no son el resultado final de este SHA. El PR #10 sigue abierto, sin fusionar ni publicar.
+**Última integración:** PR #16 fue fusionada por squash el 14 de noviembre de 2026 en el SHA `53e2dcfca1a4942b56e5cab58ea2abc4be8e40b0`. En su SHA exacto de PR `4def816845929fb54ce7f7f552f6f1051cd3f133`, Android CI #367, Windows Desktop #177 y Smart TV Clients #28 finalizaron con `success`. Tras el merge, Smart TV Clients del SHA de main terminó correctamente; Android CI y Windows Desktop del SHA de merge se encuentran ejecutándose en la última comprobación y deben confirmarse antes de declarar main completamente validada.
 
-1. Mantener PR #10 abierto hasta completar revisión de cambios y QA manual; no fusionar automáticamente.
-2. Corregir únicamente fallos reproducibles de CI; no ocultar errores ni relajar pruebas para conseguir un verde artificial.
-3. Android móvil: probar instalación, navegación inferior, búsqueda, TV, reproducción autorizada, favoritos, cuenta, ajustes, rotación y recuperación de errores.
-4. Android TV/Google TV/TV Box/TV Stick Android: probar foco visible, D-pad, OK, Back, navegación sin pantalla táctil, teclado/mando y controles de Media3. Registrar marca/modelo, versión de Android, ABI, RAM y códecs.
-5. Windows 10/11: probar ventana compacta y maximizada, resoluciones 1280×720 y 1366×768, escalado DPI 100/125/150/200 %, búsqueda, barra de herramientas, pantalla completa, importación M3U/M3U8, LibVLC y WebView2. Confirmar que el scroll horizontal de la barra superior es accesible.
-6. Revisar los textos y recursos de interfaz para que no sugieran planes «Premium» o monetización. El compromiso visible debe seguir siendo gratuito y sin anuncios.
+1. Revisar los tres workflows del SHA de merge y corregir cualquier fallo reproducible sin relajar pruebas.
+2. Android móvil: probar instalación, navegación, búsqueda, TV, reproducción autorizada, favoritos, cuenta, ajustes, rotación y recuperación de errores.
+3. Android TV/Google TV/TV Box/Fire TV compatible: probar foco visible, D-pad, OK, Back, navegación sin pantalla táctil, controles Media3 y códecs en equipos reales.
+4. Windows 10/11: probar instalación limpia, ventana compacta/maximizada, DPI 100–200 %, búsqueda, pantalla completa, M3U/M3U8, LibVLC y WebView2.
+5. Samsung Tizen y LG webOS: compilar con SDK oficial, firmar WGT/IPK y ejecutar QA con mandos físicos por modelo.
+6. Mantener las reglas de gratuidad, derechos activos y ausencia de fuentes inventadas.
 
-**Salida P0:** CI verde para el SHA exacto, revisión del diff y registro de pruebas manuales. CI ya está verde en el último SHA; quedan la revisión funcional y las pruebas en hardware. No fusionar ni publicar automáticamente.
+**Salida P0:** tres CI verdes para el SHA de merge y evidencia separada de QA físico. Un CI verde no equivale a certificación de hardware ni de derechos de emisión.
 
 ## Prioridad P1 · completar funciones y probarlas de punta a punta
 
