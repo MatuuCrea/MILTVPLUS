@@ -80,3 +80,11 @@ footer{grid-column:1/-1;grid-row:3;position:static;height:48px;padding:14px 24px
 .epg-program{flex:1 1 150px;min-width:130px;min-height:68px;white-space:pre-line;line-height:1.4;overflow:hidden;text-overflow:ellipsis}
 
 .official-count{align-self:center;color:#8ddfff;font-size:13px;font-weight:800;white-space:nowrap;padding:0 8px;text-shadow:0 0 8px #087bff55}
+
+
+.vod-status{color:#aab6ce;margin:4px 0 14px}
+.vod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.vod-card{display:flex;gap:12px;min-height:160px;padding:12px;border:1px solid #293650;border-radius:14px;background:#101827;content-visibility:auto;contain-intrinsic-size:1px 160px}
+.vod-poster{width:92px;min-width:92px;height:136px;object-fit:cover;border-radius:8px;background:#080d19}
+.vod-info{display:flex;flex-direction:column;gap:8px;min-width:0}
+.vod-info strong{color:#fff;font-size:15px}.vod-info span,.vod-info p{color:#aab6ce;font-size:12px;line-height:1.4}.vod-info p{margin:0;max-height:55px;overflow:hidden}.vod-play{margin-top:auto;align-self:flex-start;border:1px solid #1679ca;background:#0d3d72;color:#fff;border-radius:18px;padding:8px 14px}
