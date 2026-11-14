@@ -21,7 +21,7 @@ public partial class TmdbCatalogWindow : Window
     private TmdbItem? _selected;
     private JsonElement? _details;
     private bool _loadingSeason;
-    private readonly HashSet<int> _favorites = [];
+    private readonly HashSet<string> _favorites = [];
     private string FavoritesPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MILTVPLUS", "tmdb-favorites.json");
 
     public TmdbCatalogWindow(bool isSeries)
@@ -174,7 +174,7 @@ public partial class TmdbCatalogWindow : Window
         DetailMeta.Text = string.Join(" · ", new[] { item.Year, item.RatingLabel, ReadString(details, "runtime") is { Length: > 0 } runtime ? runtime + " min" : null }.Where(x => !string.IsNullOrWhiteSpace(x)));
         OverviewText.Text = ReadString(details, "overview") is { Length: > 0 } overview ? overview : "No hay sinopsis disponible.";
         DetailPoster.Source = ImageSource(item.PosterUrl);
-        FavoriteButton.Content = _favorites.Contains(item.Id) ? "♥ Me gusta" : "♡ Me gusta";
+        FavoriteButton.Content = _favorites.Contains(FavoriteKey(item.Id)) ? "♥ Me gusta" : "♡ Me gusta";
         var cast = new List<string>();
         if (details.TryGetProperty("credits", out var credits) && credits.TryGetProperty("cast", out var castArray))
             foreach (var person in castArray.EnumerateArray().Take(8))
@@ -233,9 +233,10 @@ public partial class TmdbCatalogWindow : Window
     private void Favorite_Click(object sender, RoutedEventArgs e)
     {
         if (_selected is null) return;
-        if (!_favorites.Add(_selected.Id)) _favorites.Remove(_selected.Id);
+        var key = FavoriteKey(_selected.Id);
+        if (!_favorites.Add(key)) _favorites.Remove(key);
         SaveFavorites();
-        FavoriteButton.Content = _favorites.Contains(_selected.Id) ? "♥ Me gusta" : "♡ Me gusta";
+        FavoriteButton.Content = _favorites.Contains(key) ? "♥ Me gusta" : "♡ Me gusta";
         StatusText.Text = "Preferencia guardada localmente en esta computadora.";
     }
 
@@ -334,15 +335,17 @@ public partial class TmdbCatalogWindow : Window
         try
         {
             if (File.Exists(FavoritesPath))
-                foreach (var id in JsonSerializer.Deserialize<int[]>(File.ReadAllText(FavoritesPath)) ?? []) _favorites.Add(id);
+                foreach (var id in JsonSerializer.Deserialize<string[]>(File.ReadAllText(FavoritesPath)) ?? []) _favorites.Add(id);
         }
         catch { _favorites.Clear(); }
     }
 
+    private string FavoriteKey(int id) => $"{(_isSeries ? "tv" : "movie")}_{id}";
+
     private void SaveFavorites()
     {
         Directory.CreateDirectory(Path.GetDirectoryName(FavoritesPath)!);
-        File.WriteAllText(FavoritesPath, JsonSerializer.Serialize(_favorites.Order().ToArray()));
+        File.WriteAllText(FavoritesPath, JsonSerializer.Serialize(_favorites.Order(StringComparer.Ordinal).ToArray()));
     }
 
     private void UpdateDetailEmpty()
