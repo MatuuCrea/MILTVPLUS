@@ -6,6 +6,8 @@ const safeUrl = value => {
   catch { return false; }
 };
 const regionCode = () => {
+  const saved = String(localStorage.getItem("miltvplus.country") || "").trim().toUpperCase();
+  if (/^[A-Z]{2}$/.test(saved)) return saved;
   const match = String(navigator.language || "").match(/[-_]([A-Za-z]{2})$/);
   return match ? match[1].toUpperCase() : "AR";
 };
