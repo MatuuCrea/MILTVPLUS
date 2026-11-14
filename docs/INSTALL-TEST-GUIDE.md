@@ -4,16 +4,18 @@
 
 ## Descargas verificadas de CI
 
-Estos artefactos se generaron en workflows que finalizaron correctamente sobre el código del PR #10 antes de fusionarlo:
+Estos artefactos se generaron en los workflows del último commit validado de la PR #11 (ya fusionada en `main`):
 
-- **Android APK debug:** [Android CI #329 — descargar el artefacto `miltvplus-debug-apk`](https://github.com/MatuuCrea/MILTVPLUS/actions/runs/43552114849).
-- **Windows x64:** [Windows Desktop #170 — descargar el artefacto `MILTVPLUS-Windows-Setup-x64`](https://github.com/MatuuCrea/MILTVPLUS/actions/runs/43552114857).
+- **Android móvil + Android TV/Google TV:** [Android CI #335 — artefacto `miltvplus-debug-apk`](https://github.com/MatuuCrea/MILTVPLUS/actions/runs/43552924214). Dentro del ZIP está `app-debug.apk`. Es un único APK universal: el manifiesto incluye launcher normal y Leanback; no son dos instaladores distintos ni dos APK separados.
+- **Windows 10/11 x64:** [Windows Desktop #172 — artefacto `MILTVPLUS-Windows-Setup-x64`](https://github.com/MatuuCrea/MILTVPLUS/actions/runs/43552924265). Dentro del ZIP está `MILTVPLUS-Setup-x64.exe`.
+
+Ambos workflows terminaron en `success` para el commit `33b5a1dfbc7beffb4903676b16e59459b5626873`. SHA-256 de los ZIP de Actions (no del APK/EXE extraído): Android `4a0144b43b8b5bd0d5262f162c38345c5ae387ee1bbec4e8e5b050fc801fc032`; Windows `986f8b979a4fa0784472100c8f0ffab3df1fc8600ce7c37d80e6ddc3ea73d533`.
 
 En GitHub, abrí el enlace, bajá hasta **Artifacts**, descargá el ZIP correspondiente y extraé su contenido. Los artefactos de Actions tienen retención limitada y pueden caducar; si GitHub ya no los muestra, hay que volver a ejecutar CI desde la rama principal para obtener paquetes nuevos. No descargues instaladores desde páginas de terceros.
 
-## Windows 10/11 x64
+## Windows 10/11 x64 — `.exe`
 
-1. En la PC, abrí el run **Windows Desktop #170** y descargá `MILTVPLUS-Windows-Setup-x64`.
+1. En la PC, abrí el run **Windows Desktop #172** y descargá `MILTVPLUS-Windows-Setup-x64`.
 2. Extraé el ZIP. Deberías obtener `MILTVPLUS-Setup-x64.exe`.
 3. Comprobá que el archivo provenga del artefacto de GitHub Actions enlazado arriba. No lo ejecutes si el nombre, origen o descarga no coinciden.
 4. Ejecutá el instalador. Elegí la carpeta de destino y completá el asistente.
@@ -25,9 +27,9 @@ En GitHub, abrí el enlace, bajá hasta **Artifacts**, descargá el ZIP correspo
 
 Desinstalación: Configuración → Aplicaciones → Aplicaciones instaladas → MILTVPLUS → Desinstalar.
 
-## Android móvil (teléfono/tablet)
+## Android móvil (teléfono/tablet) — `.apk`
 
-1. En el teléfono, abrí el run **Android CI #329** y descargá `miltvplus-debug-apk`.
+1. En el teléfono, abrí el run **Android CI #335** y descargá `miltvplus-debug-apk`.
 2. Extraé el ZIP y localizá `app-debug.apk`.
 3. Transferí el APK al teléfono mediante USB o una nube privada de tu propiedad.
 4. Abrí el APK desde Archivos. Android puede pedir permiso temporal para que esa aplicación instale paquetes; autorizá sólo el gestor de archivos que estás usando y sólo para esta instalación.
@@ -36,9 +38,9 @@ Desinstalación: Configuración → Aplicaciones → Aplicaciones instaladas →
 
 El APK debug no es la versión de publicación y no debe compartirse como instalador final.
 
-## Android TV / Google TV / TV Box / TV Stick Android
+## Android TV / Google TV / TV Box Android — `.apk`
 
-El manifiesto Android declara launcher Leanback, banner de TV y pantalla táctil opcional. Eso permite que el paquete aparezca en dispositivos Android TV compatibles, pero **todavía falta QA físico de navegación D-pad y reproducción**.
+Se instala el mismo `app-debug.apk` universal de Android móvil. No se inventa un `.exe`, `.wgt` ni `.ipk` para estos equipos. El manifiesto Android declara launcher Leanback, banner de TV y pantalla táctil opcional; **todavía falta QA físico de navegación D-pad y reproducción**. Para Fire TV, el APK sólo es candidato en modelos Fire OS compatibles; la instalación y los servicios del dispositivo deben validarse por modelo.
 
 ### Instalación por USB
 1. Descargá el mismo `app-debug.apk` indicado en Android móvil.
@@ -61,7 +63,7 @@ No publiques la dirección IP del TV ni mantengas ADB habilitado en redes públi
 
 ## Samsung Tizen y LG webOS
 
-El APK Android **no se instala** en televisores Samsung Tizen ni LG webOS. Esas plataformas necesitan aplicaciones nativas independientes. No hay instalador para esos sistemas en esta entrega.
+El APK Android **no se instala** en televisores Samsung Tizen ni LG webOS. Esas plataformas necesitan aplicaciones nativas independientes: paquete Tizen firmado (`.wgt`/formato exigido por el SDK de la versión) y paquete webOS (`.ipk`). No hay instalador para esos sistemas en esta entrega.
 
 ## Primera prueba funcional: lista de comprobación
 
