@@ -76,3 +76,27 @@ Películas y series permanecen sin implementación de catálogo/contenido. No im
 
 
 El inventario internacional se amplió con páginas de señal en vivo de MXPlus para canales públicos mexicanos, RTVE Play para señales españolas, ABC iview para ABC News, TVN Play para TV Chile y la WebTV oficial de TV Brasil. Algunos servicios limitan contenido por país o por derechos de programas; cada ficha conserva ese estado y no se convierte en stream HLS/DASH.
+
+
+## Auditoría específica de señales públicas argentinas
+
+Se agregó `data/catalog/argentina-public-channel-audit.json`. Es un inventario de descubrimiento separado del catálogo de producción: **no inserta canales en Supabase, no los marca como disponibles y no crea URLs de reproducción**.
+
+### Señales públicas con operador institucional identificado
+
+CAISAU identifica oficialmente a Encuentro, Pakapaka y DeporTV como señales bajo su conducción y enlaza sus respectivos sitios. Se incorporan al inventario como páginas oficiales candidatas, pero su emisión online actual y su compatibilidad de reproducción todavía deben probarse. Televisión Pública, Senado TV y Diputados TV también están identificados con páginas institucionales/oficiales para una nueva verificación.
+
+Fuente primaria de titularidad: [CAISAU — Argentina.gob.ar](https://www.argentina.gob.ar/jefatura/contenidos-artisticos-e-informativos-sau).
+
+### Señales TDA y canales provinciales
+
+El archivo contiene candidatos de señales nacionales TDA (AUNAR, Cine.Ar, TEC, Construir TV) y medios locales/provinciales de 20 jurisdicciones para investigación. Los nombres provinciales proceden de un directorio secundario y **no se consideran confirmación de titularidad pública, página oficial, emisión online ni permiso de retransmisión**. Cada candidato necesita verificación individual en el dominio de su titular.
+
+La televisión digital abierta terrestre puede ser gratuita mediante antena, pero eso no implica que exista una señal online, ni que MILTVPLUS pueda redistribuirla. El catálogo debe distinguir:
+- **Pública estatal/parlamentaria:** titularidad u operación pública documentada.
+- **Abierta privada:** señal de aire gratuita cuyo titular es privado.
+- **TDA terrestre:** recepción por antena y cobertura geográfica; no es una URL de streaming.
+- **Página oficial online:** acceso mediante el reproductor/sitio del titular, sujeto a sus restricciones.
+- **Stream integrado:** sólo con endpoint técnico y autorización expresa de distribución para MILTVPLUS.
+
+Ninguna de las fichas nuevas se considera «en vivo» hasta probar el reproductor en el dispositivo y territorio correspondientes. Ninguna queda habilitada para retransmisión integrada sin referencia documental de derechos vigente.
