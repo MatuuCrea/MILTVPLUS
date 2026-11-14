@@ -36,6 +36,16 @@ Este documento define lo que debe existir y probarse antes de declarar cada plat
 - **Función actual:** portal informativo, novedades, ayuda y distribución de instaladores oficiales cuando estén listos.
 - **No es:** una PWA ni un reproductor web de MILTVPLUS. La web no sustituye las aplicaciones nativas.
 
+### Controles de escritorio Windows
+- `F11`: alternar pantalla completa; `Esc`: salir de pantalla completa.
+- `Ctrl + ← / →`: canal anterior / siguiente.
+- `Espacio`: pausar o reanudar la reproducción actual.
+- `M`: silenciar o restaurar el audio.
+- `Ctrl + O`: importar una lista M3U/M3U8 local (límite de 5 MB; se aceptan sólo URLs HTTPS).
+- `Ctrl + R`: actualizar la sección actual.
+- `Ctrl + F`: enfocar la búsqueda.
+- Los atajos de reproducción y navegación no interceptan teclas mientras se escribe en campos de texto o se editan filtros.
+
 ## Criterios comunes de salida
 1. Fuentes y metadatos de contenido con derechos, territorios y vigencia documentados; no publicar streams inventados ni no autorizados.
 2. Firma de publicación y verificación SHA-256 de cada instalador.
@@ -45,8 +55,8 @@ Este documento define lo que debe existir y probarse antes de declarar cada plat
 6. Notas de versión, requisitos, limitaciones conocidas, actualización y soporte.
 7. Si una función no está implementada o probada, etiquetarla como «en desarrollo» o «compatibilidad en validación», no como disponible.
 
-## Estado conocido al 13 de noviembre de 2026
+## Estado conocido al 14 de noviembre de 2026
 - Android CI y Windows installer CI pasaron en commits recientes; eso confirma compilación/paquetizado en runners, no QA físico.
 - Android release signing requiere los secretos protegidos ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS y ANDROID_KEY_PASSWORD. Sin ellos, el workflow falla intencionalmente y no publica un APK debug como final.
-- El cliente Windows compila y empaqueta, incorpora LibVLC y WebView2 para reproducción directa y páginas oficiales, pero no tiene paridad completa con Android.
+- El cliente Windows compila y empaqueta, incorpora LibVLC y WebView2 para reproducción directa y páginas oficiales, pero no tiene paridad completa con Android. La ventana adapta barra lateral, márgenes y barra de herramientas a anchos compactos; queda pendiente probar escalado DPI, resoluciones bajas y desbordes en hardware real.
 - El catálogo no debe poblarse con fuentes no autorizadas ni datos ficticios.

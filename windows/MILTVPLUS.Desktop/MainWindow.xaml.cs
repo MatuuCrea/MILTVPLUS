@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Threading;
 using Microsoft.Win32;
@@ -57,11 +58,22 @@ public partial class MainWindow : Window
         AdultAgeConfirm.IsChecked = File.Exists(Path.Combine(AdultDataDirectory, "adult-age-confirmed"));
         Client.DefaultRequestHeaders.TryAddWithoutValidation("apikey", PublicKey);
         Client.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "application/json");
-        Loaded += async (_, _) => { await LoadCatalog(); if (_desktopSettings.AutoCheckUpdates) await CheckForUpdates(silent: true); if (_desktopSettings.StartMaximized) WindowState = WindowState.Maximized; };
+        Loaded += async (_, _) => { Window_SizeChanged(this, null!); await LoadCatalog(); if (_desktopSettings.AutoCheckUpdates) await CheckForUpdates(silent: true); if (_desktopSettings.StartMaximized) WindowState = WindowState.Maximized; };
         Closed += (_, _) => { _catalogRefreshTimer.Stop(); _clockTimer.Stop(); DisposePlayer(); };
         _catalogRefreshTimer.Tick += async (_, _) => { if (table == "tv_channels" && !_localPlaylistLoaded) await LoadCatalog(); };
         _catalogRefreshTimer.Start();
         VideoSurface.MouseLeftButtonDown += (_, e) => { if (e.ClickCount == 2) ToggleFullscreen(); };
+    }
+
+    private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        // Keep the desktop layout usable on compact Windows windows without changing its navigation model.
+        // WPF ActualWidth is measured in device-independent pixels; validate real DPI scaling before release.
+        var compact = ActualWidth < 1080;
+        SidebarColumn.Width = new GridLength(compact ? 184 : 232);
+        MainContentGrid.Margin = new Thickness(compact ? 12 : 22);
+        SearchBox.Width = compact ? 120 : 220;
+        ToolbarScroll.MaxWidth = compact ? 280 : 720;
     }
 
     private void LoadDesktopSettings()
@@ -434,10 +446,34 @@ public partial class MainWindow : Window
 
     private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.F11) { ToggleFullscreen(); e.Handled = true; }
-        else if (e.Key == Key.Escape && _isFullscreen) { ToggleFullscreen(); e.Handled = true; }
-        else if (e.Key == Key.Right && Keyboard.Modifiers == ModifierKeys.Control) { ChangeChannel(1); e.Handled = true; }
-        else if (e.Key == Key.Left && Keyboard.Modifiers == ModifierKeys.Control) { ChangeChannel(-1); e.Handled = true; }
+        var key = e.Key == Key.System ? e.SystemKey : e.Key;
+        var modifiers = Keyboard.Modifiers;
+        var typing = Keyboard.FocusedElement is TextBoxBase || Keyboard.FocusedElement is PasswordBox ||
+                     Keyboard.FocusedElement is System.Windows.Controls.ComboBox;
+
+        if (key == Key.F11) { ToggleFullscreen(); e.Handled = true; return; }
+        if (key == Key.Escape && _isFullscreen) { ToggleFullscreen(); e.Handled = true; return; }
+
+        // Global transport/navigation shortcuts are disabled while editing text or selecting filters.
+        if (typing) return;
+
+        if (modifiers == ModifierKeys.Control && key == Key.Right) { ChangeChannel(1); e.Handled = true; }
+        else if (modifiers == ModifierKeys.Control && key == Key.Left) { ChangeChannel(-1); e.Handled = true; }
+        else if (modifiers == ModifierKeys.Control && key == Key.O) { ImportM3u_Click(this, new RoutedEventArgs()); e.Handled = true; }
+        else if (modifiers == ModifierKeys.Control && key == Key.R) { Refresh_Click(this, new RoutedEventArgs()); e.Handled = true; }
+        else if (modifiers == ModifierKeys.Control && key == Key.F) { SearchBox.Focus(); SearchBox.SelectAll(); e.Handled = true; }
+        else if (modifiers == ModifierKeys.None && key == Key.Space && _currentEntry is not null)
+        {
+            if (_mediaPlayer.IsPlaying) _mediaPlayer.Pause();
+            else _mediaPlayer.Play();
+            e.Handled = true;
+        }
+        else if (modifiers == ModifierKeys.None && key == Key.M)
+        {
+            _mediaPlayer.Mute = !_mediaPlayer.Mute;
+            StatusText.Text = _mediaPlayer.Mute ? "Audio silenciado." : "Audio activado.";
+            e.Handled = true;
+        }
     }
 
     private async void ImportM3u_Click(object sender, RoutedEventArgs e)
