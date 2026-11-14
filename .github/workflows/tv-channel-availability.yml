@@ -10,6 +10,9 @@ on:
       - 'tests/test_tv_channel_availability.py'
       - 'data/catalog/argentina-channel-inventory.json'
       - 'data/catalog/international-channel-inventory.json'
+      - 'data/catalog/argentina-public-channel-audit.json'
+      - 'docs/INSTALL-TEST-GUIDE.md'
+      - 'tests/test_argentina_public_channel_audit.py'
       - 'docs/GLOBAL-TV-CATALOG.md'
       - 'docs/PLAYBACK-AND-SCALING.md'
       - '.github/workflows/tv-channel-availability.yml'
@@ -27,7 +30,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Test status classification
-        run: python -m unittest discover -s tests -p 'test_tv_channel_availability.py' -v
+        run: python -m unittest discover -s tests -p 'test_*.py' -v
   check-official-pages:
     needs: test
     runs-on: ubuntu-latest
