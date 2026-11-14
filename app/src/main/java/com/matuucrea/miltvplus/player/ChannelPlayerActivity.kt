@@ -111,7 +111,7 @@ class ChannelPlayerActivity : Activity() {
         root.addView(video, LinearLayout.LayoutParams(-1, 0, 1f))
         root.addView(controls, LinearLayout.LayoutParams(-1, -2))
         setContentView(root)
-        val loadControl = DefaultLoadControl.Builder().setBufferDurationsMs(15_000, 50_000, 1_500, 3_000).build()
+        val loadControl = DefaultLoadControl.Builder().setBufferDurationsMs(8_000, 30_000, 1_000, 2_000).setPrioritizeTimeOverSizeThresholds(true).build()
         val exo = ExoPlayer.Builder(this).setLoadControl(loadControl).build()
         player = exo
         video.player = exo
