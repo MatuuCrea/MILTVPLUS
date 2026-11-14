@@ -27,7 +27,7 @@ public partial class MainWindow
     }
 
     private bool IsWatchable(CatalogEntry entry) =>
-        IsHttps(entry.StreamUrl) || IsHttps(entry.OfficialWatchUrl);
+        (IsHttps(entry.StreamUrl) && entry.HasActivePlaybackRights) || IsHttps(entry.OfficialWatchUrl);
 
     private static bool IsHttps(string? value) =>
         Uri.TryCreate(value, UriKind.Absolute, out var uri) &&
@@ -102,7 +102,7 @@ public partial class MainWindow
     {
         var isYouTubeLive = string.Equals(entry.PlaybackType, "youtube_live", StringComparison.OrdinalIgnoreCase);
         var officialUrl = isYouTubeLive ? entry.StreamUrl : entry.OfficialWatchUrl;
-        if (!isYouTubeLive && IsHttps(entry.StreamUrl))
+        if (!isYouTubeLive && IsHttps(entry.StreamUrl) && entry.HasActivePlaybackRights)
         {
             OfficialWebView.Visibility = Visibility.Collapsed;
             VideoSurface.Visibility = Visibility.Visible;
