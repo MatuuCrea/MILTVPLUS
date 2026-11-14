@@ -103,7 +103,7 @@
       <TextBlock x:Name="ClockDate" Text="Cargando fecha…" FontSize="9" Foreground="#AAB6CE"/>
      </StackPanel>
     </StackPanel>
-    <ScrollViewer DockPanel.Dock="Right" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" MaxWidth="720">
+    <ScrollViewer x:Name="ToolbarScroll" DockPanel.Dock="Right" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" MaxWidth="720">
     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
      <Button Content="♧" ToolTip="Notificaciones" Click="OpenNotifications_Click" Padding="10,7"/>
      <Button Content="⚙" ToolTip="Configuración" Click="OpenSettings_Click" Padding="10,7"/>
