@@ -14,7 +14,7 @@ class SmartTvClientTests(unittest.TestCase):
         self.assertIsNotNone(root.find("t:profile[@name='tv-samsung']", ns))
         self.assertTrue((ROOT / "platforms/tizen/index.html").is_file())
         self.assertTrue((ROOT / "platforms/tizen/app.js").is_file())
-        self.assertTrue((ROOT / "platforms/tizen/icon.png").read_bytes().startswith(b"\\x89PNG\\r\\n\\x1a\\n"))
+        self.assertTrue((ROOT / "platforms/tizen/icon.png").read_bytes().startswith(bytes.fromhex("89504e470d0a1a0a")))
 
     def test_webos_manifest_and_assets_are_present(self):
         app = json.loads((ROOT / "platforms/webos/appinfo.json").read_text(encoding="utf-8"))
@@ -22,7 +22,7 @@ class SmartTvClientTests(unittest.TestCase):
         self.assertEqual(app["main"], "index.html")
         for name in (app["icon"], app["largeIcon"]):
             self.assertTrue((ROOT / "platforms/webos" / name).is_file())
-            self.assertTrue((ROOT / "platforms/webos" / name).read_bytes().startswith(b"\\x89PNG\\r\\n\\x1a\\n"))
+            self.assertTrue((ROOT / "platforms/webos" / name).read_bytes().startswith(bytes.fromhex("89504e470d0a1a0a")))
         self.assertTrue((ROOT / "platforms/webos/app.js").is_file())
 
     def test_both_clients_only_query_published_channels(self):
