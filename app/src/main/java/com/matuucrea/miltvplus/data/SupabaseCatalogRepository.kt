@@ -32,7 +32,8 @@ data class RemoteCatalogEntry(
     val kind: String? = null,
     val countryCode: String? = null,
     val ageRating: String? = null,
-    val infoUrl: String? = null
+    val infoUrl: String? = null,
+    val releaseYear: Int? = null
 )
 
 class SupabaseCatalogRepository {
@@ -143,7 +144,8 @@ class SupabaseCatalogRepository {
             kind = row.optString("kind").takeIf { it.isNotBlank() && it != "null" },
             countryCode = row.optString("country_code").takeIf { it.isNotBlank() && it != "null" },
             ageRating = row.optString("age_rating").takeIf { it.isNotBlank() && it != "null" },
-            infoUrl = infoUrlKeys.firstNotNullOfOrNull { key -> row.optString(key).takeIf(::isSafeHttpsUrl) }
+            infoUrl = infoUrlKeys.firstNotNullOfOrNull { key -> row.optString(key).takeIf(::isSafeHttpsUrl) },
+            releaseYear = row.opt("release_year")?.let { value -> (value as? Number)?.toInt() }
         )
     }
 
