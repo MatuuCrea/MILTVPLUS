@@ -17,7 +17,7 @@ const COUNTRIES = [
 const $ = id => document.getElementById(id);
 const node = (tag, cls, text) => { const el=document.createElement(tag); if(cls)el.className=cls; if(text!==undefined)el.textContent=text; return el; };
 
-export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()=>[], getChannels=()=>[], getSelectedChannel=()=>null, getCountryCounts=async()=>({}), loadCatalog=async()=>[], onCatalogItemPlay=()=>{} }={}) {
+export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()=>[], getChannels=()=>[], onFilterChange=()=>{}, getSelectedChannel=()=>null, getCountryCounts=async()=>({}), loadCatalog=async()=>[], onCatalogItemPlay=()=>{} }={}) {
   const main=$("main") || document.querySelector("main");
   const channels=$("channels"), empty=$("empty"), header=document.querySelector("header");
   if(!main||!channels||!header||$("official-sidebar")) return ()=>{};
@@ -83,6 +83,7 @@ export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()
     else if(label==="Documentales") category="documentary";
     else if(label==="TV en Vivo"||label==="Inicio") category="all";
     channels.hidden=!showTv;empty.hidden=!showTv;
+    if(!showTv) optimizer.destruirLista(channels);
     top.hidden=!showTv&&!isMusic;
     tvCats.hidden=!(label==="TV en Vivo"||label==="Deportes"||label==="Infantil"||label==="Documentales");
     if(showTv){main.querySelector("h1").textContent=label;filterChannels()}
@@ -97,21 +98,14 @@ export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()
   }
   function filterChannels(){
     const q=search.value.trim().toLowerCase();
-    channels.querySelectorAll(".channel").forEach(card=>{
-      const text=card.textContent.toLowerCase();
-      const matchQ=!q||text.includes(q);
-      const item=getChannels()[Number(card.dataset.index)];
-      const value=String(item?.category||"").toLowerCase();
-      const aliases={sports:["sports","sport","deportes"],kids:["kids","infantil","children"],documentary:["documentary","documentales"],news:["news","noticias"],entertainment:["entertainment","entretenimiento"],movies:["movie","movies","peliculas"],music:["music","musica"],religious:["religious","religioso"],local:["local","locales"]};
-      const matchC=category==="all"||(aliases[category]||[category]).some(v=>value.includes(v));
-      const favorites=new Set(JSON.parse(localStorage.getItem("miltvplus.favorites")||"[]"));
-      const matchFavorite=active!=="Favoritos"||favorites.has(item?.id);
-      card.hidden=!(matchQ&&matchC&&matchFavorite);
-    });
-    const visibleCount=channels.querySelectorAll(".channel:not([hidden])").length;
-    countBadge.textContent=visibleCount+" canales";
+    const source=getChannels();
+    const aliases={sports:["sports","sport","deportes"],kids:["kids","infantil","children"],documentary:["documentary","documentales"],news:["news","noticias"],entertainment:["entertainment","entretenimiento"],movies:["movie","movies","peliculas"],music:["music","musica"],religious:["religious","religioso"],local:["local","locales"]};
+    const favorites=new Set(JSON.parse(localStorage.getItem("miltvplus.favorites")||"[]"));
+    const filtered=source.filter(item=>{const text=[item.title,item.description,item.category,item.country_code].filter(Boolean).join(" ").toLowerCase();const matchQ=!q||text.includes(q);const value=String(item.category||"").toLowerCase();const matchC=category==="all"||(aliases[category]||[category]).some(v=>value.includes(v));const matchFavorite=active!=="Favoritos"||favorites.has(item.id);return matchQ&&matchC&&matchFavorite});
+    onFilterChange(filtered.map(item=>item.id));
+    countBadge.textContent=filtered.length+" canales";
     if(["Inicio","Adultos 18+","Países","Configuración","Guía EPG","Música","Películas","Series"].includes(active)) empty.hidden=true;
-    else empty.hidden=visibleCount>0;
+    else {empty.hidden=filtered.length>0;if(!filtered.length){const h=empty.querySelector("h2"),p=empty.querySelector("p");if(h)h.textContent=active==="Favoritos"?"Todavía no tenés favoritos":"No hay canales en este filtro";if(p)p.textContent=active==="Favoritos"?"Marcá un canal como favorito desde el reproductor.":"No hay publicaciones que coincidan con este filtro."}}
   }
   search.addEventListener("input",filterChannels);
   filter.addEventListener("click",()=>{tvCats.hidden=false;tvCats.scrollIntoView({behavior:"smooth",block:"nearest"});});
@@ -170,10 +164,9 @@ export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()
   epg.querySelector('[data-action="next24"]').addEventListener("click",()=>{epgOffset+=1;renderEpg()});
   epg.querySelector('[data-action="remind"]').addEventListener("click",()=>{if(!selectedProgram){epg.querySelector(".epg-status").textContent="Seleccioná un programa primero.";return;}const saved=JSON.parse(localStorage.getItem("miltvplus.reminders")||"[]");saved.push({id:selectedProgram.id,title:selectedProgram.title,starts_at:selectedProgram.starts_at});localStorage.setItem("miltvplus.reminders",JSON.stringify(saved));epg.querySelector(".epg-status").textContent="Recordatorio guardado en este dispositivo."});
   epg.querySelector('[data-action="info"]').addEventListener("click",()=>{epg.querySelector(".epg-status").textContent=selectedProgram?.description||"Seleccioná un programa para ver su información."});
-  function watchMutations(){const observer=new MutationObserver(filterChannels);observer.observe(channels,{childList:true,subtree:true});return ()=>observer.disconnect()}
-  const disposeObserver=watchMutations();
-  const releaseLists=()=>{optimizer.destruirLista(vodPage.querySelector(".vod-grid"));optimizer.destruirLista(epg.querySelector(".epg-grid"));optimizer.destruirTodo();};
+  window.addEventListener("miltvplus:catalog-updated",filterChannels);
+  const releaseLists=()=>{optimizer.destruirLista(channels);optimizer.destruirLista(vodPage.querySelector(".vod-grid"));optimizer.destruirLista(epg.querySelector(".epg-grid"));optimizer.destruirTodo();};
   window.addEventListener("pagehide",releaseLists);
   show("TV en Vivo");
-  return ()=>{disposeObserver();window.removeEventListener("pagehide",releaseLists);releaseLists();};
+  return ()=>{window.removeEventListener("miltvplus:catalog-updated",filterChannels);window.removeEventListener("pagehide",releaseLists);releaseLists();};
 }
