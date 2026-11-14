@@ -125,6 +125,18 @@ class SmartTvClientTests(unittest.TestCase):
         self.assertNotIn('"AR","🇦🇷","Argentina","Siempre en tu corazón",194', shell)
         self.assertIn("No hay fuentes ni reproducciones activas", shell)
 
+    def test_adult_section_never_queries_or_plays_active_catalog_items(self):
+        android = (ROOT / "app/src/main/java/com/matuucrea/miltvplus/ui/AccountAndSettings.kt").read_text(encoding="utf-8")
+        windows = (ROOT / "windows/MILTVPLUS.Desktop/MainWindow.xaml.cs").read_text(encoding="utf-8")
+        adult_android = android[android.index("fun AdultAccessScreen"):]
+        adult_windows = windows[windows.index("private async void AdultUnlock_Click"):windows.index("private static bool IsAdultRating")]
+        self.assertNotIn('catalog.fetchPublished("catalog_items"', adult_android)
+        self.assertIn("adultItems = emptyList()", adult_android)
+        self.assertIn("sin consultar ni cargar URLs", adult_android)
+        self.assertNotIn("await LoadCatalog()", adult_windows)
+        self.assertIn("entries = []", adult_windows)
+        self.assertIn("sin URLs activas", adult_windows)
+
     def test_one_official_menu_without_duplicate_mobile_or_settings_navigation(self):
         main = (ROOT / "app/src/main/java/com/matuucrea/miltvplus/MainActivity.kt").read_text(encoding="utf-8")
         topbar = (ROOT / "app/src/main/java/com/matuucrea/miltvplus/ui/PremiumExperience.kt").read_text(encoding="utf-8")
