@@ -93,6 +93,7 @@ class SmartTvClientTests(unittest.TestCase):
         self.assertIn("loadCatalog", shell)
         self.assertIn("renderVod", shell)
         self.assertIn("epg-timeline", shell)
+        self.assertIn("epg-channel-info", shell)
         self.assertIn("for(let i=0;i<7;i++)", shell)
         self.assertIn("official-count", shell)
         self.assertIn("localStorage.setItem", shell)
