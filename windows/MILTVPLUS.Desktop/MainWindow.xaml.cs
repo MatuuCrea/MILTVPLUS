@@ -470,10 +470,10 @@ public partial class MainWindow : Window
         var isAdult = section == "Adultos 18+";
         AdultGatePanel.Visibility = isAdult && !_adultUnlocked ? Visibility.Visible : Visibility.Collapsed;
         AdultPanel.Visibility = isAdult && _adultUnlocked ? Visibility.Visible : Visibility.Collapsed;
-        VideoContainer.Visibility = isAdult ? Visibility.Collapsed : Visibility.Visible;
+        VideoContainer.Visibility = isAdult || section == "Música" ? Visibility.Collapsed : Visibility.Visible;
         CatalogScroll.Visibility = isAdult && !_adultUnlocked ? Visibility.Collapsed : Visibility.Visible;
-        Grid.SetRow(CatalogScroll, isAdult ? 3 : 4);
-        Grid.SetRowSpan(CatalogScroll, isAdult ? 2 : 1);
+        Grid.SetRow(CatalogScroll, isAdult || section == "Música" ? 3 : 4);
+        Grid.SetRowSpan(CatalogScroll, isAdult || section == "Música" ? 2 : 1);
         if (isAdult && !_adultUnlocked)
         {
             entries = [];
