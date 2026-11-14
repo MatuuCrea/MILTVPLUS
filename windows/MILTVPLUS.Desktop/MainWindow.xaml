@@ -147,6 +147,20 @@
      <Button Content="◎&#x0a;Países&#x0a;Elegí tu región" Tag="Países" Click="QuickNavigation_Click" Background="#064B65" Margin="3" Padding="8"/>
     </UniformGrid>
    </StackPanel>
+   <StackPanel x:Name="MusicPanel" Grid.Row="1" Margin="0,0,0,14" Visibility="Collapsed">
+    <Border CornerRadius="20" Padding="24" Height="150" BorderBrush="#7048A8" BorderThickness="1">
+     <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#39205D"/><GradientStop Color="#19132F" Offset=".58"/><GradientStop Color="#35152F" Offset="1"/></LinearGradientBrush></Border.Background>
+     <Grid>
+      <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+      <StackPanel VerticalAlignment="Center">
+       <TextBlock Text="MILTVPLUS SOUND  ·  UN AMBIENTE HECHO PARA ESCUCHAR" Foreground="#FFC5E3" FontSize="10" FontWeight="Bold"/>
+       <TextBlock Text="Bajá el ruido. Subí el volumen." Foreground="White" FontSize="28" FontWeight="Black" Margin="0,8,0,5"/>
+       <TextBlock Text="Descubrí música publicada y escuchá streams autorizados. Las fuentes externas se abren en su servicio oficial." Foreground="#E0D9EE" FontSize="11"/>
+      </StackPanel>
+      <TextBlock Grid.Column="1" Text="♫" Foreground="#FF68B4" FontSize="64" VerticalAlignment="Center" Margin="20,0"/>
+     </Grid>
+    </Border>
+   </StackPanel>
    <StackPanel x:Name="AdultPanel" Grid.Row="1" Margin="0,0,0,14" Visibility="Collapsed">
     <Border CornerRadius="17" Padding="16" Height="118" BorderBrush="#9E1C63" BorderThickness="1" Margin="0,0,0,8">
      <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#570B36"/><GradientStop Color="#21051E" Offset=".6"/><GradientStop Color="#090611" Offset="1"/></LinearGradientBrush></Border.Background>
