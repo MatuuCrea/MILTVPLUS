@@ -190,8 +190,19 @@ public partial class MainWindow : Window
 
     private void PlayEntry(CatalogEntry item)
     {
-        if (!Uri.TryCreate(item.StreamUrl, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps)
+        if (!Uri.TryCreate(item.StreamUrl ?? item.AuthorizedStreamUrl, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps)
         {
+            var officialMusicUrl = item.ExternalUrl ?? item.OfficialWatchUrl;
+            if (Sections.SelectedItem is ListBoxItem selected && selected.Tag?.ToString() == "Música" && IsHttps(officialMusicUrl))
+            {
+                try
+                {
+                    Process.Start(new ProcessStartInfo(officialMusicUrl!) { UseShellExecute = true });
+                    StatusText.Text = "Abriendo la fuente musical oficial en tu navegador.";
+                }
+                catch (Exception ex) { StatusText.Text = "No se pudo abrir la fuente oficial: " + ex.Message; }
+                return;
+            }
             if (IsHttps(item.OfficialWatchUrl))
             {
                 StatusText.Text = "Esta señal debe iniciarse desde el visor integrado de MILTVPLUS.";
@@ -479,7 +490,7 @@ public partial class MainWindow : Window
             "Documentales" => ("catalog_items", "id,title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url", "created_at.desc", null),
             "Adultos 18+" => ("catalog_items", "id,title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url", "created_at.desc", null),
             "Deportes" => ("sports_events", "id,title,description,country_code,starts_at,competition,sport,poster_url,official_info_url", "starts_at.asc", null),
-            "Música" => ("music_items", "id,title,creator,country_code,created_at,item_type,album,genre,release_year,external_url,artwork_url", "created_at.desc", null),
+            "Música" => ("music_items", "id,title,creator,country_code,created_at,item_type,album,genre,release_year,external_url,artwork_url,stream_url,authorized_stream_url,official_watch_url", "created_at.desc", null),
             "Radios" => ("radio_stations", "id,title,description,country_code,created_at,genre,language_code,logo_url,stream_url,website_url", "created_at.desc", null),
             "Teatro" => ("theater_events", "id,title,description,country_code,starts_at,venue,genre,poster_url,info_url", "starts_at.asc", null),
             "Guía EPG" => ("epg_programs", "id,title,description,country_code,starts_at,ends_at,category,language_code,channel_external_id", "starts_at.asc", null),
@@ -512,6 +523,9 @@ public partial class MainWindow : Window
         [JsonPropertyName("ends_at")] public DateTimeOffset? EndsAt { get; set; }
         [JsonPropertyName("channel_external_id")] public string? ChannelExternalId { get; set; }
         [JsonPropertyName("stream_url")] public string? StreamUrl { get; set; }
+        [JsonPropertyName("authorized_stream_url")] public string? AuthorizedStreamUrl { get; set; }
+        [JsonPropertyName("external_url")] public string? ExternalUrl { get; set; }
+        [JsonPropertyName("artwork_url")] public string? ArtworkUrl { get; set; }
         [JsonPropertyName("official_watch_url")] public string? OfficialWatchUrl { get; set; }
         [JsonPropertyName("logo_url")] public string? LogoUrl { get; set; }
         public string? Category { get; set; }
