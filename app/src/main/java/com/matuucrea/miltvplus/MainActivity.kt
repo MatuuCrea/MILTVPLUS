@@ -176,6 +176,31 @@ class MainActivity:ComponentActivity(){
         uri?.let { u -> runCatching { context.contentResolver.openInputStream(u)?.use { M3uParser.parse(readM3uLimited(it)) } ?: throw IllegalStateException("No se pudo abrir el archivo") }
             .onSuccess { vm.setChannels(it); tab="TV" }.onFailure { vm.setError("No se pudo importar: "+(it.message ?: "archivo inválido")) } }
     }
+    // Único punto de enrutamiento: el menú lateral y los accesos del inicio comparten estas rutas.
+    val navigateTo: (String) -> Unit = { destination ->
+        when (destination) {
+            "Inicio" -> { remoteCategory = "tv_channels"; remoteKindFilter = null; tab = "Inicio" }
+            "TV en Vivo" -> { remoteCategory = "tv_channels"; remoteKindFilter = null; tab = "Catálogo" }
+            "Películas" -> { remoteCategory = "catalog_items"; remoteKindFilter = "movie"; tab = "Catálogo" }
+            "Series" -> { remoteCategory = "catalog_items"; remoteKindFilter = "series"; tab = "Catálogo" }
+            "Deportes" -> { remoteCategory = "sports_events"; remoteKindFilter = null; tab = "Catálogo" }
+            "Infantil" -> { remoteCategory = "catalog_items"; remoteKindFilter = "kids"; tab = "Catálogo" }
+            "Documentales" -> { remoteCategory = "catalog_items"; remoteKindFilter = "documentary"; tab = "Catálogo" }
+            "Apps" -> { remoteKindFilter = null; tab = "Apps" }
+            "Fuentes" -> { remoteKindFilter = null; tab = "Fuentes" }
+            "Música" -> { remoteKindFilter = null; tab = "Música" }
+            "Cuenta" -> { remoteKindFilter = null; tab = "Cuenta" }
+            "Radios" -> { remoteCategory = "radio_stations"; remoteKindFilter = null; tab = "Catálogo" }
+            "Teatro" -> { remoteCategory = "theater_events"; remoteKindFilter = null; tab = "Catálogo" }
+            "Países" -> { remoteKindFilter = null; tab = "Países" }
+            "Guía EPG", "EPG" -> { remoteCategory = "epg_programs"; remoteKindFilter = null; tab = "Catálogo" }
+            "Adultos 18+" -> tab = "Adultos"
+            "Favoritos" -> { remoteKindFilter = null; tab = "Favoritos" }
+            "Configuración" -> { remoteKindFilter = null; tab = "Ajustes" }
+            "Más Opciones" -> { remoteKindFilter = null; tab = "Apps" }
+        }
+    }
+
     val activeNavigation = when {
         tab == "Catálogo" && remoteCategory == "epg_programs" -> "Guía EPG"
         tab == "Catálogo" && remoteCategory == "catalog_items" && remoteKindFilter == "movie" -> "Películas"
@@ -191,30 +216,7 @@ class MainActivity:ComponentActivity(){
     }
 
     Scaffold(containerColor=bg){pad->Row(Modifier.fillMaxSize().padding(pad)) {
-        PremiumSidebar(activeNavigation) { destination ->
-            when(destination) {
-                "Inicio" -> { remoteCategory="tv_channels"; remoteKindFilter=null; tab="Inicio" }
-                "TV en Vivo" -> { remoteCategory="tv_channels"; remoteKindFilter=null; tab="Catálogo" }
-                "Películas" -> { remoteCategory="catalog_items"; remoteKindFilter="movie"; tab="Catálogo" }
-                "Series" -> { remoteCategory="catalog_items"; remoteKindFilter="series"; tab="Catálogo" }
-                "Deportes" -> { remoteCategory="sports_events"; remoteKindFilter=null; tab="Catálogo" }
-                "Infantil" -> { remoteCategory="catalog_items"; remoteKindFilter="kids"; tab="Catálogo" }
-                "Documentales" -> { remoteCategory="catalog_items"; remoteKindFilter="documentary"; tab="Catálogo" }
-                "Apps" -> { remoteKindFilter=null; tab="Apps" }
-                "Fuentes" -> { remoteKindFilter=null; tab="Fuentes" }
-                "Música" -> { remoteKindFilter=null; tab="Música" }
-                "Cuenta" -> { remoteKindFilter=null; tab="Cuenta" }
-                "Radios" -> { remoteCategory="radio_stations"; remoteKindFilter=null; tab="Catálogo" }
-                "Teatro" -> { remoteCategory="theater_events"; remoteKindFilter=null; tab="Catálogo" }
-                "Países" -> { remoteKindFilter=null; tab="Países" }
-                "Guía EPG" -> { remoteCategory="epg_programs"; remoteKindFilter=null; tab="Catálogo" }
-                "EPG" -> { remoteCategory="epg_programs"; remoteKindFilter=null; tab="Catálogo" }
-                "Adultos 18+" -> tab="Adultos"
-                "Favoritos" -> { remoteKindFilter=null; tab="Favoritos" }
-                "Configuración" -> { remoteKindFilter=null; tab="Ajustes" }
-                "Más Opciones" -> { remoteKindFilter=null; tab="Apps" }
-            }
-        }
+        PremiumSidebar(activeNavigation, navigateTo)
         Column(Modifier.weight(1f).fillMaxHeight().background(Brush.verticalGradient(listOf(Color(0xFF08080A),Color(0xFF0B0B0E),Color(0xFF08080A))))) {
             PremiumAppTopBar(tab,onSearch={value -> query=value; if(value.isNotBlank() && tab=="Inicio") tab="Catálogo"},onSettings={tab="Ajustes"},onAccount={tab="Cuenta"})
 
@@ -232,18 +234,7 @@ class MainActivity:ComponentActivity(){
                     featuredTitle=featured?.title,
                     loading=remoteLoading,
                     errorMessage=remoteError
-                ) { destination ->
-                    when(destination) {
-                        "TV en Vivo" -> { remoteCategory="tv_channels"; remoteKindFilter=null; tab="Catálogo" }
-                        "Películas" -> { remoteCategory="catalog_items"; remoteKindFilter="movie"; tab="Catálogo" }
-                        "Series" -> { remoteCategory="catalog_items"; remoteKindFilter="series"; tab="Catálogo" }
-                        "Deportes" -> { remoteCategory="sports_events"; remoteKindFilter=null; tab="Catálogo" }
-                        "Infantil" -> { remoteCategory="catalog_items"; remoteKindFilter="kids"; tab="Catálogo" }
-                        "Países" -> { remoteKindFilter=null; tab="Países" }
-                        "EPG" -> { remoteCategory="epg_programs"; remoteKindFilter=null; tab="Catálogo" }
-                        "Configuración" -> { remoteKindFilter=null; tab="Ajustes" }
-                    }
-                }
+                , onNavigate = navigateTo)
             }
             "Catálogo"->{Row(Modifier.fillMaxWidth().padding(end=12.dp),verticalAlignment=Alignment.CenterVertically){Column(Modifier.weight(1f)){Title("Catálogo global","Contenido publicado desde tu backend seguro")};IconButton(onClick={catalogRefresh++},enabled=!remoteLoading){Icon(Icons.Default.Refresh,"Actualizar catálogo",tint=cyan)}};TextButton(onClick={remoteCategory="tv_channels";tab="Inicio"},modifier=Modifier.padding(start=12.dp)){Text("← Volver a Inicio")}
                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal=12.dp),horizontalArrangement=Arrangement.spacedBy(6.dp)){
