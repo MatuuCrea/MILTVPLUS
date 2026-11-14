@@ -27,11 +27,13 @@ export class SupabaseCatalog {
   }
 
   async request(path, accessToken) {
+    const anonymousJwt = !accessToken && this.anonKey.split(".").length === 3 ? this.anonKey : null;
+    const bearer = accessToken || anonymousJwt;
     const response = await this.fetchImpl(this.baseUrl + path, {
       method: "GET",
       headers: {
         apikey: this.anonKey,
-        Authorization: "Bearer " + (accessToken || this.anonKey),
+        ...(bearer ? { Authorization: "Bearer " + bearer } : {}),
         Accept: "application/json"
       },
       signal: AbortSignal.timeout(10_000)
