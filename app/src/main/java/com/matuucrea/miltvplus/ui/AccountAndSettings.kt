@@ -162,7 +162,9 @@ fun AccountScreen(
 fun SettingsScreen(
     onThemeChanged: (String, String) -> Unit,
     userRepository: SupabaseUserRepository,
-    isSignedIn: Boolean
+    isSignedIn: Boolean,
+    onKeepScreenOnChanged: (Boolean) -> Unit = {},
+    onMusicVolumeChanged: (Float) -> Unit = {}
 ) {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("miltvplus_preferences", Context.MODE_PRIVATE) }
@@ -173,6 +175,8 @@ fun SettingsScreen(
     var language by remember { mutableStateOf(prefs.getString("language", "es") ?: "es") }
     var audioLanguage by remember { mutableStateOf(prefs.getString("audio_language", "original") ?: "original") }
     var accent by remember { mutableStateOf(prefs.getString("accent_color", "electric-blue") ?: "electric-blue") }
+    var keepScreenOn by remember { mutableStateOf(prefs.getBoolean("keep_screen_on", false)) }
+    var musicVolume by remember { mutableFloatStateOf(prefs.getFloat("music_volume", 1f).coerceIn(0f, 1f)) }
     var message by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
@@ -185,8 +189,12 @@ fun SettingsScreen(
             .putString("language", language)
             .putString("audio_language", audioLanguage)
             .putString("accent_color", accent)
+            .putBoolean("keep_screen_on", keepScreenOn)
+            .putFloat("music_volume", musicVolume)
             .apply()
         onThemeChanged(theme, accent)
+        onKeepScreenOnChanged(keepScreenOn)
+        onMusicVolumeChanged(musicVolume)
         if (isSignedIn) scope.launch {
             runCatching {
                 userRepository.savePreferences(
@@ -225,6 +233,12 @@ fun SettingsScreen(
         SettingSwitch("Subtítulos habilitados", subtitles) { subtitles = it; persist() }
         SettingSwitch("Preferencia de notificaciones", notifications) { notifications = it; persist() }
         SettingSwitch("Reproducción automática", autoplay) { autoplay = it; persist() }
+        HorizontalDivider()
+        Text("Reproducción y dispositivo", style = MaterialTheme.typography.titleMedium)
+        SettingSwitch("Mantener pantalla encendida", keepScreenOn) { keepScreenOn = it; persist() }
+        Text("Volumen de reproducción", style = MaterialTheme.typography.titleSmall)
+        Slider(value = musicVolume, onValueChange = { musicVolume = it; onMusicVolumeChanged(it) }, onValueChangeFinished = { persist() }, valueRange = 0f..1f)
+        Text((musicVolume * 100).toInt().toString() + "% · Se aplica al reproductor integrado de MILTVPLUS.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text("Idioma de interfaz", style = MaterialTheme.typography.titleMedium)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf("es" to "Español", "en" to "English", "pt" to "Português").forEach { (value, label) ->
@@ -372,7 +386,7 @@ fun AdultAccessScreen(
                             Text("SOLO PARA ADULTOS", color = Color(0xFFFFB7D7), fontSize = 9.sp, fontWeight = FontWeight.ExtraBold)
                             Icon(Icons.Default.WorkspacePremium, null, tint = Color(0xFFFFC247), modifier = Modifier.size(25.dp))
                             Text("Contenido Adulto", color = Color.White, fontSize = 25.sp, fontWeight = FontWeight.Black)
-                            Text("Disfrutá de una experiencia cuidada y privada", color = Color(0xFFFFD8E9), style = MaterialTheme.typography.bodySmall)
+                            Text("Este espacio está pensado para disfrutarse con tranquilidad, respeto y privacidad. Gracias por cuidar tu acceso y acompañarnos.", color = Color(0xFFFFD8E9), style = MaterialTheme.typography.bodySmall)
                             Button(onClick = {
                                 message = when {
                                     !ageConfirmed -> "Confirmá que tenés 18 años o más en el control de acceso."
@@ -625,7 +639,7 @@ fun AdultAccessScreen(
             title = { Text("$category · Próximamente") },
             text = {
                 Text(
-                    "Estamos preparando esta categoría para MILTVPLUS. Por ahora no hay contenido publicado y verificado disponible aquí. Volvé pronto: queremos ofrecerte una experiencia cuidada y segura."
+                    "Gracias por tu interés en esta categoría. Estamos preparando su espacio y todavía no hay publicaciones verificadas disponibles. Volvé pronto; queremos recibirte con una experiencia cuidada, privada y a la altura de tus expectativas."
                 )
             },
             confirmButton = {
