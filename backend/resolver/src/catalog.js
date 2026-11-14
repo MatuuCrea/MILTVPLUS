@@ -5,9 +5,11 @@ const TV_FIELDS = [
   "rights_regions", "rights_valid_from", "rights_valid_until", "is_published"
 ].join(",");
 
+// The database column is authorized_stream_url. Alias it to the resolver's
+// normalized stream_url property so the authorization gate can redact it.
 const SPORTS_FIELDS = [
   "id", "title", "description", "country_code", "sport", "competition", "starts_at", "ends_at",
-  "poster_url", "official_info_url", "stream_url", "rights_verified", "rights_holder",
+  "poster_url", "official_info_url", "stream_url:authorized_stream_url", "rights_verified", "rights_holder",
   "rights_reference", "rights_regions", "rights_valid_from", "rights_valid_until", "is_published"
 ].join(",");
 
