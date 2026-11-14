@@ -17,7 +17,7 @@ const COUNTRIES = [
 const $ = id => document.getElementById(id);
 const node = (tag, cls, text) => { const el=document.createElement(tag); if(cls)el.className=cls; if(text!==undefined)el.textContent=text; return el; };
 
-export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()=>[], getChannels=()=>[], getSelectedChannel=()=>null, getCountryCounts=async()=>({}) }={}) {
+export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()=>[], getChannels=()=>[], getSelectedChannel=()=>null, getCountryCounts=async()=>({}), loadCatalog=async()=>[], onCatalogItemPlay=()=>{} }={}) {
   const main=$("main") || document.querySelector("main");
   const channels=$("channels"), empty=$("empty"), header=document.querySelector("header");
   if(!main||!channels||!header||$("official-sidebar")) return ()=>{};
@@ -48,10 +48,11 @@ export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()
   const adult=node("section","official-page adult-page");adult.hidden=true;adult.innerHTML='<div class="adult-hero"><div class="adult-mark">18+<small>Solo para adultos</small></div><div class="adult-copy"><small>♛ CONTENIDO PRIVADO</small><h2>Contenido <b>Adulto</b></h2><p>Experiencia privada y protegida para mayores de 18 años.</p><button type="button" disabled>Ingresar ahora · Temporalmente bloqueado</button></div><div class="adult-script">Pasión<br>sin límites ♡</div></div><div class="adult-categories"></div><h3>▶ Recomendados para vos</h3><div class="adult-empty">El catálogo +18 permanece vacío y protegido. No hay fuentes ni reproducciones activas.</div><div class="adult-footer">🛡 Contenido seguro　│　🔒 Acceso +18　│　♛ Calidad según la fuente</div>';
   const adultCats=[["💋","Romance"],["🔥","Eróticos"],["💞","Parejas"],["⭐","Hot"],["💎","Premium"],["🔞","Solo Adultos"]];
   const adultCatRoot=adult.querySelector(".adult-categories");adultCats.forEach(([icon,label])=>adultCatRoot.append(node("div","adult-category",icon+"\n"+label)));
+  const vodPage=node("section","official-page vod-page");vodPage.hidden=true;vodPage.innerHTML='<h2 class="vod-title"></h2><div class="vod-status"></div><div class="vod-grid"></div>';
   const countries=node("section","official-page countries-page");countries.hidden=true;countries.innerHTML='<h2>◎ Seleccionar País</h2><input class="country-search" placeholder="Buscar país…"><div class="country-list"></div><div class="country-identity"></div>';
   const settings=node("section","official-page settings-page");settings.hidden=true;settings.innerHTML='<h2>⚙ Configuración</h2><div class="settings-layout"><nav class="settings-sections"></nav><div class="settings-options"></div></div><button type="button" class="settings-reset">↻ Restablecer Configuración</button>';
   const epg=node("section","official-page epg-page");epg.hidden=true;epg.innerHTML='<h2>▦ Guía de Programación (EPG)</h2><div class="epg-days"></div><div class="epg-grid"></div><div class="epg-actions"><button data-action="record" disabled title="La grabación requiere soporte de captura del dispositivo y una fuente autorizada">● Grabar</button><button data-action="remind">◉ Recordatorio</button><button data-action="next24">+24 h</button><button data-action="info">Info</button></div><p class="epg-status" role="status"></p>';
-  main.append(home,adult,countries,settings,epg);
+  main.append(home,adult,vodPage,countries,settings,epg);
   home.querySelector("[data-go]").addEventListener("click",()=>show("TV en Vivo"));
   const playerHead=document.querySelector(".player-head");
   if(playerHead){
@@ -72,8 +73,8 @@ export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()
     if(musicSection)musicSection.hidden=!isMusic;
     if(isMusic){musicNav?.click();main.querySelector("h1").textContent="Música"}
     else {if($("nav-tv") && musicSection) $("nav-tv").click();}
-    const page=label==="Inicio"?home:label==="Adultos 18+"?adult:label==="Países"?countries:label==="Configuración"?settings:label==="Guía EPG"?epg:null;
-    [home,adult,countries,settings,epg].forEach(p=>p.hidden=p!==page);
+    const page=label==="Inicio"?home:label==="Adultos 18+"?adult:label==="Películas"||label==="Series"?vodPage:label==="Países"?countries:label==="Configuración"?settings:label==="Guía EPG"?epg:null;
+    [home,adult,vodPage,countries,settings,epg].forEach(p=>p.hidden=p!==page);
     const showTv=!page&&!isMusic;
     if(label==="Deportes") category="sports";
     else if(label==="Infantil") category="kids";
@@ -89,7 +90,7 @@ export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()
     if(label==="Configuración")renderSettings();
     if(label==="Guía EPG")renderEpg();
     if(label==="Favoritos")showFavorites();
-    if(label==="Películas"||label==="Series") {channels.hidden=true;empty.hidden=false;empty.querySelector("h2").textContent="Catálogo no disponible";empty.querySelector("p").textContent="Esta sección sólo mostrará contenidos publicados con derechos de reproducción verificados."}
+    if(label==="Películas"||label==="Series") renderVod(label==="Películas"?"peliculas":"series")
     if(label==="Música" && !musicSection) $("nav-music")?.click();
   }
   function filterChannels(){
@@ -113,6 +114,15 @@ export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()
   search.addEventListener("input",filterChannels);
   filter.addEventListener("click",()=>{tvCats.hidden=false;tvCats.scrollIntoView({behavior:"smooth",block:"nearest"});});
   function showFavorites(){filterChannels()}
+  async function renderVod(category){
+    const root=vodPage.querySelector(".vod-grid");root.replaceChildren();
+    vodPage.querySelector(".vod-title").textContent=category==="peliculas"?"Películas":"Series";
+    vodPage.querySelector(".vod-status").textContent="Consultando catálogo autorizado…";
+    const items=await loadCatalog(category).catch(()=>[]);
+    if(!items.length){vodPage.querySelector(".vod-status").textContent="No hay contenidos publicados con reproducción autorizada en este catálogo.";return;}
+    items.forEach(item=>{const card=node("article","vod-card");if(typeof item.poster_url==="string"&&item.poster_url.startsWith("https://")){const img=node("img","vod-poster");img.src=item.poster_url;img.alt="";img.loading="lazy";card.append(img)}const info=node("div","vod-info");info.append(node("strong","",item.title||"Contenido"));info.append(node("span","",[item.release_year,item.genre,item.duration].filter(Boolean).join(" · ")));info.append(node("p","",item.description||""));const play=node("button","vod-play","▶ Reproducir");play.addEventListener("click",()=>onCatalogItemPlay(item,category));info.append(play);card.append(info);root.append(card)});
+    vodPage.querySelector(".vod-status").textContent=items.length+" publicaciones autorizadas.";
+  }
   async function renderCountries(){
     const list=countries.querySelector(".country-list");list.replaceChildren();
     const counts=await getCountryCounts().catch(()=>({}));
