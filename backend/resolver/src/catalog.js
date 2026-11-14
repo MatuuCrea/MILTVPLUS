@@ -86,6 +86,11 @@ export class SupabaseCatalog {
       return this.request("/rest/v1/tv_channels?" + query, accessToken);
     }
 
+    if (category === "deportes") {
+      query.set("order", "starts_at.asc");
+      return this.request("/rest/v1/sports_events?" + query, accessToken);
+    }
+
     if (category === "musica") {
       query.set("order", "created_at.desc");
       return this.request("/rest/v1/music_items?" + query, accessToken);
@@ -114,7 +119,7 @@ export class SupabaseCatalog {
 
   async find({ category, country, id, accessToken }) {
     const query = new URLSearchParams({
-      select: category === "tv_en_vivo" ? TV_FIELDS : category === "musica" ? MUSIC_FIELDS : MEDIA_FIELDS,
+      select: category === "tv_en_vivo" ? TV_FIELDS : category === "deportes" ? SPORTS_FIELDS : category === "musica" ? MUSIC_FIELDS : MEDIA_FIELDS,
       id: "eq." + id,
       is_published: "eq.true",
       limit: "1"
@@ -124,6 +129,8 @@ export class SupabaseCatalog {
     let path;
     if (category === "tv_en_vivo") {
       path = "/rest/v1/tv_channels?" + query;
+    } else if (category === "deportes") {
+      path = "/rest/v1/sports_events?" + query;
     } else {
       if (category === "musica") {
         path = "/rest/v1/music_items?" + query;
