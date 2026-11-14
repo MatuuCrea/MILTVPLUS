@@ -118,7 +118,10 @@ public partial class MainWindow : Window
             const int maxRows = 10000;
             for (var offset = 0; offset < maxRows; offset += pageSize)
             {
-                var query = $"?select={Uri.EscapeDataString(select)}&is_published=eq.true&order={Uri.EscapeDataString(order)}&limit={pageSize}&offset={offset}";
+                var fields = select.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .Concat(new[] { "rights_verified", "rights_holder", "rights_reference", "rights_regions", "rights_valid_from", "rights_valid_until" })
+                    .Distinct(StringComparer.OrdinalIgnoreCase);
+                var query = $"?select={Uri.EscapeDataString(string.Join(",", fields))}&is_published=eq.true&order={Uri.EscapeDataString(order)}&limit={pageSize}&offset={offset}";
                 if (kind is not null) query += "&kind=eq." + Uri.EscapeDataString(kind);
                 using var response = await Client.GetAsync(Api + table + query);
                 if (!response.IsSuccessStatusCode)
@@ -237,7 +240,7 @@ public partial class MainWindow : Window
 
     private void PlayEntry(CatalogEntry item)
     {
-        if (!Uri.TryCreate(item.StreamUrl ?? item.AuthorizedStreamUrl, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps)
+        if (!Uri.TryCreate(item.StreamUrl ?? item.AuthorizedStreamUrl, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps || (!item.HasActivePlaybackRights && !item.IsUserProvidedSource))
         {
             var officialMusicUrl = item.ExternalUrl ?? item.OfficialWatchUrl;
             if (Sections.SelectedItem is ListBoxItem selected && selected.Tag?.ToString() == "Música" && IsHttps(officialMusicUrl))
@@ -252,7 +255,8 @@ public partial class MainWindow : Window
             }
             if (IsHttps(item.OfficialWatchUrl))
             {
-                StatusText.Text = "Esta señal debe iniciarse desde el visor integrado de MILTVPLUS.";
+                StatusText.Text = "No hay derechos activos para reproducción directa en esta región. Abriendo únicamente la página oficial del emisor.";
+                _ = WatchEntryAsync(item);
                 return;
             }
             StatusText.Text = "Este canal todavía no tiene una señal HTTPS verificada ni una página oficial de visualización.";
@@ -274,10 +278,10 @@ public partial class MainWindow : Window
     {
         if (Catalog.ItemsSource is IEnumerable<CatalogEntry> visible)
         {
-            var filtered = visible.Where(x => Uri.TryCreate(x.StreamUrl, UriKind.Absolute, out var u) && u.Scheme == Uri.UriSchemeHttps).ToList();
+            var filtered = visible.Where(x => x.HasActivePlaybackRights || x.IsUserProvidedSource).Where(x => Uri.TryCreate(x.StreamUrl, UriKind.Absolute, out var u) && u.Scheme == Uri.UriSchemeHttps).ToList();
             if (filtered.Count > 0) return filtered;
         }
-        return entries.Where(x => Uri.TryCreate(x.StreamUrl, UriKind.Absolute, out var u) && u.Scheme == Uri.UriSchemeHttps).ToList();
+        return entries.Where(x => x.HasActivePlaybackRights || x.IsUserProvidedSource).Where(x => Uri.TryCreate(x.StreamUrl, UriKind.Absolute, out var u) && u.Scheme == Uri.UriSchemeHttps).ToList();
     }
 
     private void PreviousChannel_Click(object sender, RoutedEventArgs e) => ChangeChannel(-1);
@@ -507,7 +511,7 @@ public partial class MainWindow : Window
                 if (line.Length == 0 || line.StartsWith('#')) continue;
                 if (!Uri.TryCreate(line, UriKind.Absolute, out var streamUri) || streamUri.Scheme != Uri.UriSchemeHttps)
                     continue;
-                imported.Add(new CatalogEntry { Title = pendingTitle, Description = "Fuente importada localmente", StreamUrl = streamUri.ToString(), Kind = "live" });
+                imported.Add(new CatalogEntry { Title = pendingTitle, Description = "Fuente importada localmente; verificá que tengas autorización para reproducirla.", StreamUrl = streamUri.ToString(), Kind = "live", IsUserProvidedSource = true });
                 pendingTitle = "Canal importado";
             }
 
@@ -624,6 +628,30 @@ public partial class MainWindow : Window
         [JsonPropertyName("starts_at")] public DateTimeOffset? StartsAt { get; set; }
         [JsonPropertyName("ends_at")] public DateTimeOffset? EndsAt { get; set; }
         [JsonPropertyName("channel_external_id")] public string? ChannelExternalId { get; set; }
+        [JsonPropertyName("rights_verified")] public bool RightsVerified { get; set; }
+        [JsonPropertyName("rights_holder")] public string? RightsHolder { get; set; }
+        [JsonPropertyName("rights_reference")] public string? RightsReference { get; set; }
+        [JsonPropertyName("rights_regions")] public string[]? RightsRegions { get; set; }
+        [JsonPropertyName("rights_valid_from")] public DateTimeOffset? RightsValidFrom { get; set; }
+        [JsonPropertyName("rights_valid_until")] public DateTimeOffset? RightsValidUntil { get; set; }
+        public bool IsUserProvidedSource { get; set; }
+        public bool HasActivePlaybackRights
+        {
+            get
+            {
+                var region = RegionInfo.CurrentRegion.TwoLetterISORegionName;
+                var now = DateTimeOffset.UtcNow;
+                return RightsVerified && !string.IsNullOrWhiteSpace(RightsHolder) &&
+                    !string.IsNullOrWhiteSpace(RightsReference) && !string.IsNullOrWhiteSpace(region) &&
+                    RightsRegions?.Any(x => string.Equals(x, region, StringComparison.OrdinalIgnoreCase) ||
+                        x == "001" || x == "*") == true &&
+                    RightsValidFrom.HasValue && RightsValidFrom.Value <= now &&
+                    (!RightsValidUntil.HasValue || RightsValidUntil.Value > now) &&
+                    (!string.Equals(PlaybackType, "hls", StringComparison.OrdinalIgnoreCase) &&
+                     !string.Equals(PlaybackType, "dash", StringComparison.OrdinalIgnoreCase) ||
+                     string.Equals(SourceStatus, "online", StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(SourceStatus));
+            }
+        }
         [JsonPropertyName("stream_url")] public string? StreamUrl { get; set; }
         [JsonPropertyName("authorized_stream_url")] public string? AuthorizedStreamUrl { get; set; }
         [JsonPropertyName("external_url")] public string? ExternalUrl { get; set; }

@@ -6,7 +6,7 @@ La arquitectura de producto es nativa por plataforma: Android y Windows tienen c
 |---|---|---|
 | Android móvil | Kotlin, Jetpack Compose, navegación, catálogo, Auth, favoritos, preferencias, comprobación de releases, descarga APK y verificación SHA-256 con instalador del sistema | QA físico, permiso de instalación y primera release firmada |
 | Android TV / TV Box | Launcher Leanback, icono de marca, banner TV | QA D-pad y foco con mando real |
-| Reproductor Android | Media3/HLS para HTTPS | Validación con fuentes de proveedores licenciados |
+| Reproductor Android | Media3/HLS para HTTPS; bloquea streams sin titular, referencia, región y vigencia de derechos activos | QA físico y validación con fuentes licenciadas |
 | M3U Android | Importación local/remota aprobada, límite 5 MB, HTTPS | QA con listas autorizadas reales |
 | Cuenta Android | Supabase Auth, recuperación, cambio, logout, refresh, callback, sesión cifrada | Redirect URL en Dashboard y prueba con correo real |
 | Favoritos y preferencias | Sincronización Supabase con RLS | Conflictos offline y QA multi-dispositivo |
@@ -16,7 +16,7 @@ La arquitectura de producto es nativa por plataforma: Android y Windows tienen c
 | Series | Modelo de series/temporadas/episodios | Pantalla dedicada y contenido real |
 | EPG | Consulta ordenada y agrupada por canal | Grilla temporal y datos de varios días |
 | Deportes/radio/música/teatro | Modelos y navegación Android | Datos y fuentes autorizadas; Spotify sigue siendo enlace externo |
-| Windows | Cliente WPF nativo .NET 8, navegación, búsqueda, catálogo publicado, reproductor LibVLC/HLS, importación local M3U/M3U8 HTTPS de hasta 5 MB, comprobación de releases y actualizador con SHA-256; workflow x64 + instalador | Auth, favoritos, +18, preferencias, EPG/series completas, pruebas físicas y validación de codecs/proveedores |
+| Windows | Cliente WPF nativo .NET 8, navegación, búsqueda, catálogo publicado, reproductor LibVLC/HLS con bloqueo por derechos activos/región, importación local M3U/M3U8 HTTPS de hasta 5 MB, comprobación de releases y actualizador con SHA-256; workflow x64 + instalador | Auth, favoritos, +18, preferencias, EPG/series completas, pruebas físicas y validación de codecs/proveedores |
 | Web/PWA | Retirada del repositorio | No es un producto ni se publicará |
 | Samsung Tizen | Proyecto web nativo inicial en `platforms/tizen/`: manifiesto, catálogo publicado, D-pad/OK/BACK, AVPlay HLS/DASH | SDK Tizen, certificado, WGT firmado y QA físico por generación/modelo |
 | LG webOS | Proyecto web nativo inicial en `platforms/webos/`: appinfo, catálogo publicado, D-pad/OK/BACK, HTML5 video | SDK webOS, firma, IPK y QA físico por versión/modelo |
