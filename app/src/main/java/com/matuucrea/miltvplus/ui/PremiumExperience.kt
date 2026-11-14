@@ -3,6 +3,7 @@ package com.matuucrea.miltvplus.ui
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.horizontalScroll
@@ -189,6 +190,7 @@ private fun SidebarDestinationRow(
                 if (selected) Brush.horizontalGradient(listOf(Color(0xFF94104F), Color(0xFF42102F)))
                 else Brush.horizontalGradient(listOf(Color.Transparent, Color.Transparent))
             )
+            .then(if (selected) Modifier.border(1.dp, PremiumCyan, RoundedCornerShape(10.dp)) else Modifier)
             .clickable(onClick = onClick)
             .padding(horizontal = if (compact) 12.dp else 10.dp, vertical = if (compact) 10.dp else 9.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -214,8 +216,9 @@ private fun SidebarBrandFooter() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        Icon(Icons.Default.LiveTv, null, tint = PremiumCyan, modifier = Modifier.size(24.dp))
-        Text("MILTVPLUS · 100 % GRATIS", color = Color.White, fontWeight = FontWeight.Black, fontSize = 10.sp)
+        Icon(Icons.Default.EmojiEvents, null, tint = PremiumGold, modifier = Modifier.size(24.dp))
+        Text("MILTVPLUS Premium", color = PremiumGold, fontWeight = FontWeight.Black, fontSize = 11.sp)
+        Text("Experiencia completa · 100 % gratuita", color = Color(0xFFFFE7B0), fontSize = 8.sp)
         Text("Sin anuncios · Sin pagos · Sin suscripciones", color = Color(0xFFD6E8FF), fontSize = 8.sp)
         Text("🇦🇷", fontSize = 15.sp)
     }
