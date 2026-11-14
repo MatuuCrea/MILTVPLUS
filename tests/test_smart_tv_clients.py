@@ -147,7 +147,7 @@ class SmartTvClientTests(unittest.TestCase):
         self.assertIn('Content="•••   Más Opciones"', xaml)
         self.assertIn('Header="Guía EPG" Click="MoreEpg_Click"', xaml)
         self.assertIn('Header="Países" Click="MoreCountries_Click"', xaml)
-        self.assertIn("Argentina · Siempre en tu corazón", code)
+        self.assertIn("Argentina - Siempre en tu corazón", code)
         self.assertIn("MILTVPLUS Premium", xaml)
         self.assertIn("100 % gratuita", xaml)
 
