@@ -55,8 +55,8 @@ Este documento define lo que debe existir y probarse antes de declarar cada plat
 6. Notas de versión, requisitos, limitaciones conocidas, actualización y soporte.
 7. Si una función no está implementada o probada, etiquetarla como «en desarrollo» o «compatibilidad en validación», no como disponible.
 
-## Estado conocido al 13 de noviembre de 2026
+## Estado conocido al 14 de noviembre de 2026
 - Android CI y Windows installer CI pasaron en commits recientes; eso confirma compilación/paquetizado en runners, no QA físico.
 - Android release signing requiere los secretos protegidos ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS y ANDROID_KEY_PASSWORD. Sin ellos, el workflow falla intencionalmente y no publica un APK debug como final.
-- El cliente Windows compila y empaqueta, incorpora LibVLC y WebView2 para reproducción directa y páginas oficiales, pero no tiene paridad completa con Android.
+- El cliente Windows compila y empaqueta, incorpora LibVLC y WebView2 para reproducción directa y páginas oficiales, pero no tiene paridad completa con Android. La ventana adapta barra lateral, márgenes y barra de herramientas a anchos compactos; queda pendiente probar escalado DPI, resoluciones bajas y desbordes en hardware real.
 - El catálogo no debe poblarse con fuentes no autorizadas ni datos ficticios.
