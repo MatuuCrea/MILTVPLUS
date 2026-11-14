@@ -20,7 +20,9 @@ const musicRows = [
   { id: "55555555-5555-4555-8555-555555555555", title: "Licensed song", creator: "Artist", album: "Album", genre: "Rock",
     stream_url: "https://audio.example/track.mp3", artwork_url: "https://images.example/cover.jpg", ...activeRights },
   { id: "66666666-6666-4666-8666-666666666666", title: "Unlicensed song", creator: "Artist", genre: "Jazz",
-    stream_url: "https://audio.example/unlicensed.mp3", ...activeRights, rights_verified: false }
+    stream_url: "https://audio.example/unlicensed.mp3", ...activeRights, rights_verified: false },
+  { id: "77777777-7777-4777-8777-777777777777", title: "External-only listing", creator: "Artist", genre: "Ambient",
+    external_url: "https://music.example/listing", ...activeRights }
 ];
 const tvRows = [
   {
@@ -148,4 +150,8 @@ test("music resolver returns only direct audio streams and never a browser fallb
   assert.equal("watchUrl" in body, false);
   const invalid = await originalFetch(baseUrl + "/api/v2/resolve/musica/AR/66666666-6666-4666-8666-666666666666");
   assert.equal(invalid.status, 403);
+  const externalOnly = await originalFetch(baseUrl + "/api/v2/resolve/musica/AR/77777777-7777-4777-8777-777777777777");
+  assert.equal(externalOnly.status, 403);
+  const wrongRegion = await originalFetch(baseUrl + "/api/v2/resolve/musica/BR/55555555-5555-4555-8555-555555555555");
+  assert.equal(wrongRegion.status, 403);
 });
