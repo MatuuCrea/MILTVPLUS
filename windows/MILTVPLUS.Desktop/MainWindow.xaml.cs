@@ -207,7 +207,7 @@ public partial class MainWindow : Window
         var code = CountryFilter.SelectedItem?.ToString() ?? "Todos";
         CountryPhrase.Text = code switch
         {
-            "AR" => "Argentina · Siempre en tu corazón 🇦🇷",
+            "AR" => "Argentina - Siempre en tu corazón 🇦🇷",
             "US" => "Estados Unidos · Un mundo de historias 🇺🇸",
             "ES" => "España · Cultura que nos une 🇪🇸",
             "MX" => "México · Tradición y emoción 🇲🇽",
