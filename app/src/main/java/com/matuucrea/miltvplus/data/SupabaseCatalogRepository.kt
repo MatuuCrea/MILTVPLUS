@@ -161,14 +161,15 @@ class SupabaseCatalogRepository {
         }
         if (!regionAllowed) return false
         val from = parseRightsDate(row.optString("rights_valid_from")) ?: return false
-        val until = row.optString("rights_valid_until").takeIf { it.isNotBlank() && it != "null" }?.let(::parseRightsDate)
+        val untilRaw = row.optString("rights_valid_until").takeIf { it.isNotBlank() && it != "null" }
+        val until = if (untilRaw == null) null else parseRightsDate(untilRaw) ?: return false
         val now = System.currentTimeMillis()
         return from.time <= now && (until == null || until.time > now)
     }
 
     private fun parseRightsDate(value: String): Date? {
         if (value.isBlank() || value == "null") return null
-        val normalized = value.replace(Regex("([+-]\\d{2}):(\\d{2})$"), "$1$2")
+        val normalized = Regex("([+-][0-9]{2}):([0-9]{2})").replace(value) { match -> match.groupValues[1] + match.groupValues[2] }
         val patterns = listOf("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", "yyyy-MM-dd'T'HH:mm:ssXXX", "yyyy-MM-dd'T'HH:mm:ss.SSSZ", "yyyy-MM-dd'T'HH:mm:ssZ", "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", "yyyy-MM-dd'T'HH:mm:ss'Z'")
         for (pattern in patterns) {
             val parser = SimpleDateFormat(pattern, Locale.US).apply {
