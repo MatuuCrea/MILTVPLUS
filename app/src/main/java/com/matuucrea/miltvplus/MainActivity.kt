@@ -35,6 +35,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.C
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.ui.PlayerView
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
@@ -91,7 +92,12 @@ class MainActivity:ComponentActivity(){
 @Composable private fun App(onThemeChanged:(String,String)->Unit, authCallback:Uri?=null, vm:PlayerViewModel=viewModel()){
     val context=LocalContext.current
     val exoPlayer = remember(context) {
+        val loadControl = DefaultLoadControl.Builder()
+            .setBufferDurationsMs(8_000, 30_000, 1_000, 2_000)
+            .setPrioritizeTimeOverSizeThresholds(true)
+            .build()
         ExoPlayer.Builder(context)
+            .setLoadControl(loadControl)
             .setAudioAttributes(
                 androidx.media3.common.AudioAttributes.Builder()
                     .setUsage(C.USAGE_MEDIA)
