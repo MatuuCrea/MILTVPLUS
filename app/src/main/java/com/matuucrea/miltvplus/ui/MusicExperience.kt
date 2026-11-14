@@ -38,9 +38,7 @@ fun MusicExperience(
     onQueryChange: (String) -> Unit,
     player: Player,
     onPlay: (RemoteCatalogEntry, List<RemoteCatalogEntry>) -> Unit,
-    onOpenOfficialItem: (RemoteCatalogEntry) -> Unit,
     onRefresh: () -> Unit,
-    onOpenOfficialService: (String) -> Unit
 ) {
     var genre by remember { mutableStateOf("Todo") }
     var isPlaying by remember(player) { mutableStateOf(player.isPlaying) }
@@ -86,23 +84,12 @@ fun MusicExperience(
                     Text("✦  UN AMBIENTE HECHO PARA ESCUCHAR", color = Color(0xFFFFC5E3), fontSize = 10.sp, fontWeight = FontWeight.Bold)
                     Text("Bajá el ruido.\nSubí el volumen.", color = Color.White, fontSize = 28.sp, lineHeight = 32.sp, fontWeight = FontWeight.Black)
                     Text("Elegí una canción del catálogo autorizado y dejá que la música acompañe tu día.", color = Color(0xFFE0D9EE), style = MaterialTheme.typography.bodyMedium)
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(onClick = { visible.firstOrNull { it.actionUrl != null }?.let { item -> onPlay(item, visible.filter { it.actionUrl != null }) } ?: visible.firstOrNull { it.infoUrl != null }?.let(onOpenOfficialItem) }, enabled = visible.any { it.actionUrl != null || it.infoUrl != null },
-                            colors = ButtonDefaults.buttonColors(containerColor = MusicPink, contentColor = Color(0xFF210D20))) {
-                            Icon(Icons.Default.PlayArrow, null); Spacer(Modifier.width(5.dp)); Text("Escuchar ahora")
-                        }
-                        OutlinedButton(onClick = {
-                            val term = java.net.URLEncoder.encode(query, Charsets.UTF_8.name())
-                            onOpenOfficialService(if (term.isBlank()) "https://music.youtube.com/" else "https://music.youtube.com/search?q=$term")
-                        }) {
-                            Icon(Icons.Default.OpenInNew, null); Spacer(Modifier.width(5.dp)); Text("YouTube Music")
-                        }
-                        OutlinedButton(onClick = {
-                            val term = java.net.URLEncoder.encode(query, Charsets.UTF_8.name())
-                            onOpenOfficialService(if (term.isBlank()) "https://open.spotify.com/" else "https://open.spotify.com/search/$term")
-                        }) {
-                            Icon(Icons.Default.Search, null); Spacer(Modifier.width(5.dp)); Text("Spotify")
-                        }
+                    Button(
+                        onClick = { visible.firstOrNull { it.actionUrl != null }?.let { onPlay(it, visible.filter { track -> track.actionUrl != null }) } },
+                        enabled = visible.any { it.actionUrl != null },
+                        colors = ButtonDefaults.buttonColors(containerColor = MusicPink, contentColor = Color(0xFF210D20))
+                    ) {
+                        Icon(Icons.Default.PlayArrow, null); Spacer(Modifier.width(5.dp)); Text("Escuchar ahora")
                     }
                 }
             }
@@ -152,7 +139,7 @@ fun MusicExperience(
             else -> LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(bottom = 18.dp)) {
                 items(visible, key = { it.id }) { item ->
                     Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color(0xFF171523)), shape = RoundedCornerShape(15.dp)) {
-                        Row(Modifier.fillMaxWidth().clickable(enabled = item.actionUrl != null || item.infoUrl != null) { if (item.actionUrl != null) onPlay(item, visible.filter { it.actionUrl != null }) else onOpenOfficialItem(item) }.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Row(Modifier.fillMaxWidth().clickable(enabled = item.actionUrl != null) { onPlay(item, visible.filter { it.actionUrl != null }) }.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
                             if (item.artworkUrl != null) {
                                 AsyncImage(model = item.artworkUrl, contentDescription = item.title, modifier = Modifier.size(58.dp).clip(RoundedCornerShape(10.dp)))
                             } else {
@@ -164,8 +151,8 @@ fun MusicExperience(
                                 Text(item.title, color = Color.White, fontWeight = FontWeight.Bold, maxLines = 1)
                                 Text(item.subtitle.ifBlank { item.category }, color = Color(0xFFBEB6CD), style = MaterialTheme.typography.bodySmall, maxLines = 2)
                             }
-                            IconButton(onClick = { if (item.actionUrl != null) onPlay(item, visible.filter { it.actionUrl != null }) else onOpenOfficialItem(item) }, enabled = item.actionUrl != null || item.infoUrl != null) {
-                                Icon(if (item.actionUrl != null) Icons.Default.PlayCircleFilled else Icons.Default.OpenInNew, "Abrir o reproducir música", tint = MusicPink, modifier = Modifier.size(30.dp))
+                            IconButton(onClick = { if (item.actionUrl != null) onPlay(item, visible.filter { it.actionUrl != null }) }, enabled = item.actionUrl != null) {
+                                Icon(Icons.Default.PlayCircleFilled, "Reproducir música", tint = MusicPink, modifier = Modifier.size(30.dp))
                             }
                         }
                     }
