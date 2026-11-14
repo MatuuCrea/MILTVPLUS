@@ -12,6 +12,7 @@ import androidx.media3.session.MediaSessionService
  */
 class MusicPlaybackService : MediaSessionService() {
     private var mediaSession: MediaSession? = null
+    private var musicPlayer: ExoPlayer? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -25,17 +26,17 @@ class MusicPlaybackService : MediaSessionService() {
             )
             .setHandleAudioBecomingNoisy(true)
             .build()
+        musicPlayer = player
         mediaSession = MediaSession.Builder(this, player).build()
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = mediaSession
 
     override fun onDestroy() {
-        mediaSession?.let { session ->
-            session.player.release()
-            session.release()
-        }
+        mediaSession?.release()
         mediaSession = null
+        musicPlayer?.release()
+        musicPlayer = null
         super.onDestroy()
     }
 }
