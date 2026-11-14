@@ -98,19 +98,16 @@ export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()
       const value=String(item?.category||"").toLowerCase();
       const aliases={sports:["sports","sport","deportes"],kids:["kids","infantil","children"],documentary:["documentary","documentales"],news:["news","noticias"],entertainment:["entertainment","entretenimiento"],movies:["movie","movies","peliculas"],music:["music","musica"],religious:["religious","religioso"],local:["local","locales"]};
       const matchC=category==="all"||(aliases[category]||[category]).some(v=>value.includes(v));
-      card.hidden=!(matchQ&&matchC);
+      const favorites=new Set(JSON.parse(localStorage.getItem("miltvplus.favorites")||"[]"));
+      const matchFavorite=active!=="Favoritos"||favorites.has(item?.id);
+      card.hidden=!(matchQ&&matchC&&matchFavorite);
     });
     if(["Inicio","Adultos 18+","Países","Configuración","Guía EPG","Música","Películas","Series"].includes(active)) empty.hidden=true;
     else empty.hidden=channels.querySelectorAll(".channel:not([hidden])").length>0;
   }
   search.addEventListener("input",filterChannels);
   filter.addEventListener("click",()=>{category="all";search.value="";filterChannels();tvCats.querySelectorAll("button").forEach(x=>x.classList.toggle("active",x.dataset.category==="all"))});
-  function showFavorites(){
-    const ids=new Set(JSON.parse(localStorage.getItem("miltvplus.favorites")||"[]"));
-    channels.querySelectorAll(".channel").forEach(card=>{const item=getChannels().find(x=>x.title===card.querySelector("strong")?.textContent);card.hidden=!item||!ids.has(item.id)});
-    channels.hidden=false;empty.hidden=channels.querySelectorAll(".channel:not([hidden])").length>0;
-    if(empty.hidden===false){empty.querySelector("h2").textContent="Todavía no tenés favoritos";empty.querySelector("p").textContent="Agregá canales desde el reproductor."}
-  }
+  function showFavorites(){filterChannels()}
   async function renderCountries(){
     const list=countries.querySelector(".country-list");list.replaceChildren();
     const counts=await getCountryCounts().catch(()=>({}));
