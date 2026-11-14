@@ -150,6 +150,22 @@ public partial class MainWindow
 
     private async Task ChangeWatchChannelAsync(int delta)
     {
+        if (Sections.SelectedItem is ListBoxItem selectedSection && selectedSection.Tag?.ToString() == "Música")
+        {
+            var playableMusic = CurrentPlayableEntries();
+            if (playableMusic.Count == 0)
+            {
+                StatusText.Text = "No hay pistas con audio directo disponible en el filtro actual.";
+                return;
+            }
+            var currentMusicIndex = _currentEntry is null ? -1 :
+                playableMusic.FindIndex(x => x.Id == _currentEntry.Id);
+            var nextMusicIndex = currentMusicIndex < 0
+                ? (delta > 0 ? 0 : playableMusic.Count - 1)
+                : (currentMusicIndex + delta + playableMusic.Count) % playableMusic.Count;
+            PlayEntry(playableMusic[nextMusicIndex]);
+            return;
+        }
         if (_watchQueue.Count == 0)
         {
             var visible = CatalogScroll.ItemsSource as IEnumerable<CatalogEntry>;
