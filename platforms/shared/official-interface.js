@@ -21,6 +21,7 @@ export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()
   const main=$("main") || document.querySelector("main");
   const channels=$("channels"), empty=$("empty"), header=document.querySelector("header");
   if(!main||!channels||!header||$("official-sidebar")) return ()=>{};
+  document.body.classList.add("official-interface-active");
   let active="TV en Vivo", selectedCountry=localStorage.getItem("miltvplus.country")||"AR";
   let category="all", epgOffset=0, selectedProgram=null;
   const sidebar=node("aside","official-sidebar"); sidebar.id="official-sidebar";
@@ -170,5 +171,5 @@ export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()
   const releaseLists=()=>{optimizer.destruirLista(channels);optimizer.destruirLista(vodPage.querySelector(".vod-grid"));optimizer.destruirLista(epg.querySelector(".epg-grid"));optimizer.destruirTodo();};
   window.addEventListener("pagehide",releaseLists);
   show("TV en Vivo");
-  return ()=>{window.removeEventListener("miltvplus:catalog-updated",filterChannels);window.removeEventListener("pagehide",releaseLists);releaseLists();};
+  return ()=>{window.removeEventListener("miltvplus:catalog-updated",filterChannels);window.removeEventListener("pagehide",releaseLists);releaseLists();document.body.classList.remove("official-interface-active");sidebar.remove();};
 }
