@@ -21,7 +21,7 @@ public partial class MainWindow
             PlayEntry(selected);
             return;
         }
-        var visible = Catalog.ItemsSource as IEnumerable<CatalogEntry>;
+        var visible = CatalogScroll.ItemsSource as IEnumerable<CatalogEntry>;
         _watchQueue.Clear();
         _watchQueue.AddRange((visible ?? entries).Where(IsWatchable));
         if (!_watchQueue.Any(x => ReferenceEquals(x, selected) || x.Title == selected.Title))
@@ -52,7 +52,7 @@ public partial class MainWindow
 
     private void SyncWatchQueueWithCatalog()
     {
-        if (Catalog.ItemsSource is not IEnumerable<CatalogEntry> visible) return;
+        if (CatalogScroll.ItemsSource is not IEnumerable<CatalogEntry> visible) return;
         var refreshed = visible.Where(IsWatchable).ToList();
         if (refreshed.Count == 0) return;
         var currentTitle = _currentEntry?.Title;
@@ -152,7 +152,7 @@ public partial class MainWindow
     {
         if (_watchQueue.Count == 0)
         {
-            var visible = Catalog.ItemsSource as IEnumerable<CatalogEntry>;
+            var visible = CatalogScroll.ItemsSource as IEnumerable<CatalogEntry>;
             _watchQueue.AddRange((visible ?? entries).Where(IsWatchable));
         }
         if (_watchQueue.Count == 0)
