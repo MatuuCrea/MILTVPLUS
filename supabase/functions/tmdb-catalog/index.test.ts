@@ -22,3 +22,8 @@ Deno.test("temporadas requieren identificadores válidos", () => {
   try { buildTmdbRoute({ action: "tv_season", id: 12, season: -1 }); } catch { rejected = true; }
   if (!rejected) throw new Error("Se aceptó una temporada inválida");
 });
+
+Deno.test("series en emisión usa la ruta TMDB correcta", () => {
+  const route = buildTmdbRoute({ action: "tv_on_the_air", page: 2 });
+  if (route.path !== "/tv/on_the_air" || route.params.page !== "2") throw new Error("Ruta de series en emisión incorrecta");
+});
