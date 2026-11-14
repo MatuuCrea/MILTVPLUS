@@ -1,7 +1,7 @@
 /**
  * MILTVPLUS — optimización de recursos para equipos de bajos recursos.
  *
- * No intenta forzar el recolector de basura (window.gc no es estándar).
+ * No intenta forzar el recolector de basura del entorno, que no está disponible de forma estándar.
  * Libera referencias, listeners, fuentes y buffers de forma determinista.
  * Las listas se virtualizan cuando se proporciona itemHeight.
  */
