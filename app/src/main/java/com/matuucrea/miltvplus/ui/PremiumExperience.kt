@@ -611,7 +611,7 @@ fun PremiumAdultWorkspace(
                     ) {
         Icon(Icons.Default.LiveTv, null, tint = PremiumCyan, modifier = Modifier.size(24.dp))
                         Text("MILTVPLUS", color = Color.White, fontWeight = FontWeight.Black, fontSize = 12.sp)
-                        Text("Experiencia Premium", color = PremiumGold, fontSize = 10.sp)
+                        Text("Contenido destacado", color = PremiumCyan, fontSize = 10.sp)
                     }
                 } else {
         Icon(Icons.Default.LiveTv, null, tint = PremiumCyan, modifier = Modifier.size(24.dp))
