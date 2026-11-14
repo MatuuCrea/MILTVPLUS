@@ -57,6 +57,7 @@ fun TmdbCatalogScreen(
     var titles by remember { mutableStateOf<List<TmdbTitle>>(emptyList()) }
     var selected by remember { mutableStateOf<TmdbTitle?>(null) }
     var details by remember { mutableStateOf<JSONObject?>(null) }
+    var seasonDetails by remember { mutableStateOf<JSONObject?>(null) }
     var query by remember { mutableStateOf("") }
     var category by remember { mutableStateOf(if (isSeries) "tv_popular" else "movie_popular") }
     var loading by remember { mutableStateOf(false) }
@@ -90,6 +91,7 @@ fun TmdbCatalogScreen(
                     titles = repository.readTitles(response)
                     selected = null
                     details = null
+                    seasonDetails = null
                     if (titles.isEmpty()) notice = "Todavía no hay resultados para esta búsqueda."
                 }
                 .onFailure { error = it.message ?: "No se pudo cargar el catálogo." }
@@ -153,7 +155,18 @@ fun TmdbCatalogScreen(
                     }
                     context.startActivity(Intent.createChooser(intent, "Compartir ${item.title}"))
                 },
-                onBack = { selected = null; details = null }
+                onBack = { selected = null; details = null; seasonDetails = null },
+                seasonDetails = seasonDetails,
+                onLoadSeason = { seasonNumber ->
+                    val token = accessToken
+                    if (!token.isNullOrBlank()) scope.launch {
+                        loading = true
+                        runCatching { repository.fetch("tv_season", token, id = item.id, season = seasonNumber) }
+                            .onSuccess { seasonDetails = it }
+                            .onFailure { error = it.message ?: "No se pudo cargar la temporada." }
+                        loading = false
+                    }
+                }
             )
         } ?: LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(bottom = 24.dp)) {
             items(titles, key = { "${if (isSeries) "tv" else "movie"}-${it.id}" }) { item ->
@@ -198,6 +211,8 @@ private fun TmdbDetailPanel(
     item: TmdbTitle,
     details: JSONObject?,
     isSeries: Boolean,
+    seasonDetails: JSONObject?,
+    onLoadSeason: (Int) -> Unit,
     isFavorite: Boolean,
     onToggleFavorite: () -> Unit,
     onShare: () -> Unit,
@@ -295,10 +310,31 @@ private fun TmdbDetailPanel(
         }
         if (isSeries) {
             details?.optJSONArray("seasons")?.let { seasons ->
-                Text("Temporadas", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text((0 until seasons.length()).mapNotNull { index ->
-                    seasons.optJSONObject(index)?.let { "T${it.optInt("season_number")} · ${it.optString("name")}" }
-                }.joinToString("  |  "), style = MaterialTheme.typography.bodySmall)
+                Text("Temporadas y episodios", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items((0 until seasons.length()).mapNotNull { seasons.optJSONObject(it) }) { season ->
+                        val number = season.optInt("season_number", -1)
+                        if (number >= 0) FilterChip(
+                            selected = seasonDetails?.optInt("id") == season.optInt("id"),
+                            onClick = { onLoadSeason(number) },
+                            label = { Text(season.optString("name", "Temporada $number")) }
+                        )
+                    }
+                }
+                seasonDetails?.optJSONArray("episodes")?.let { episodes ->
+                    if (episodes.length() > 0) {
+                        Text("Episodios", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                        (0 until episodes.length()).forEach { index ->
+                            episodes.optJSONObject(index)?.let { episode ->
+                                Column(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                                    Text("E${episode.optInt("episode_number")} · ${episode.optString("name")}", fontWeight = FontWeight.Medium)
+                                    Text(episode.optString("overview").ifBlank { "Sin descripción disponible." }, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                                HorizontalDivider()
+                            }
+                        }
+                    } else Text("Esta temporada todavía no tiene episodios publicados en TMDB.", style = MaterialTheme.typography.bodySmall)
+                }
             }
         }
         Text("Los datos e imágenes describen la obra; no incluyen derechos ni enlaces para reproducirla.", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
