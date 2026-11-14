@@ -2,10 +2,10 @@ name: Smart TV Clients
 on:
   push:
     branches: [main]
-    paths: ['platforms/tizen/**', 'platforms/webos/**', 'tests/test_smart_tv_clients.py', '.github/workflows/smart-tv-clients.yml']
+    paths: ['platforms/tizen/**', 'platforms/webos/**', 'platforms/shared/**', 'scripts/package-smart-tvs.sh', 'scripts/tv-signing.env.example', 'tests/test_smart_tv_clients.py', 'tests/test_tv_packaging.py', '.github/workflows/smart-tv-clients.yml']
   pull_request:
     branches: [main]
-    paths: ['platforms/tizen/**', 'platforms/webos/**', 'tests/test_smart_tv_clients.py', '.github/workflows/smart-tv-clients.yml']
+    paths: ['platforms/tizen/**', 'platforms/webos/**', 'platforms/shared/**', 'scripts/package-smart-tvs.sh', 'scripts/tv-signing.env.example', 'tests/test_smart_tv_clients.py', 'tests/test_tv_packaging.py', '.github/workflows/smart-tv-clients.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -27,5 +27,10 @@ jobs:
         run: |
           node --check platforms/tizen/app.js
           node --check platforms/webos/app.js
-      - name: Validate manifests and platform safety rules
+          node --check platforms/shared/media-manager.js
+          node --check platforms/shared/music-experience.js
+          node --check platforms/shared/official-interface.js
+      - name: Validate manifests, catalog separation and packaging safeguards
         run: python -m unittest discover -s tests -p 'test_*.py' -v
+      - name: Validate packaging script syntax
+        run: bash -n scripts/package-smart-tvs.sh
