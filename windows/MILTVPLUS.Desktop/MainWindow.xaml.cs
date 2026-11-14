@@ -68,6 +68,7 @@ public partial class MainWindow : Window
     private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
     {
         // Keep the desktop layout usable on compact Windows windows without changing its navigation model.
+        // WPF ActualWidth is measured in device-independent pixels; validate real DPI scaling before release.
         var compact = ActualWidth < 1080;
         SidebarColumn.Width = new GridLength(compact ? 184 : 232);
         MainContentGrid.Margin = new Thickness(compact ? 12 : 22);
