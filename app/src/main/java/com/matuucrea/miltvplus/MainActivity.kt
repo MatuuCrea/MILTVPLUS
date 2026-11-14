@@ -491,6 +491,7 @@ class MainActivity:ComponentActivity(){
                                             ).build()
                                     }
                                     controller.setMediaItems(mediaItems, startIndex, 0L)
+                                    controller.repeatMode = Player.REPEAT_MODE_ALL
                                     controller.prepare()
                                     controller.play()
                                 }
