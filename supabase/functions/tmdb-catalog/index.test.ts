@@ -39,3 +39,9 @@ Deno.test("ficha de serie incluye videos y reparto", () => {
   if (route.path !== "/tv/1399") throw new Error("Ruta de serie incorrecta");
   if (route.params.append_to_response !== "credits,videos,images") throw new Error("La ficha de serie no incluye videos");
 });
+
+Deno.test("rechaza IDs que no sean números enteros", () => {
+  let rejected = false;
+  try { buildTmdbRoute({ action: "movie_details", id: "550" as unknown as number }); } catch { rejected = true; }
+  if (!rejected) throw new Error("Se aceptó un ID textual");
+});
