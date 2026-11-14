@@ -40,7 +40,11 @@ class MusicResolverRepository(
             try {
                 val status = connection.responseCode
                 val stream = if (status in 200..299) connection.inputStream else connection.errorStream
-                val body = stream?.bufferedReader(Charsets.UTF_8)?.use { it.readText().take(128 * 1024) }.orEmpty()
+                val body = stream?.use { input ->
+                    val bytes = input.readNBytes(128 * 1024 + 1)
+                    require(bytes.size <= 128 * 1024) { "La respuesta del reproductor supera el límite permitido." }
+                    bytes.toString(Charsets.UTF_8)
+                }.orEmpty()
                 val json = JSONObject(body)
                 check(status in 200..299 && json.optBoolean("success") &&
                     json.optString("mode") == "direct_stream" && json.optString("mediaType") == "audio") {
