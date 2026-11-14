@@ -38,3 +38,21 @@
 - Los reproductores directos bloquean URLs si no hay autorización verificada, vigente y aplicable a la región del dispositivo. En TV también se exige estado de fuente online.
 - Un vencimiento malformado se trata como no autorizado (fail-closed). Las páginas oficiales siguen siendo una alternativa, sin convertirlas en streams propios.
 - Las listas M3U importadas manualmente por el usuario conservan su flujo local explícito y muestran advertencia de responsabilidad; no se mezclan con las fuentes editoriales publicadas.
+
+## Integración multiplataforma de derechos — 14/11/2026
+
+- PR #16 fusionada en `main`: `53e2dcfca1a4942b56e5cab58ea2abc4be8e40b0`.
+- CI sobre el SHA exacto de la PR `4def816845929fb54ce7f7f552f6f1051cd3f133`: Android CI #367, Windows Desktop #177 y Smart TV Clients #28 finalizaron correctamente.
+- La validación Android y Windows bloquea reproducción directa editorial cuando faltan titular, referencia, territorio aplicable o vigencia; las fechas inválidas fallan cerradas.
+- Las listas M3U/M3U8 importadas localmente por la persona usuaria permanecen separadas del catálogo editorial y conservan el aviso de responsabilidad.
+- No se modificó Supabase productivo ni secretos durante esta integración.
+- Después del merge, Smart TV Clients del SHA de main `53e2dcfca1a4942b56e5cab58ea2abc4be8e40b0` terminó correctamente. Android CI y Windows Desktop del mismo SHA estaban en ejecución en la última consulta; confirmar ambos resultados antes de cerrar P0.
+
+## Próximos bloqueos de lanzamiento
+
+1. QA físico de Android móvil, Android TV/Google TV, Fire TV compatible, Windows, Samsung Tizen y LG webOS.
+2. Generar y firmar WGT de Tizen e IPK de webOS con SDK/certificados del propietario.
+3. Completar paridad Windows de Auth, favoritos sincronizados, +18, preferencias, EPG y temporadas/episodios.
+4. Completar grilla EPG y pantallas dedicadas de temporadas/episodios con datos reales.
+5. Mantener TMDB desactivado para uso público hasta completar atribución oficial y confirmar términos aplicables.
+6. Incorporar streams directos únicamente con derechos verificables por territorio y vigencia; el catálogo actual no autoriza inventar ni inferir URLs.
