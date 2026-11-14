@@ -268,7 +268,7 @@ public partial class MainWindow : Window
     private async Task<string> ResolveMusicUrlAsync(CatalogEntry item)
     {
         if (string.IsNullOrWhiteSpace(item.Id)) throw new InvalidOperationException("La pista no tiene un identificador válido.");
-        var resolver = (Environment.GetEnvironmentVariable("MILTVPLUS_RESOLVER_URL") ?? "https://miltvplus-media-resolver.onrender.com").TrimEnd('/');
+        var resolver = (Environment.GetEnvironmentVariable("MILTVPLUS_RESOLVER_URL") ?? "https://miltvplus-resolver-api.onrender.com").TrimEnd('/');
         if (!Uri.TryCreate(resolver, UriKind.Absolute, out var baseUri) || baseUri.Scheme != Uri.UriSchemeHttps)
             throw new InvalidOperationException("El servicio de música no está configurado.");
         var country = item.CountryCode;
