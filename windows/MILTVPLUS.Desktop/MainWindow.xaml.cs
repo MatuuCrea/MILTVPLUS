@@ -434,10 +434,34 @@ public partial class MainWindow : Window
 
     private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.F11) { ToggleFullscreen(); e.Handled = true; }
-        else if (e.Key == Key.Escape && _isFullscreen) { ToggleFullscreen(); e.Handled = true; }
-        else if (e.Key == Key.Right && Keyboard.Modifiers == ModifierKeys.Control) { ChangeChannel(1); e.Handled = true; }
-        else if (e.Key == Key.Left && Keyboard.Modifiers == ModifierKeys.Control) { ChangeChannel(-1); e.Handled = true; }
+        var key = e.Key == Key.System ? e.SystemKey : e.Key;
+        var modifiers = Keyboard.Modifiers;
+        var typing = Keyboard.FocusedElement is TextBoxBase || Keyboard.FocusedElement is PasswordBox ||
+                     Keyboard.FocusedElement is System.Windows.Controls.ComboBox;
+
+        if (key == Key.F11) { ToggleFullscreen(); e.Handled = true; return; }
+        if (key == Key.Escape && _isFullscreen) { ToggleFullscreen(); e.Handled = true; return; }
+
+        // Global transport/navigation shortcuts are disabled while editing text or selecting filters.
+        if (typing) return;
+
+        if (modifiers == ModifierKeys.Control && key == Key.Right) { ChangeChannel(1); e.Handled = true; }
+        else if (modifiers == ModifierKeys.Control && key == Key.Left) { ChangeChannel(-1); e.Handled = true; }
+        else if (modifiers == ModifierKeys.Control && key == Key.O) { ImportM3u_Click(this, new RoutedEventArgs()); e.Handled = true; }
+        else if (modifiers == ModifierKeys.Control && key == Key.R) { Refresh_Click(this, new RoutedEventArgs()); e.Handled = true; }
+        else if (modifiers == ModifierKeys.Control && key == Key.F) { SearchBox.Focus(); SearchBox.SelectAll(); e.Handled = true; }
+        else if (modifiers == ModifierKeys.None && key == Key.Space && _currentEntry is not null)
+        {
+            if (_mediaPlayer.IsPlaying) _mediaPlayer.Pause();
+            else _mediaPlayer.Play();
+            e.Handled = true;
+        }
+        else if (modifiers == ModifierKeys.None && key == Key.M)
+        {
+            _mediaPlayer.Mute = !_mediaPlayer.Mute;
+            StatusText.Text = _mediaPlayer.Mute ? "Audio silenciado." : "Audio activado.";
+            e.Handled = true;
+        }
     }
 
     private async void ImportM3u_Click(object sender, RoutedEventArgs e)
