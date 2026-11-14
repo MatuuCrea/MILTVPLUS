@@ -20,6 +20,6 @@ function render(){const root=$("channels");const cols=Math.max(1,gridColumns());
 function closePlayer(){if(avplayOpen){try{webapis.avplay.stop();webapis.avplay.close()}catch(_){}avplayOpen=false}currentVod=null;optimizer.destruirTodo();$("player").hidden=true;focus()}
 document.addEventListener("keydown",e=>{if(!$("player").hidden){if(e.keyCode===10009||e.key==="Escape"||e.key==="Backspace"){e.preventDefault();closePlayer()}return}if(!channels.length)return;if([37,38,39,40,35,36].includes(e.keyCode)){e.preventDefault();move(e.keyCode)}else if(e.keyCode===13){e.preventDefault();play(selected)}});
 window.addEventListener("pagehide",()=>{if(avplayOpen){try{webapis.avplay.stop();webapis.avplay.close()}catch(_){}avplayOpen=false}optimizer.destruirTodo()});
-window.addEventListener("resize",focus);
+window.addEventListener("resize",render);
 window.addEventListener("load",()=>{mountOfficialInterface({getChannels:()=>allChannels,onFilterChange:ids=>{const keep=new Set(ids);channels=allChannels.filter(item=>keep.has(item.id));selected=0;render()},getSelectedChannel:()=>currentVod||channels[selected]||null,getCountryCounts,loadEpg,loadCatalog,onCatalogItemPlay:playCatalogItem,onCountryChange:code=>{selectedCountry=code;load().catch(e=>status(e.message))}});mountMusicExperience({statusElement:$("status")});load().catch(e=>status(e.message));});
 }());
