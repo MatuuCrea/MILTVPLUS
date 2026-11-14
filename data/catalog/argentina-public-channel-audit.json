@@ -1,0 +1,156 @@
+{
+  "country_code": "AR",
+  "country_name": "Argentina",
+  "inventory_version": 1,
+  "purpose": "Auditoría de señales públicas y de televisión abierta para descubrimiento; este archivo NO publica canales ni habilita reproducción.",
+  "publication_policy": {
+    "default_status": "pending_owner_and_stream_verification",
+    "publish_to_supabase": false,
+    "requires_official_owner_url": true,
+    "requires_current_availability_check": true,
+    "requires_rights_review_for_embedded_or_redistributed_playback": true,
+    "https_is_not_a_license": true,
+    "terrestrial_free_to_air_does_not_imply_online_stream_rights": true
+  },
+  "officially_identified_public_broadcasters": [
+    {
+      "slug": "encuentro",
+      "name": "Encuentro",
+      "category": "public_education_culture",
+      "operator": "Contenidos Artísticos e Informativos S.A.U. (CAISAU)",
+      "official_owner_directory": "https://www.argentina.gob.ar/jefatura/contenidos-artisticos-e-informativos-sau",
+      "official_channel_url": "https://encuentro.gob.ar/",
+      "evidence": "CAISAU identifica oficialmente a Encuentro como una de sus señales.",
+      "discovery_status": "official_operator_and_site_identified",
+      "online_live_status": "not_verified",
+      "playback_status": "official_site_only_pending_player_check",
+      "rights_status": "no_miltvplus_redistribution_permission_recorded"
+    },
+    {
+      "slug": "pakapaka",
+      "name": "Pakapaka",
+      "category": "public_children_education",
+      "operator": "Contenidos Artísticos e Informativos S.A.U. (CAISAU)",
+      "official_owner_directory": "https://www.argentina.gob.ar/jefatura/contenidos-artisticos-e-informativos-sau",
+      "official_channel_url": "https://inventar.pakapaka.gob.ar/",
+      "evidence": "CAISAU identifica oficialmente a Pakapaka como una de sus señales.",
+      "discovery_status": "official_operator_and_site_identified",
+      "online_live_status": "not_verified",
+      "playback_status": "official_site_only_pending_player_check",
+      "rights_status": "no_miltvplus_redistribution_permission_recorded"
+    },
+    {
+      "slug": "deportv",
+      "name": "DeporTV",
+      "category": "public_sports",
+      "operator": "Contenidos Artísticos e Informativos S.A.U. (CAISAU)",
+      "official_owner_directory": "https://www.argentina.gob.ar/jefatura/contenidos-artisticos-e-informativos-sau",
+      "official_channel_url": "https://deportv.gob.ar/",
+      "evidence": "CAISAU identifica oficialmente a DeporTV como una de sus señales.",
+      "discovery_status": "official_operator_and_site_identified",
+      "online_live_status": "not_verified",
+      "playback_status": "official_site_only_pending_player_check",
+      "rights_status": "no_miltvplus_redistribution_permission_recorded"
+    },
+    {
+      "slug": "television-publica",
+      "name": "Televisión Pública",
+      "category": "public_general",
+      "operator": "Estado nacional argentino",
+      "official_channel_url": "https://www.youtube.com/channel/UCs231K71Bnu5295_x0MB5Pg/live",
+      "evidence": "El inventario argentino existente contiene el enlace de la señal oficial; requiere nueva comprobación en esta auditoría.",
+      "discovery_status": "official_live_page_candidate",
+      "online_live_status": "recheck_required",
+      "playback_status": "official_player_only",
+      "rights_status": "no_miltvplus_redistribution_permission_recorded"
+    },
+    {
+      "slug": "senado-tv",
+      "name": "Senado TV",
+      "category": "public_parliamentary",
+      "operator": "Honorable Senado de la Nación",
+      "official_channel_url": "https://www.senado.gob.ar/parlamentario/sesiones/enVivo",
+      "evidence": "Página institucional oficial del Senado para sesiones en vivo.",
+      "discovery_status": "official_page_candidate",
+      "online_live_status": "recheck_required",
+      "playback_status": "official_player_only",
+      "rights_status": "no_miltvplus_redistribution_permission_recorded"
+    },
+    {
+      "slug": "diputados-tv",
+      "name": "Diputados TV",
+      "category": "public_parliamentary",
+      "operator": "Honorable Cámara de Diputados de la Nación",
+      "official_channel_url": "https://www.hcdn.gob.ar/dtv/index.html",
+      "evidence": "Página institucional oficial de Diputados; requiere comprobar el reproductor actual.",
+      "discovery_status": "official_page_candidate",
+      "online_live_status": "manual_recheck_required",
+      "playback_status": "not_verified",
+      "rights_status": "no_miltvplus_redistribution_permission_recorded"
+    }
+  ],
+  "national_tda_signal_candidates": [
+    {"name":"AUNAR","category":"public_federal","status":"discovery_only_no_official_stream_verified"},
+    {"name":"Cine.Ar","category":"public_cinema","status":"discovery_only_no_official_stream_verified"},
+    {"name":"TEC","category":"public_science_technology","status":"discovery_only_no_official_stream_verified"},
+    {"name":"Construir TV","category":"educational_culture","status":"discovery_only_operator_and_stream_review_required"},
+    {"name":"France 24 en Español","category":"international_news_not_argentine_public","status":"not_classified_as_argentine_public"},
+    {"name":"Canal 26","category":"private_free_to_air_candidate","status":"not_classified_as_argentine_public"},
+    {"name":"Crónica TV","category":"private_free_to_air_candidate","status":"not_classified_as_argentine_public"},
+    {"name":"C5N","category":"private_free_to_air_candidate","status":"not_classified_as_argentine_public"},
+    {"name":"LN+","category":"private_free_to_air_candidate","status":"not_classified_as_argentine_public"}
+  ],
+  "provincial_and_local_discovery_candidates": [
+    {"province":"Buenos Aires","channels":["BVC Bahía Blanca","Canal 8 Mar del Plata"],"status":"secondary_directory_lead_only"},
+    {"province":"Catamarca","channels":["CRTV Catamarca Radio y Televisión"],"status":"secondary_directory_lead_only"},
+    {"province":"Chaco","channels":["Somos Uno"],"status":"secondary_directory_lead_only"},
+    {"province":"Córdoba","channels":["El Doce","Canal 10 UNC","Canal U"],"status":"secondary_directory_lead_only"},
+    {"province":"Corrientes","channels":["13 MAX","T5 Satelital"],"status":"secondary_directory_lead_only"},
+    {"province":"Entre Ríos","channels":["Canal 6 ERTV","Elonce"],"status":"secondary_directory_lead_only"},
+    {"province":"Jujuy","channels":["Canal 7 Jujuy"],"status":"secondary_directory_lead_only"},
+    {"province":"La Pampa","channels":["TVPP Televisión Pública Pampeana"],"status":"secondary_directory_lead_only"},
+    {"province":"La Rioja","channels":["Canal 13"],"status":"secondary_directory_lead_only"},
+    {"province":"Mendoza","channels":["El Siete"],"status":"secondary_directory_lead_only"},
+    {"province":"Misiones","channels":["Canal Doce"],"status":"secondary_directory_lead_only"},
+    {"province":"Neuquén","channels":["RTN Radio y Televisión del Neuquén"],"status":"secondary_directory_lead_only"},
+    {"province":"Río Negro","channels":["Canal 10 Río Negro"],"status":"secondary_directory_lead_only"},
+    {"province":"Salta","channels":["Canal 10 Salta","Multivisión Federal"],"status":"secondary_directory_lead_only"},
+    {"province":"San Juan","channels":["Canal 4","Telesol"],"status":"secondary_directory_lead_only"},
+    {"province":"San Luis","channels":["San Luis+"],"status":"secondary_directory_lead_only"},
+    {"province":"Santa Cruz","channels":["Canal 9 Santa Cruz"],"status":"secondary_directory_lead_only"},
+    {"province":"Santa Fe","channels":["Litus TV","RTS Televisión Santafesina"],"status":"secondary_directory_lead_only"},
+    {"province":"Tierra del Fuego","channels":["TV Pública Fueguina"],"status":"secondary_directory_lead_only"},
+    {"province":"Tucumán","channels":["Canal 10 Tucumán"],"status":"secondary_directory_lead_only"}
+  ],
+  "discovery_sources": [
+    {
+      "url":"https://www.argentina.gob.ar/jefatura/contenidos-artisticos-e-informativos-sau",
+      "type":"primary_government_operator_source",
+      "use":"Identifica las señales Encuentro, Pakapaka y DeporTV y enlaza sus sitios oficiales."
+    },
+    {
+      "url":"https://www.cruzandocaminos.ar/canales_provinciales.html",
+      "type":"secondary_discovery_directory",
+      "use":"Pista para descubrir medios provinciales; cada titular y URL debe confirmarse en su propio sitio institucional antes de publicarse."
+    },
+    {
+      "url":"https://www.tda.com.ar/",
+      "type":"official_tda_portal_candidate",
+      "use":"Referencia para televisión digital abierta y cobertura terrestre; no acredita URLs de streaming online."
+    }
+  ],
+  "required_review_fields": [
+    "legal_owner",
+    "official_domain",
+    "official_watch_url",
+    "current_player_availability",
+    "country_and_territory_restrictions",
+    "stream_type",
+    "redistribution_permission_reference",
+    "permission_valid_from",
+    "permission_valid_until",
+    "logo_source_url",
+    "last_checked_at",
+    "manual_playback_test_device"
+  ]
+}
