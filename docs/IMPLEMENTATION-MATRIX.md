@@ -20,7 +20,7 @@ La arquitectura de producto es nativa por plataforma: Android y Windows tienen c
 | Web/PWA | Retirada del repositorio | No es un producto ni se publicará |
 | Samsung Tizen | Proyecto web nativo inicial en `platforms/tizen/`: manifiesto, catálogo publicado, D-pad/OK/BACK, AVPlay HLS/DASH | SDK Tizen, certificado, WGT firmado y QA físico por generación/modelo |
 | LG webOS | Proyecto web nativo inicial en `platforms/webos/`: appinfo, catálogo publicado, D-pad/OK/BACK, HTML5 video | SDK webOS, firma, IPK y QA físico por versión/modelo |
-| Fire TV | APK Android como punto de partida | Validar sideload, launcher, D-pad, codecs y APIs por versión Fire OS |
+| Fire TV Fire OS | APK Android declara feature opcional amazon.hardware.fire_tv y detecta el hardware para navegación TV | QA de sideload, launcher, D-pad, codecs y APIs por modelo; Vega OS no admite APK Android |
 | Marca | Logotipo incorporado a launcher Android y banner TV | Icono Windows .ico/.exe e instalador |
 | Firma/publicación | APK debug de CI; pipeline de release firmado y checksum configurado; instalador Windows | Aportar keystore Android permanente y sus cuatro secretos; certificado Authenticode Windows; QA de instalación limpia |
 | Push | Preferencia almacenada | Servicio y entrega push no implementados |
