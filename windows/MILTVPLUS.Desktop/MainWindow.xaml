@@ -102,10 +102,10 @@
        </ContextMenu>
       </ListBoxItem.ContextMenu>
      </ListBoxItem>
-     <ListBoxItem x:Name="HiddenEpg" Tag="Guía EPG" Visibility="Collapsed"/>
-     <ListBoxItem x:Name="HiddenCountries" Tag="Países" Visibility="Collapsed"/>
-     <ListBoxItem x:Name="HiddenRadios" Tag="Radios" Visibility="Collapsed"/>
-     <ListBoxItem x:Name="HiddenTheater" Tag="Teatro" Visibility="Collapsed"/>
+     <ListBoxItem Tag="Guía EPG" Visibility="Collapsed"/>
+     <ListBoxItem Tag="Países" Visibility="Collapsed"/>
+     <ListBoxItem Tag="Radios" Visibility="Collapsed"/>
+     <ListBoxItem Tag="Teatro" Visibility="Collapsed"/>
     </ListBox>
     <TextBlock DockPanel.Dock="Bottom" Text="Señales públicas y fuentes autorizadas" Foreground="#8192B3" FontSize="9" TextWrapping="Wrap" Margin="5,8,5,0"/>
    </DockPanel>
