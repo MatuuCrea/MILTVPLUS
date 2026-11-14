@@ -175,6 +175,7 @@ fun SettingsScreen(
     var language by remember { mutableStateOf(prefs.getString("language", "es") ?: "es") }
     var audioLanguage by remember { mutableStateOf(prefs.getString("audio_language", "original") ?: "original") }
     var accent by remember { mutableStateOf(prefs.getString("accent_color", "electric-blue") ?: "electric-blue") }
+    var quality by remember { mutableStateOf(prefs.getString("video_quality", "auto") ?: "auto") }
     var keepScreenOn by remember { mutableStateOf(prefs.getBoolean("keep_screen_on", false)) }
     var musicVolume by remember { mutableFloatStateOf(prefs.getFloat("music_volume", 1f).coerceIn(0f, 1f)) }
     var message by remember { mutableStateOf<String?>(null) }
@@ -189,6 +190,7 @@ fun SettingsScreen(
             .putString("language", language)
             .putString("audio_language", audioLanguage)
             .putString("accent_color", accent)
+            .putString("video_quality", quality)
             .putBoolean("keep_screen_on", keepScreenOn)
             .putFloat("music_volume", musicVolume)
             .apply()
@@ -216,11 +218,19 @@ fun SettingsScreen(
         Modifier.fillMaxWidth().padding(18.dp).verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Text("Personalización", style = MaterialTheme.typography.headlineSmall)
+        Text("Configuración", style = MaterialTheme.typography.headlineSmall)
+        Text("General", style = MaterialTheme.typography.titleMedium)
         Text("Apariencia", style = MaterialTheme.typography.titleMedium)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf("dark" to "Oscuro", "light" to "Claro", "system" to "Sistema").forEach { (value, label) ->
                 FilterChip(selected = theme == value, onClick = { theme = value; persist() }, label = { Text(label) })
+            }
+        }
+        Text("Reproductor", style = MaterialTheme.typography.titleMedium)
+        Text("Calidad de Video", style = MaterialTheme.typography.titleSmall)
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            listOf("auto" to "Automática", "high" to "Alta", "medium" to "Media", "low" to "Baja").forEach { (value, label) ->
+                FilterChip(selected = quality == value, onClick = { quality = value; persist() }, label = { Text(label) })
             }
         }
         Text("Color de acento", style = MaterialTheme.typography.titleMedium)
@@ -254,11 +264,28 @@ fun SettingsScreen(
         Text("La preferencia de notificaciones se sincroniza; la entrega de avisos push/reminders requiere un servicio de eventos aún no desplegado. Las pistas de audio y subtítulos dependen de cada proveedor. Estos ajustes seleccionan la preferencia; no crean pistas que el stream no incluya.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         message?.let { Text(it, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall) }
         HorizontalDivider()
+        Text("EPG · Países y Canales · Favoritos", style = MaterialTheme.typography.titleMedium)
+        Text("La guía, los países y los favoritos se muestran según los datos publicados y disponibles en tu cuenta. Los filtros regionales no amplían derechos de reproducción.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text("Notificaciones", style = MaterialTheme.typography.titleMedium)
+        SettingSwitch("Preferencia de notificaciones", notifications) { notifications = it; persist() }
+        Text("Acerca de", style = MaterialTheme.typography.titleMedium)
+        HorizontalDivider()
         Text("Privacidad y seguridad", style = MaterialTheme.typography.titleMedium)
         Text("Las sesiones Android se cifran con Android Keystore; los datos de cuenta se aíslan con RLS. No se integra publicidad ni analítica de terceros en esta versión. Podés cerrar sesión desde Cuenta y administrar el acceso +18 desde su sección.", style = MaterialTheme.typography.bodySmall)
         Text("Créditos de catálogo: This product uses the TMDB API but is not endorsed or certified by TMDB. TMDB aporta metadatos e imágenes, no derechos de reproducción. Más información: themoviedb.org/about/logos-attribution.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         HorizontalDivider()
         AppUpdateSection()
+        OutlinedButton(onClick = {
+            theme = "dark"; subtitles = true; notifications = true; autoplay = false
+            language = "es"; audioLanguage = "original"; accent = "electric-blue"
+            keepScreenOn = false; musicVolume = 1f; quality = "auto"
+            persist()
+            message = "Configuración restablecida."
+        }, modifier = Modifier.fillMaxWidth()) {
+            Icon(Icons.Default.RestartAlt, null)
+            Spacer(Modifier.width(8.dp))
+            Text("Restablecer Configuración")
+        }
         Text("Accesibilidad", style = MaterialTheme.typography.titleMedium)
         Text("Se respeta la escala de fuente y las opciones de accesibilidad del sistema Android. La navegación por control remoto usa grupos de foco Compose; requiere pruebas físicas en Android TV.", style = MaterialTheme.typography.bodySmall)
         Text("Android móvil, Android TV y TV Box Android comparten este cliente. El portal web oficial distribuye información y descargas; no es una aplicación de streaming ni una PWA.", style = MaterialTheme.typography.bodySmall)
