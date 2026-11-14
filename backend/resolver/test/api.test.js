@@ -25,13 +25,13 @@ const tvRows = [
   },
   {
     id: "22222222-2222-4222-8222-222222222222", title: "Licensed HLS",
-    playback_type: "hls", source_status: "online",
+    playback_type: "hls", source_status: "online", last_checked_at: new Date().toISOString(),
     official_watch_url: "https://broadcaster.example/watch",
     stream_url: "https://cdn.example/live.m3u8", ...activeRights
   },
   {
     id: "33333333-3333-4333-8333-333333333333", title: "Expired HLS",
-    playback_type: "hls", source_status: "online",
+    playback_type: "hls", source_status: "online", last_checked_at: new Date().toISOString(),
     official_watch_url: "https://broadcaster.example/expired",
     stream_url: "https://cdn.example/expired.m3u8",
     ...activeRights,
