@@ -141,10 +141,10 @@ public partial class MainWindow : Window
                 loaded.AddRange(page);
                 if (page.Count < pageSize) break;
             }
+            foreach (var row in loaded) row.SourceTable = table;
             if (table == "catalog_items")
             {
-                foreach (var row in loaded) row.SourceTable = table;
-            var adultSection = Sections.SelectedItem is ListBoxItem selectedItem && selectedItem.Tag?.ToString() == "Adultos 18+";
+                var adultSection = Sections.SelectedItem is ListBoxItem selectedItem && selectedItem.Tag?.ToString() == "Adultos 18+";
                 loaded = adultSection && _adultUnlocked
                     ? loaded.Where(x => IsAdultRating(x.AgeRating)).ToList()
                     : loaded.Where(x => !IsAdultRating(x.AgeRating)).ToList();
