@@ -90,13 +90,14 @@ class SmartTvClientTests(unittest.TestCase):
         self.assertIn("localStorage.setItem", shell)
         self.assertIn('data-action="record" disabled', shell)
         self.assertNotIn('"AR","🇦🇷","Argentina","Siempre en tu corazón",194', shell)
-        self.assertIn("No hay publicaciones ni URLs activas", shell)
+        self.assertIn("No hay fuentes ni reproducciones activas", shell)
 
     def test_android_official_sidebar_and_country_phrases(self):
         ui = (ROOT / "app/src/main/java/com/matuucrea/miltvplus/ui/PremiumExperience.kt").read_text(encoding="utf-8")
         countries = (ROOT / "app/src/main/java/com/matuucrea/miltvplus/ui/AccountAndSettings.kt").read_text(encoding="utf-8")
-        for label in ("Inicio", "TV en Vivo", "Películas", "Series", "Deportes", "Infantil", "Documentales", "Música", "Adultos 18+", "Favoritos", "Configuración", "Más Opciones"):
+        for label in ("Inicio", "TV en Vivo", "Películas", "Series", "Deportes", "Infantil", "Documentales", "Música", "Adultos 18+", "Favoritos", "Configuración"):
             self.assertIn(f'NavDestination("{label}"', ui)
+        self.assertIn('Text("Más Opciones"', ui)
         self.assertIn("Argentina · Siempre en tu corazón", countries)
         self.assertIn("Canales publicados:", countries)
         self.assertIn("Restablecer Configuración", countries)
