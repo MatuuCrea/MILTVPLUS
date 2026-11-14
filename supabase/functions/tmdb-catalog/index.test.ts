@@ -27,3 +27,15 @@ Deno.test("series en emisión usa la ruta TMDB correcta", () => {
   const route = buildTmdbRoute({ action: "tv_on_the_air", page: 2 });
   if (route.path !== "/tv/on_the_air" || route.params.page !== "2") throw new Error("Ruta de series en emisión incorrecta");
 });
+
+Deno.test("ficha de película incluye tráileres y reparto", () => {
+  const route = buildTmdbRoute({ action: "movie_details", id: 550 });
+  if (route.path !== "/movie/550") throw new Error("Ruta de ficha incorrecta");
+  if (route.params.append_to_response !== "credits,videos,images") throw new Error("La ficha no incluye videos para el tráiler");
+});
+
+Deno.test("ficha de serie incluye videos y reparto", () => {
+  const route = buildTmdbRoute({ action: "tv_details", id: 1399 });
+  if (route.path !== "/tv/1399") throw new Error("Ruta de serie incorrecta");
+  if (route.params.append_to_response !== "credits,videos,images") throw new Error("La ficha de serie no incluye videos");
+});
