@@ -50,6 +50,14 @@ La misma taxonomía soporta todos los países y territorios con código ISO de d
 - No se debe rotar ni reescribir URLs de reproducción sin comprobar el endpoint nuevo.
 - Las señales geo-restringidas, offline, bloqueadas o no verificadas no se publican como disponibles.
 
+## API de resolución autorizada
+
+El servicio Node.js en `backend/resolver` expone catálogo por país/categoría y resolución por UUID. Usa la clave pública Supabase y la sesión del usuario, respetando RLS; nunca requiere la service-role key. Devuelve HLS/DASH sólo si el permiso de redistribución está verificado, vigente y cubre el país solicitado. Para YouTube Live y páginas `official_web` devuelve la página del emisor y conserva su reproductor, publicidad, DRM, geobloqueo y condiciones.
+
+El monitor existente detecta cambios de disponibilidad; el resolver vuelve a comprobar estado y derechos al solicitar reproducción. No rota tokens ni inventa reemplazos: una URL alternativa sólo se publica tras validación del titular. La nueva migración de catálogo adulto separa los registros +18 mediante RLS y consentimiento de cuenta; el consentimiento no equivale a verificación formal de edad.
+
+El código está en fase de integración: falta aplicar la migración en Supabase, desplegar el servicio, configurar la URL del resolver en los clientes y realizar QA end-to-end. No hay endpoint público de producción todavía.
+
 ## Estado de la implementación
 
 - Migración base: `supabase/migrations/20261113170000_global_tv_channels.sql`; endurecimiento de páginas oficiales, salud y publicación en migraciones posteriores.
