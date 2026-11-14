@@ -120,6 +120,8 @@ app.get("/api/v2/catalog/:category/:country", async (req, res, next) => {
     if (category === "adultos") {
       if (!catalog) throw new CatalogError("El catálogo no está configurado.", 503);
       await catalog.verifyAdultConsent(accessToken);
+      res.set("Cache-Control", "private, no-store");
+      return res.json({ success: true, category, country, count: 0, items: [] });
     }
     if (!catalog) throw new CatalogError("El catálogo no está configurado.", 503);
     const rows = await catalog.list({ category, country, accessToken });
@@ -154,7 +156,10 @@ app.get("/api/v2/resolve/:category/:country/:contentId", async (req, res, next) 
     const country = validateCountry(req.params.country);
     const region = country === "ALL" ? "" : country;
     const accessToken = bearerToken(req);
-    if (category === "adultos") await catalog?.verifyAdultConsent(accessToken);
+    if (category === "adultos") {
+      await catalog?.verifyAdultConsent(accessToken);
+      throw new CatalogError("La sección +18 permanece vacía y no tiene streams activos.", 403);
+    }
     if (!catalog) throw new CatalogError("El catálogo no está configurado.", 503);
     const row = await catalog.find({ category, country, id: contentId, accessToken });
     const result = mediaResponse(row, category, region);
