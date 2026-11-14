@@ -535,6 +535,17 @@ public partial class MainWindow : Window
         }
     }
 
+    private void MusicPause_Click(object sender, RoutedEventArgs e)
+    {
+        if (_currentMedia is null)
+        {
+            StatusText.Text = "Todavía no hay música en reproducción.";
+            return;
+        }
+        _mediaPlayer.Pause();
+        StatusText.Text = _mediaPlayer.IsPlaying ? "Música reanudada." : "Música pausada.";
+    }
+
     private void Stop_Click(object sender, RoutedEventArgs e)
     {
         _mediaPlayer.Stop();
