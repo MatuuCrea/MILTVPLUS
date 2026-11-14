@@ -113,6 +113,23 @@ class SmartTvClientTests(unittest.TestCase):
         self.assertIn("val until = if (untilRaw == null) null else parseRightsDate(untilRaw) ?: return false", android)
         self.assertIn("entry.IsUserProvidedSource || (IsHttps(entry.StreamUrl) && entry.HasActivePlaybackRights)", playback)
 
+
+    def test_android_and_windows_use_native_playback_engines(self):
+        android = (ROOT / "app/src/main/java/com/matuucrea/miltvplus/player/ChannelPlayerActivity.kt").read_text(encoding="utf-8")
+        gradle = (ROOT / "app/build.gradle.kts").read_text(encoding="utf-8")
+        windows_project = (ROOT / "windows/MILTVPLUS.Desktop/MILTVPLUS.Desktop.csproj").read_text(encoding="utf-8")
+        windows_main = (ROOT / "windows/MILTVPLUS.Desktop/MainWindow.xaml.cs").read_text(encoding="utf-8")
+        windows_playback = (ROOT / "windows/MILTVPLUS.Desktop/OfficialPlayback.cs").read_text(encoding="utf-8")
+        self.assertIn("ExoPlayer.Builder(this)", android)
+        self.assertIn("MimeTypes.APPLICATION_M3U8", android)
+        self.assertIn("MimeTypes.APPLICATION_MPD", android)
+        self.assertIn("media3-exoplayer-hls", gradle)
+        self.assertIn("media3-exoplayer-dash", gradle)
+        self.assertIn("LibVLCSharp.WPF", windows_project)
+        self.assertIn("new MediaPlayer(_libVlc)", windows_main)
+        self.assertIn("_mediaPlayer.Play", windows_main)
+        self.assertIn("ToggleFullscreen()", windows_playback)
+
     def test_all_native_tv_clients_are_marked_as_source_not_signed_packages(self):
         docs = (ROOT / "docs/NATIVE-TV-CLIENTS.md").read_text(encoding="utf-8")
         self.assertIn("WGT firmado", docs)
