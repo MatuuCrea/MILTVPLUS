@@ -130,6 +130,24 @@ class SmartTvClientTests(unittest.TestCase):
         self.assertIn("_mediaPlayer.Play", windows_main)
         self.assertIn("ToggleFullscreen()", windows_playback)
 
+
+    def test_shared_performance_optimizer_releases_resources_and_virtualizes(self):
+        optimizer = (ROOT / "platforms/shared/performance-optimizer.js").read_text(encoding="utf-8")
+        for token in ("export class PerformanceOptimizer", "preload = \"none\"", "pause?.()", "removeAttribute?.(\"src\")", "srcObject = null", "virtualizarLista", "ResizeObserver", "maxDomNodes", "destruirTodo"):
+            self.assertIn(token, optimizer)
+        self.assertNotIn("window.gc", optimizer)
+        self.assertNotIn("globalThis.gc", optimizer)
+
+    def test_smart_tv_clients_use_shared_resource_cleanup(self):
+        for platform in ("tizen", "webos"):
+            script = (ROOT / f"platforms/{platform}/app.js").read_text(encoding="utf-8")
+            page = (ROOT / f"platforms/{platform}/index.html").read_text(encoding="utf-8")
+            css = (ROOT / f"platforms/{platform}/styles.css").read_text(encoding="utf-8")
+            self.assertIn('import { optimizer }', script)
+            self.assertIn("optimizer.destruirTodo()", script)
+            self.assertIn('type="module"', page)
+            self.assertIn("content-visibility: auto", css)
+
     def test_all_native_tv_clients_are_marked_as_source_not_signed_packages(self):
         docs = (ROOT / "docs/NATIVE-TV-CLIENTS.md").read_text(encoding="utf-8")
         self.assertIn("WGT firmado", docs)
