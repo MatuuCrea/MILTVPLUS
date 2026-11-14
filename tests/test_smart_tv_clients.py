@@ -38,10 +38,15 @@ class SmartTvClientTests(unittest.TestCase):
         webos = (ROOT / "platforms/webos/app.js").read_text(encoding="utf-8")
         self.assertIn('c.playback_type==="hls"||c.playback_type==="dash"', tizen)
         self.assertIn('c.playback_type==="hls"', webos)
-        self.assertIn('if(c.playback_type==="hls"&&safe(c.stream_url)&&hasActivePlaybackRights(c))', webos)
+        self.assertIn('(c.playback_type==="hls"||c.playback_type==="mp4")&&safe(c.stream_url)&&hasActivePlaybackRights(c)', webos)
+        self.assertIn('p.setDisplayRect(0,0,window.innerWidth||1920,window.innerHeight||1080)', tizen)
         for source in (tizen, webos):
             self.assertIn('x.protocol==="https:"', source)
             self.assertIn("official", source.lower())
+        self.assertNotIn("launchAppControl", tizen)
+        self.assertNotIn('target="_blank"', webos)
+        self.assertIn("no abrirá aplicaciones ni navegadores externos", tizen)
+        self.assertIn("no abrirá navegadores externos", webos)
 
     def test_tv_navigation_and_free_policy_are_visible(self):
         for path in ("platforms/tizen/index.html", "platforms/webos/index.html"):
