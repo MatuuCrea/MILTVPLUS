@@ -55,5 +55,15 @@ class SmartTvClientTests(unittest.TestCase):
             self.assertIn("e.keyCode===39", source)
 
 
+    def test_android_tv_uses_television_mode_and_free_branding(self):
+        main = (ROOT / "app/src/main/java/com/matuucrea/miltvplus/MainActivity.kt").read_text(encoding="utf-8")
+        ui = (ROOT / "app/src/main/java/com/matuucrea/miltvplus/ui/PremiumExperience.kt").read_text(encoding="utf-8")
+        self.assertIn("UI_MODE_TYPE_TELEVISION", main)
+        self.assertIn("&& !isTelevision", main)
+        self.assertIn("MILTVPLUS · 100 % GRATIS", ui)
+        self.assertNotIn('Text("MILTVPLUS Premium"', ui)
+        self.assertNotIn('Text("Experiencia Premium"', ui)
+
+
 if __name__ == "__main__":
     unittest.main()
