@@ -3,7 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
 }
-val appVersionName = providers.gradleProperty("appVersionName").orElse("22.34.9").get()
+val appVersionName = providers.gradleProperty("appVersionName").orElse("22.34.10").get()
 val appVersionParts = appVersionName.split(".").map { it.toIntOrNull() ?: error("appVersionName debe ser numérico, por ejemplo 22.34.10") }
 require(appVersionParts.size in 2..3) { "appVersionName debe tener dos o tres componentes numéricos" }
 val appVersionCode = appVersionParts[0] * 100000 + (appVersionParts.getOrElse(1) { 0 }) * 100 + appVersionParts.getOrElse(2) { 0 }
