@@ -128,7 +128,6 @@
     <ScrollViewer x:Name="ToolbarScroll" DockPanel.Dock="Right" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" MaxWidth="720">
     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
      <Button Content="♧" ToolTip="Notificaciones" Click="OpenNotifications_Click" Padding="10,7"/>
-     <Button Content="⚙" ToolTip="Configuración" Click="OpenSettings_Click" Padding="10,7"/>
      <Button Content="◉" ToolTip="Mi perfil" Click="OpenAccount_Click" Padding="10,7"/>
      <Button Content="Importar M3U/M3U8" Click="ImportM3u_Click" Background="#26365D"/>
      <Button Content="Buscar actualizaciones" Click="CheckUpdates_Click" Background="#26365D"/>
