@@ -227,7 +227,7 @@ private fun SidebarBrandFooter() {
 }
 
 @Composable
-fun PremiumAppTopBar(activeTab: String, onSearch: (String) -> Unit, onSettings: () -> Unit, onAccount: () -> Unit) {
+fun PremiumAppTopBar(activeTab: String, onSearch: (String) -> Unit, onAccount: () -> Unit) {
     var query by remember { mutableStateOf("") }
     var showNotifications by remember { mutableStateOf(false) }
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
@@ -270,9 +270,6 @@ fun PremiumAppTopBar(activeTab: String, onSearch: (String) -> Unit, onSettings: 
             )
             IconButton(onClick = { showNotifications = true }, modifier = Modifier.size(38.dp)) {
                 Icon(Icons.Default.NotificationsNone, "Notificaciones", tint = Color.White)
-            }
-            IconButton(onClick = onSettings, modifier = Modifier.size(38.dp)) {
-                Icon(Icons.Default.Settings, "Configuración", tint = Color.White)
             }
             if (!narrow) IconButton(onClick = onAccount, modifier = Modifier.size(38.dp)) { Icon(Icons.Default.AccountCircle, "Mi perfil", tint = Color.White) }
         }
