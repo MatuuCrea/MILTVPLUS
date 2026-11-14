@@ -238,31 +238,22 @@ public partial class MainWindow : Window
         if ((sender as FrameworkElement)?.DataContext is CatalogEntry item) PlayEntry(item);
     }
 
-    private void PlayEntry(CatalogEntry item)
+    private async void PlayEntry(CatalogEntry item)
     {
-        if (!Uri.TryCreate(item.StreamUrl ?? item.AuthorizedStreamUrl, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps || (!item.HasActivePlaybackRights && !item.IsUserProvidedSource))
+        var isMusic = Sections.SelectedItem is ListBoxItem selected && selected.Tag?.ToString() == "Música";
+        string? streamUrl = item.StreamUrl ?? item.AuthorizedStreamUrl;
+        if (isMusic)
         {
-            var officialMusicUrl = item.ExternalUrl ?? item.OfficialWatchUrl;
-            if (Sections.SelectedItem is ListBoxItem selected && selected.Tag?.ToString() == "Música" && IsHttps(officialMusicUrl))
-            {
-                try
-                {
-                    Process.Start(new ProcessStartInfo(officialMusicUrl!) { UseShellExecute = true });
-                    StatusText.Text = "Abriendo la fuente musical oficial en tu navegador.";
-                }
-                catch (Exception ex) { StatusText.Text = "No se pudo abrir la fuente oficial: " + ex.Message; }
-                return;
-            }
-            if (IsHttps(item.OfficialWatchUrl))
-            {
-                StatusText.Text = "No hay derechos activos para reproducción directa en esta región. Abriendo únicamente la página oficial del emisor.";
-                _ = WatchEntryAsync(item);
-                return;
-            }
-            StatusText.Text = "Este canal todavía no tiene una señal HTTPS verificada ni una página oficial de visualización.";
+            try { streamUrl = await ResolveMusicUrlAsync(item); }
+            catch (Exception ex) { StatusText.Text = "Música no disponible para reproducción interna: " + ex.Message; return; }
+        }
+        if (!Uri.TryCreate(streamUrl, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps || (!isMusic && !item.HasActivePlaybackRights && !item.IsUserProvidedSource))
+        {
+            StatusText.Text = isMusic
+                ? "Esta pista no tiene una fuente de audio directa disponible para tu región."
+                : "Este contenido todavía no tiene una señal HTTPS verificada. No se abrirán aplicaciones externas.";
             return;
         }
-
         try
         {
             _currentEntry = item;
@@ -272,6 +263,30 @@ public partial class MainWindow : Window
             StatusText.Text = "Reproduciendo: " + item.Title;
         }
         catch (Exception ex) { StatusText.Text = "Error de reproducción: " + ex.Message; }
+    }
+
+    private async Task<string> ResolveMusicUrlAsync(CatalogEntry item)
+    {
+        if (string.IsNullOrWhiteSpace(item.Id)) throw new InvalidOperationException("La pista no tiene un identificador válido.");
+        var resolver = (Environment.GetEnvironmentVariable("MILTVPLUS_RESOLVER_URL") ?? "https://miltvplus-media-resolver.onrender.com").TrimEnd('/');
+        if (!Uri.TryCreate(resolver, UriKind.Absolute, out var baseUri) || baseUri.Scheme != Uri.UriSchemeHttps)
+            throw new InvalidOperationException("El servicio de música no está configurado.");
+        var country = item.CountryCode;
+        if (string.IsNullOrWhiteSpace(country) || !System.Text.RegularExpressions.Regex.IsMatch(country, "^[A-Z]{2}$"))
+            country = RegionInfo.CurrentRegion.TwoLetterISORegionName;
+        using var response = await Client.GetAsync($"{resolver}/api/v2/resolve/musica/{country}/{Uri.EscapeDataString(item.Id)}");
+        using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        var root = document.RootElement;
+        if (!response.IsSuccessStatusCode || !root.TryGetProperty("success", out var success) || !success.GetBoolean() ||
+            !root.TryGetProperty("mode", out var mode) || mode.GetString() != "direct_stream" ||
+            !root.TryGetProperty("mediaType", out var mediaType) || mediaType.GetString() != "audio" ||
+            !root.TryGetProperty("streamUrl", out var stream) || !Uri.TryCreate(stream.GetString(), UriKind.Absolute, out var audioUri) ||
+            audioUri.Scheme != Uri.UriSchemeHttps)
+        {
+            var message = root.TryGetProperty("error", out var error) ? error.GetString() : null;
+            throw new InvalidOperationException(message ?? "El servidor no autorizó esta pista.");
+        }
+        return audioUri!.ToString();
     }
 
     private List<CatalogEntry> CurrentPlayableEntries()
@@ -613,6 +628,7 @@ public partial class MainWindow : Window
 
     private sealed class CatalogEntry
     {
+        [JsonPropertyName("id")] public string? Id { get; set; }
         public string? Title { get; set; }
         public string? Description { get; set; }
         [JsonPropertyName("country_code")] public string? CountryCode { get; set; }
