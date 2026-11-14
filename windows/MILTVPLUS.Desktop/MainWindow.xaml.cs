@@ -572,6 +572,11 @@ public partial class MainWindow : Window
         _libVlc.Dispose();
     }
 
+    private void MoreEpg_Click(object sender, RoutedEventArgs e) => Sections.SelectedItem = HiddenEpg;
+    private void MoreCountries_Click(object sender, RoutedEventArgs e) => Sections.SelectedItem = HiddenCountries;
+    private void MoreRadios_Click(object sender, RoutedEventArgs e) => Sections.SelectedItem = HiddenRadios;
+    private void MoreTheater_Click(object sender, RoutedEventArgs e) => Sections.SelectedItem = HiddenTheater;
+
     private async void Sections_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!IsLoaded || Sections.SelectedItem is not ListBoxItem item) return;
