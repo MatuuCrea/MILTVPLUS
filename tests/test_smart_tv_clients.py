@@ -66,10 +66,50 @@ class SmartTvClientTests(unittest.TestCase):
         self.assertIn("UI_MODE_TYPE_TELEVISION", main)
         self.assertIn("amazon.hardware.fire_tv", main)
         self.assertIn("&& !isTelevision", main)
-        self.assertIn("MILTVPLUS · 100 % GRATIS", ui)
-        self.assertNotIn('Text("MILTVPLUS Premium"', ui)
-        self.assertNotIn('Text("Experiencia Premium"', ui)
+        self.assertIn('Text("MILTVPLUS Premium"', ui)
+        self.assertIn("Experiencia completa · 100 % gratuita", ui)
+        self.assertIn("Sin anuncios · Sin pagos · Sin suscripciones", ui)
+        self.assertNotIn("billing", ui.lower())
 
+
+    def test_official_smart_tv_shell_matches_reference_navigation_and_pages(self):
+        shell = (ROOT / "platforms/shared/official-interface.js").read_text(encoding="utf-8")
+        expected = ("Inicio", "TV en Vivo", "Películas", "Series", "Deportes", "Infantil", "Documentales", "Música", "Adultos 18+", "Favoritos", "Configuración", "Más Opciones")
+        for label in expected:
+            self.assertIn(label, shell)
+        for platform in ("tizen", "webos"):
+            script = (ROOT / f"platforms/{platform}/app.js").read_text(encoding="utf-8")
+            css = (ROOT / f"platforms/{platform}/styles.css").read_text(encoding="utf-8")
+            self.assertIn("mountOfficialInterface", script)
+            self.assertIn("official-sidebar", css)
+            self.assertIn("adult-hero", css)
+            self.assertIn("settings-layout", css)
+        self.assertIn("Siempre en tu corazón", shell)
+        self.assertIn("getCountryCounts", shell)
+        self.assertIn("loadEpg", shell)
+        self.assertIn("localStorage.setItem", shell)
+        self.assertIn('data-action="record" disabled', shell)
+        self.assertNotIn('"AR","🇦🇷","Argentina","Siempre en tu corazón",194', shell)
+        self.assertIn("No hay publicaciones ni URLs activas", shell)
+
+    def test_android_official_sidebar_and_country_phrases(self):
+        ui = (ROOT / "app/src/main/java/com/matuucrea/miltvplus/ui/PremiumExperience.kt").read_text(encoding="utf-8")
+        countries = (ROOT / "app/src/main/java/com/matuucrea/miltvplus/ui/AccountAndSettings.kt").read_text(encoding="utf-8")
+        for label in ("Inicio", "TV en Vivo", "Películas", "Series", "Deportes", "Infantil", "Documentales", "Música", "Adultos 18+", "Favoritos", "Configuración", "Más Opciones"):
+            self.assertIn(f'NavDestination("{label}"', ui)
+        self.assertIn("Argentina · Siempre en tu corazón", countries)
+        self.assertIn("Canales publicados:", countries)
+        self.assertIn("Restablecer Configuración", countries)
+
+    def test_windows_official_sidebar_keeps_extra_destinations_under_more_options(self):
+        xaml = (ROOT / "windows/MILTVPLUS.Desktop/MainWindow.xaml").read_text(encoding="utf-8")
+        code = (ROOT / "windows/MILTVPLUS.Desktop/MainWindow.xaml.cs").read_text(encoding="utf-8")
+        self.assertIn('Content="•••   Más Opciones"', xaml)
+        self.assertIn('Header="Guía EPG" Click="MoreEpg_Click"', xaml)
+        self.assertIn('Header="Países" Click="MoreCountries_Click"', xaml)
+        self.assertIn("Argentina · Siempre en tu corazón", code)
+        self.assertIn("MILTVPLUS Premium", xaml)
+        self.assertIn("100 % gratuita", xaml)
 
     def test_fire_tv_compatibility_is_bounded_by_android_min_sdk(self):
         gradle = (ROOT / "app/build.gradle.kts").read_text(encoding="utf-8")
