@@ -39,7 +39,9 @@ public partial class MainWindow : Window
     private readonly DispatcherTimer _clockTimer = new() { Interval = TimeSpan.FromSeconds(1) };
     private bool _adultUnlocked;
     private string? _contentCategoryFilter;
+    private DesktopSettings _desktopSettings = new();
     private string AdultDataDirectory => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MILTVPLUS");
+    private string DesktopSettingsPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MILTVPLUS", "desktop-settings.json");
 
     public MainWindow()
     {
@@ -47,6 +49,7 @@ public partial class MainWindow : Window
         _libVlc = new LibVLC("--no-video-title-show", "--network-caching=2000", "--live-caching=1500", "--http-reconnect", "--avcodec-hw=any");
         _mediaPlayer = new MediaPlayer(_libVlc);
         InitializeComponent();
+        LoadDesktopSettings();
         VideoSurface.MediaPlayer = _mediaPlayer;
         UpdateClock();
         _clockTimer.Tick += (_, _) => UpdateClock();
@@ -54,11 +57,43 @@ public partial class MainWindow : Window
         AdultAgeConfirm.IsChecked = File.Exists(Path.Combine(AdultDataDirectory, "adult-age-confirmed"));
         Client.DefaultRequestHeaders.TryAddWithoutValidation("apikey", PublicKey);
         Client.DefaultRequestHeaders.TryAddWithoutValidation("Accept", "application/json");
-        Loaded += async (_, _) => { await LoadCatalog(); await CheckForUpdates(silent: true); };
+        Loaded += async (_, _) => { await LoadCatalog(); if (_desktopSettings.AutoCheckUpdates) await CheckForUpdates(silent: true); if (_desktopSettings.StartMaximized) WindowState = WindowState.Maximized; };
         Closed += (_, _) => { _catalogRefreshTimer.Stop(); _clockTimer.Stop(); DisposePlayer(); };
         _catalogRefreshTimer.Tick += async (_, _) => { if (table == "tv_channels" && !_localPlaylistLoaded) await LoadCatalog(); };
         _catalogRefreshTimer.Start();
         VideoSurface.MouseLeftButtonDown += (_, e) => { if (e.ClickCount == 2) ToggleFullscreen(); };
+    }
+
+    private void LoadDesktopSettings()
+    {
+        try
+        {
+            if (File.Exists(DesktopSettingsPath))
+                _desktopSettings = JsonSerializer.Deserialize<DesktopSettings>(File.ReadAllText(DesktopSettingsPath), JsonOptions) ?? new DesktopSettings();
+        }
+        catch { _desktopSettings = new DesktopSettings(); }
+        AutoCheckUpdatesCheckBox.IsChecked = _desktopSettings.AutoCheckUpdates;
+        AlwaysOnTopCheckBox.IsChecked = _desktopSettings.AlwaysOnTop;
+        StartMaximizedCheckBox.IsChecked = _desktopSettings.StartMaximized;
+        DesktopVolumeSlider.Value = Math.Clamp(_desktopSettings.MusicVolume, 0, 100);
+        Topmost = _desktopSettings.AlwaysOnTop;
+        _mediaPlayer.Volume = (int)DesktopVolumeSlider.Value;
+    }
+
+    private void SaveDesktopSettings_Click(object sender, RoutedEventArgs e)
+    {
+        _desktopSettings = new DesktopSettings
+        {
+            AutoCheckUpdates = AutoCheckUpdatesCheckBox.IsChecked == true,
+            AlwaysOnTop = AlwaysOnTopCheckBox.IsChecked == true,
+            StartMaximized = StartMaximizedCheckBox.IsChecked == true,
+            MusicVolume = Math.Clamp((int)DesktopVolumeSlider.Value, 0, 100)
+        };
+        Directory.CreateDirectory(Path.GetDirectoryName(DesktopSettingsPath)!);
+        File.WriteAllText(DesktopSettingsPath, JsonSerializer.Serialize(_desktopSettings, new JsonSerializerOptions { WriteIndented = true }));
+        Topmost = _desktopSettings.AlwaysOnTop;
+        _mediaPlayer.Volume = _desktopSettings.MusicVolume;
+        StatusText.Text = "¡Listo! Tu configuración quedó guardada en esta computadora.";
     }
 
     private async Task LoadCatalog()
@@ -467,13 +502,22 @@ public partial class MainWindow : Window
         _contentCategoryFilter = section == "Infantil" ? "kids" : section == "Documentales" ? "documentary" : null;
         HomePanel.Visibility = section == "Inicio" ? Visibility.Visible : Visibility.Collapsed;
         MusicPanel.Visibility = section == "Música" ? Visibility.Visible : Visibility.Collapsed;
+        SettingsPanel.Visibility = section == "Configuración" ? Visibility.Visible : Visibility.Collapsed;
         var isAdult = section == "Adultos 18+";
         AdultGatePanel.Visibility = isAdult && !_adultUnlocked ? Visibility.Visible : Visibility.Collapsed;
         AdultPanel.Visibility = isAdult && _adultUnlocked ? Visibility.Visible : Visibility.Collapsed;
-        VideoContainer.Visibility = isAdult || section == "Música" ? Visibility.Collapsed : Visibility.Visible;
-        CatalogScroll.Visibility = isAdult && !_adultUnlocked ? Visibility.Collapsed : Visibility.Visible;
+        VideoContainer.Visibility = isAdult || section == "Música" || section == "Configuración" ? Visibility.Collapsed : Visibility.Visible;
+        CatalogScroll.Visibility = section == "Configuración" || (isAdult && !_adultUnlocked) ? Visibility.Collapsed : Visibility.Visible;
         Grid.SetRow(CatalogScroll, isAdult || section == "Música" ? 3 : 4);
         Grid.SetRowSpan(CatalogScroll, isAdult || section == "Música" ? 2 : 1);
+        if (section == "Configuración")
+        {
+            entries = [];
+            Catalog.ItemsSource = entries;
+            PageTitle.Text = "Configuración";
+            StatusText.Text = "Administrá actualizaciones, comportamiento de ventana y volumen de reproducción.";
+            return;
+        }
         if (isAdult && !_adultUnlocked)
         {
             entries = [];
@@ -504,6 +548,14 @@ public partial class MainWindow : Window
         if (section == "Favoritos") StatusText.Text = "Los favoritos sincronizados se administran desde la cuenta MILTVPLUS.";
         if (section == "Más Opciones") StatusText.Text = "Más opciones: Fuentes M3U, Control parental +18 y Soporte.";
         await LoadCatalog();
+    }
+
+    private sealed class DesktopSettings
+    {
+        public bool AutoCheckUpdates { get; set; } = true;
+        public bool AlwaysOnTop { get; set; }
+        public bool StartMaximized { get; set; }
+        public int MusicVolume { get; set; } = 100;
     }
 
     private sealed class CatalogEntry
