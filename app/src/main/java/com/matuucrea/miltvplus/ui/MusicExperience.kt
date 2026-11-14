@@ -21,7 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
-import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.common.Player
 import coil.compose.AsyncImage
 import com.matuucrea.miltvplus.data.RemoteCatalogEntry
 
@@ -37,7 +37,7 @@ fun MusicExperience(
     error: String?,
     query: String,
     onQueryChange: (String) -> Unit,
-    player: ExoPlayer,
+    player: Player,
     onPlay: (RemoteCatalogEntry) -> Unit,
     onOpenOfficialItem: (RemoteCatalogEntry) -> Unit,
     onRefresh: () -> Unit,
