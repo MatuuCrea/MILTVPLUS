@@ -36,6 +36,12 @@ El workflow `.github/workflows/windows.yml` publica la aplicación x64 autoconte
 
 La rama de integración incorpora una Edge Function `tmdb-catalog` con lista cerrada de operaciones para películas y series, búsquedas, fichas, reparto y temporadas. Usa `TMDB_READ_ACCESS_TOKEN` (preferido) o `TMDB_API_KEY` como credenciales de servidor; nunca se incluyen en Android, Windows ni Git. La función exige JWT de usuario, limita rutas/IDs/parámetros, usa idioma `es-AR`, región `AR` para películas y caché temporal en memoria de cada instancia. Android incorpora pantallas de Películas y Series con búsqueda, categorías, pósteres, fichas y reparto; requieren iniciar sesión. Los datos TMDB son metadatos e imágenes, no licencias ni streams reproducibles. Antes de desplegar/activar el uso público debe confirmarse la modalidad de licencia TMDB aplicable al producto.
 
+## Instalación de prueba
+
+La guía de descarga e instalación de los artefactos Android/Windows de CI, con pasos para teléfono y Android TV/Google TV, está en [`docs/INSTALL-TEST-GUIDE.md`](docs/INSTALL-TEST-GUIDE.md). Son paquetes de prueba (APK debug y EXE sin Authenticode), no releases finales.
+
+La auditoría de señales públicas argentinas, separada del catálogo de producción y sin publicar fuentes no verificadas, está en [`data/catalog/argentina-public-channel-audit.json`](data/catalog/argentina-public-channel-audit.json) y se explica en [`docs/GLOBAL-TV-CATALOG.md`](docs/GLOBAL-TV-CATALOG.md).
+
 ## Compatibilidad y criterios de lanzamiento
 
 La matriz detallada por dispositivo está en [`docs/DEVICE-RELEASE-MATRIX.md`](docs/DEVICE-RELEASE-MATRIX.md). El plan consolidado de implementación, QA y publicación por plataforma está en [`docs/PLATFORM-ROADMAP.md`](docs/PLATFORM-ROADMAP.md). La arquitectura de reproducción, actualizaciones y escalabilidad está en [`docs/PLAYBACK-AND-SCALING.md`](docs/PLAYBACK-AND-SCALING.md). Android TV y Google TV requieren pruebas de navegación D-pad en hardware real; TV Box/TV Stick sólo se consideran compatibles si ejecutan Android compatible y superan esa validación. Samsung Tizen y LG webOS requieren apps nativas separadas. La web oficial es un portal de información/descargas, no una aplicación de streaming.
