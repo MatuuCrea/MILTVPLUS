@@ -66,6 +66,8 @@ export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()
 
   function show(label){
     if($("player")&&!$("player").hidden&&label!=="TV en Vivo") $("close-player")?.click();
+    if(label!=="Películas"&&label!=="Series") optimizer.destruirLista(vodPage.querySelector(".vod-grid"));
+    if(label!=="Guía EPG") optimizer.destruirLista(epg.querySelector(".epg-grid"));
     active=label;
     const musicSection=$("music-experience");
     const musicNav=$("nav-music");
@@ -170,6 +172,8 @@ export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()
   epg.querySelector('[data-action="info"]').addEventListener("click",()=>{epg.querySelector(".epg-status").textContent=selectedProgram?.description||"Seleccioná un programa para ver su información."});
   function watchMutations(){const observer=new MutationObserver(filterChannels);observer.observe(channels,{childList:true,subtree:true});return ()=>observer.disconnect()}
   const disposeObserver=watchMutations();
+  const releaseLists=()=>{optimizer.destruirLista(vodPage.querySelector(".vod-grid"));optimizer.destruirLista(epg.querySelector(".epg-grid"));optimizer.destruirTodo();};
+  window.addEventListener("pagehide",releaseLists);
   show("TV en Vivo");
-  return ()=>{disposeObserver();optimizer.destruirTodo();};
+  return ()=>{disposeObserver();window.removeEventListener("pagehide",releaseLists);releaseLists();};
 }
