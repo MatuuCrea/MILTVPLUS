@@ -26,6 +26,10 @@ export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()
   let category="all", epgOffset=0, selectedProgram=null;
   const sidebar=node("aside","official-sidebar"); sidebar.id="official-sidebar";
   const logo=node("div","official-logo"); logo.innerHTML='<span>MIL</span><b>TV</b><strong>PLUS</strong><small>Tu mundo en una sola app 🇦🇷</small>';
+  logo.tabIndex=0;logo.setAttribute("role","button");logo.setAttribute("aria-label","Contraer o expandir menú");
+  const toggleSidebar=()=>document.body.classList.toggle("official-sidebar-collapsed");
+  logo.addEventListener("click",toggleSidebar);
+  logo.addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();toggleSidebar()}});
   sidebar.append(logo);
   const nav=node("nav","official-nav"); nav.setAttribute("aria-label","Navegación principal");
   NAV.forEach(([label,icon])=>{const b=node("button","official-nav-item");b.type="button";b.dataset.section=label;const i=node("span","nav-icon",icon);const t=node("span","nav-label",label);b.append(i,t);b.addEventListener("click",()=>show(label));nav.append(b);});
