@@ -1,4 +1,4 @@
-import { buildTmdbRoute } from "./index.ts";
+import { buildTmdbRoute } from "./routes.ts";
 
 Deno.test("películas populares usa idioma español y región argentina", () => {
   const route = buildTmdbRoute({ action: "movie_popular" });
