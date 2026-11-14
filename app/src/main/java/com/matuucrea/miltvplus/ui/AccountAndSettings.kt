@@ -241,7 +241,6 @@ fun SettingsScreen(
         }
         HorizontalDivider()
         SettingSwitch("Subtítulos habilitados", subtitles) { subtitles = it; persist() }
-        SettingSwitch("Preferencia de notificaciones", notifications) { notifications = it; persist() }
         SettingSwitch("Reproducción automática", autoplay) { autoplay = it; persist() }
         HorizontalDivider()
         Text("Reproducción y dispositivo", style = MaterialTheme.typography.titleMedium)
