@@ -32,3 +32,9 @@
 - Los clientes Tizen/webOS consultan los campos de derechos y sólo habilitan HLS/DASH directo cuando la autorización está verificada, vigente y cubre el territorio detectado por la configuración regional del televisor. Si no puede determinarse el territorio, no se habilita reproducción directa.
 - La página oficial del emisor continúa disponible como alternativa; abrir esa página no se presenta como reproducción integrada ni como autorización de redistribución.
 - Estas reglas tienen pruebas automatizadas. Aún requieren validar con mandos y televisores físicos de varias generaciones.
+
+## Control de vigencia de derechos en Android y Windows
+- Android y Windows solicitan los campos de titular, referencia, territorios y ventana de derechos junto con cada fila publicada.
+- Los reproductores directos bloquean URLs si no hay autorización verificada, vigente y aplicable a la región del dispositivo. En TV también se exige estado de fuente online.
+- Un vencimiento malformado se trata como no autorizado (fail-closed). Las páginas oficiales siguen siendo una alternativa, sin convertirlas en streams propios.
+- Las listas M3U importadas manualmente por el usuario conservan su flujo local explícito y muestran advertencia de responsabilidad; no se mezclan con las fuentes editoriales publicadas.
