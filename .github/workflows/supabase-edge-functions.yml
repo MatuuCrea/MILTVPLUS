@@ -27,6 +27,7 @@ jobs:
         with:
           deno-version: v2.x
       - name: Lint Edge Functions
-        run: deno lint supabase/functions/tv-channel-health/index.ts
+        run: deno lint supabase/functions/tv-channel-health/index.ts supabase/functions/tmdb-catalog/index.ts supabase/functions/tmdb-catalog/routes.ts
       - name: Type-check Edge Functions
-        run: deno check supabase/functions/tv-channel-health/index.ts
+        run: deno check supabase/functions/tv-channel-health/index.ts supabase/functions/tmdb-catalog/index.ts
+deno test supabase/functions/tmdb-catalog/index.test.ts
