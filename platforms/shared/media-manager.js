@@ -310,5 +310,3 @@ export class AppMediaManager {
   }
 }
 
-// Alias compatible con la integración anterior.
-export const mediaManager = null;
