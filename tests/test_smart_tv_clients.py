@@ -10,7 +10,7 @@ class SmartTvClientTests(unittest.TestCase):
     def test_tizen_manifest_and_assets_are_present(self):
         root = ET.parse(ROOT / "platforms/tizen/config.xml").getroot()
         ns = {"t": "http://tizen.org/ns/widgets", "w": "http://www.w3.org/ns/widgets"}
-        self.assertEqual(root.findtext("w:content", namespaces=ns), "index.html")
+        self.assertEqual(root.find("w:content", namespaces=ns).get("src"), "index.html")
         self.assertIsNotNone(root.find("t:profile[@name='tv-samsung']", ns))
         self.assertTrue((ROOT / "platforms/tizen/index.html").is_file())
         self.assertTrue((ROOT / "platforms/tizen/app.js").is_file())
