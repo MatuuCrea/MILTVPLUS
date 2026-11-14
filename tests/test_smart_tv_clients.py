@@ -93,6 +93,19 @@ class SmartTvClientTests(unittest.TestCase):
             self.assertIn("rights_valid_until", script)
             self.assertIn("hasActivePlaybackRights(c)", script)
 
+    def test_android_and_windows_gate_direct_streams_on_active_rights(self):
+        android = (ROOT / "app/src/main/java/com/matuucrea/miltvplus/data/SupabaseCatalogRepository.kt").read_text(encoding="utf-8")
+        windows = (ROOT / "windows/MILTVPLUS.Desktop/MainWindow.xaml.cs").read_text(encoding="utf-8")
+        playback = (ROOT / "windows/MILTVPLUS.Desktop/OfficialPlayback.cs").read_text(encoding="utf-8")
+        for field in ("rights_verified", "rights_holder", "rights_reference", "rights_regions", "rights_valid_from", "rights_valid_until"):
+            self.assertIn(field, android)
+            self.assertIn(field, windows)
+        self.assertIn("hasActivePlaybackRights(row, table)", android)
+        self.assertIn("Locale.getDefault().country", android)
+        self.assertIn("entry.HasActivePlaybackRights", windows)
+        self.assertIn("entry.HasActivePlaybackRights", playback)
+        self.assertIn("IsUserProvidedSource = true", windows)
+
     def test_all_native_tv_clients_are_marked_as_source_not_signed_packages(self):
         docs = (ROOT / "docs/NATIVE-TV-CLIENTS.md").read_text(encoding="utf-8")
         self.assertIn("WGT firmado", docs)
