@@ -64,6 +64,7 @@ export function mountOfficialInterface({ onCountryChange=()=>{}, loadEpg=async()
   }
 
   function show(label){
+    if($("player")&&!$("player").hidden&&label!=="TV en Vivo") $("close-player")?.click();
     active=label;
     const musicSection=$("music-experience");
     const musicNav=$("nav-music");
