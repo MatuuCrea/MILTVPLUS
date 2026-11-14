@@ -419,6 +419,13 @@ class MainActivity:ComponentActivity(){
                             exoPlayer.playWhenReady = true
                         }
                     },
+                    onOpenOfficialItem = { item ->
+                        val officialUrl = item.infoUrl
+                        if (officialUrl != null && isSafeHttpsUrl(officialUrl)) {
+                            runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(officialUrl))) }
+                                .onFailure { remoteError = "No se pudo abrir la fuente oficial de música." }
+                        }
+                    },
                     onRefresh = { catalogRefresh++ },
                     onOpenOfficialService = { url ->
                         runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
