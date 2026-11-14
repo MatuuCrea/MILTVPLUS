@@ -6,6 +6,8 @@ const safeUrl = value => {
   catch { return false; }
 };
 const regionCode = () => {
+  const saved = String(localStorage.getItem("miltvplus.country") || "").trim().toUpperCase();
+  if (/^[A-Z]{2}$/.test(saved)) return saved;
   const match = String(navigator.language || "").match(/[-_]([A-Za-z]{2})$/);
   return match ? match[1].toUpperCase() : "AR";
 };
@@ -23,7 +25,9 @@ export function mountMusicExperience({ statusElement } = {}) {
 
   const nav = document.createElement("nav");
   nav.className = "section-nav";
-  nav.setAttribute("aria-label", "Secciones principales");
+  nav.hidden = true;
+  nav.setAttribute("aria-hidden", "true");
+  nav.setAttribute("aria-label", "Control interno de sección");
   nav.innerHTML = '<button type="button" id="nav-tv" aria-pressed="true">TV en vivo</button><button type="button" id="nav-music" aria-pressed="false">Música</button>';
   main.insertBefore(nav, channelGrid);
 

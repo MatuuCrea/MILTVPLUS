@@ -3,6 +3,7 @@ package com.matuucrea.miltvplus.ui
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.horizontalScroll
@@ -35,28 +36,28 @@ private val PremiumGold = Color(0xFFFFC247)
 private data class NavDestination(val label: String, val icon: androidx.compose.ui.graphics.vector.ImageVector)
 
 @Composable
-fun PremiumSidebar(activeTab: String, onNavigate: (String) -> Unit) {
+fun PremiumSidebar(activeTab: String, onNavigate: (String) -> Unit, compactMode: Boolean? = null) {
     BoxWithConstraints(Modifier.fillMaxHeight()) {
-        val compact = maxWidth < 600.dp
+        val compact = compactMode ?: (maxWidth < 600.dp)
         var expanded by remember(compact) { mutableStateOf(!compact) }
         var drawerOpen by remember(compact) { mutableStateOf(false) }
         var moreExpanded by remember { mutableStateOf(false) }
         val entries = listOf(
             NavDestination("Inicio", Icons.Default.Home),
             NavDestination("TV en Vivo", Icons.Default.LiveTv),
-            NavDestination("Guía EPG", Icons.Default.CalendarMonth),
             NavDestination("Películas", Icons.Default.Movie),
             NavDestination("Series", Icons.Default.VideoLibrary),
             NavDestination("Deportes", Icons.Default.EmojiEvents),
             NavDestination("Infantil", Icons.Default.ChildCare),
             NavDestination("Documentales", Icons.Default.MenuBook),
             NavDestination("Música", Icons.Default.MusicNote),
-            NavDestination("Países", Icons.Default.Public),
             NavDestination("Adultos 18+", Icons.Default.Lock),
             NavDestination("Favoritos", Icons.Default.Star),
             NavDestination("Configuración", Icons.Default.Settings)
         )
         val extras = listOf(
+            NavDestination("Guía EPG", Icons.Default.CalendarMonth),
+            NavDestination("Países", Icons.Default.Public),
             NavDestination("Apps", Icons.Default.Apps),
             NavDestination("Fuentes", Icons.Default.PlaylistAdd),
             NavDestination("Cuenta", Icons.Default.AccountCircle),
@@ -186,14 +187,17 @@ private fun SidebarDestinationRow(
     Row(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
             .background(
-                if (selected) Brush.horizontalGradient(listOf(Color(0xFF94104F), Color(0xFF42102F)))
-                else Brush.horizontalGradient(listOf(Color.Transparent, Color.Transparent))
+                if (selected) Brush.horizontalGradient(
+                    if (item.label == "Adultos 18+") listOf(Color(0xFFA81761), Color(0xFF3B0A2B))
+                    else listOf(Color(0xFF075DB4), Color(0xFF10284F))
+                ) else Brush.horizontalGradient(listOf(Color.Transparent, Color.Transparent))
             )
+            .then(if (selected) Modifier.border(1.dp, if (item.label == "Adultos 18+") PremiumPink else PremiumCyan, RoundedCornerShape(10.dp)) else Modifier)
             .clickable(onClick = onClick)
             .padding(horizontal = if (compact) 12.dp else 10.dp, vertical = if (compact) 10.dp else 9.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(item.icon, item.label, tint = if (selected) Color(0xFFFF72B9) else Color(0xFFD6D0DE), modifier = Modifier.size(20.dp))
+        Icon(item.icon, item.label, tint = if (item.label == "Adultos 18+") PremiumPink else if (selected) PremiumCyan else Color(0xFFD6D0DE), modifier = Modifier.size(20.dp))
         Spacer(Modifier.width(if (compact) 11.dp else 10.dp))
         Text(
             item.label,
@@ -214,15 +218,16 @@ private fun SidebarBrandFooter() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        Icon(Icons.Default.LiveTv, null, tint = PremiumCyan, modifier = Modifier.size(24.dp))
-        Text("MILTVPLUS · 100 % GRATIS", color = Color.White, fontWeight = FontWeight.Black, fontSize = 10.sp)
+        Icon(Icons.Default.EmojiEvents, null, tint = PremiumGold, modifier = Modifier.size(24.dp))
+        Text("MILTVPLUS Premium", color = PremiumGold, fontWeight = FontWeight.Black, fontSize = 11.sp)
+        Text("Experiencia completa · 100 % gratuita", color = Color(0xFFFFE7B0), fontSize = 8.sp)
         Text("Sin anuncios · Sin pagos · Sin suscripciones", color = Color(0xFFD6E8FF), fontSize = 8.sp)
         Text("🇦🇷", fontSize = 15.sp)
     }
 }
 
 @Composable
-fun PremiumAppTopBar(activeTab: String, onSearch: (String) -> Unit, onSettings: () -> Unit, onAccount: () -> Unit) {
+fun PremiumAppTopBar(activeTab: String, onSearch: (String) -> Unit, onAccount: () -> Unit) {
     var query by remember { mutableStateOf("") }
     var showNotifications by remember { mutableStateOf(false) }
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
@@ -265,9 +270,6 @@ fun PremiumAppTopBar(activeTab: String, onSearch: (String) -> Unit, onSettings: 
             )
             IconButton(onClick = { showNotifications = true }, modifier = Modifier.size(38.dp)) {
                 Icon(Icons.Default.NotificationsNone, "Notificaciones", tint = Color.White)
-            }
-            IconButton(onClick = onSettings, modifier = Modifier.size(38.dp)) {
-                Icon(Icons.Default.Settings, "Configuración", tint = Color.White)
             }
             if (!narrow) IconButton(onClick = onAccount, modifier = Modifier.size(38.dp)) { Icon(Icons.Default.AccountCircle, "Mi perfil", tint = Color.White) }
         }

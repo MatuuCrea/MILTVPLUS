@@ -175,6 +175,7 @@ fun SettingsScreen(
     var language by remember { mutableStateOf(prefs.getString("language", "es") ?: "es") }
     var audioLanguage by remember { mutableStateOf(prefs.getString("audio_language", "original") ?: "original") }
     var accent by remember { mutableStateOf(prefs.getString("accent_color", "electric-blue") ?: "electric-blue") }
+    var quality by remember { mutableStateOf(prefs.getString("video_quality", "auto") ?: "auto") }
     var keepScreenOn by remember { mutableStateOf(prefs.getBoolean("keep_screen_on", false)) }
     var musicVolume by remember { mutableFloatStateOf(prefs.getFloat("music_volume", 1f).coerceIn(0f, 1f)) }
     var message by remember { mutableStateOf<String?>(null) }
@@ -189,6 +190,7 @@ fun SettingsScreen(
             .putString("language", language)
             .putString("audio_language", audioLanguage)
             .putString("accent_color", accent)
+            .putString("video_quality", quality)
             .putBoolean("keep_screen_on", keepScreenOn)
             .putFloat("music_volume", musicVolume)
             .apply()
@@ -216,13 +218,22 @@ fun SettingsScreen(
         Modifier.fillMaxWidth().padding(18.dp).verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Text("Personalización", style = MaterialTheme.typography.headlineSmall)
+        Text("Configuración", style = MaterialTheme.typography.headlineSmall)
+        Text("General", style = MaterialTheme.typography.titleMedium)
         Text("Apariencia", style = MaterialTheme.typography.titleMedium)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf("dark" to "Oscuro", "light" to "Claro", "system" to "Sistema").forEach { (value, label) ->
                 FilterChip(selected = theme == value, onClick = { theme = value; persist() }, label = { Text(label) })
             }
         }
+        Text("Reproductor", style = MaterialTheme.typography.titleMedium)
+        Text("Calidad de Video", style = MaterialTheme.typography.titleSmall)
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            listOf("auto" to "Automática").forEach { (value, label) ->
+                FilterChip(selected = quality == value, onClick = { quality = value; persist() }, label = { Text(label) })
+            }
+        }
+        SettingSwitch("Modo Oscuro", theme == "dark") { theme = if (it) "dark" else "light"; persist() }
         Text("Color de acento", style = MaterialTheme.typography.titleMedium)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf("electric-blue" to "Azul eléctrico", "violet" to "Violeta", "emerald" to "Verde").forEach { (value, label) ->
@@ -231,7 +242,6 @@ fun SettingsScreen(
         }
         HorizontalDivider()
         SettingSwitch("Subtítulos habilitados", subtitles) { subtitles = it; persist() }
-        SettingSwitch("Preferencia de notificaciones", notifications) { notifications = it; persist() }
         SettingSwitch("Reproducción automática", autoplay) { autoplay = it; persist() }
         HorizontalDivider()
         Text("Reproducción y dispositivo", style = MaterialTheme.typography.titleMedium)
@@ -254,11 +264,33 @@ fun SettingsScreen(
         Text("La preferencia de notificaciones se sincroniza; la entrega de avisos push/reminders requiere un servicio de eventos aún no desplegado. Las pistas de audio y subtítulos dependen de cada proveedor. Estos ajustes seleccionan la preferencia; no crean pistas que el stream no incluya.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         message?.let { Text(it, color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.bodySmall) }
         HorizontalDivider()
+        Text("EPG · Países y Canales · Favoritos", style = MaterialTheme.typography.titleMedium)
+        Text("La guía, los países y los favoritos se muestran según los datos publicados y disponibles en tu cuenta. Los filtros regionales no amplían derechos de reproducción.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text("Notificaciones", style = MaterialTheme.typography.titleMedium)
+        SettingSwitch("Preferencia de notificaciones", notifications) { notifications = it; persist() }
+        Text("Acerca de", style = MaterialTheme.typography.titleMedium)
+        HorizontalDivider()
         Text("Privacidad y seguridad", style = MaterialTheme.typography.titleMedium)
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text("Control Parental · Protección +18 activa", Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+            Switch(checked = true, onCheckedChange = {}, enabled = false)
+        }
+        Text("La sección de Adultos requiere su propio control de acceso y permanece vacía; la protección se aplica también en el servidor.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text("Las sesiones Android se cifran con Android Keystore; los datos de cuenta se aíslan con RLS. No se integra publicidad ni analítica de terceros en esta versión. Podés cerrar sesión desde Cuenta y administrar el acceso +18 desde su sección.", style = MaterialTheme.typography.bodySmall)
         Text("Créditos de catálogo: This product uses the TMDB API but is not endorsed or certified by TMDB. TMDB aporta metadatos e imágenes, no derechos de reproducción. Más información: themoviedb.org/about/logos-attribution.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         HorizontalDivider()
         AppUpdateSection()
+        OutlinedButton(onClick = {
+            theme = "dark"; subtitles = true; notifications = true; autoplay = false
+            language = "es"; audioLanguage = "original"; accent = "electric-blue"
+            keepScreenOn = false; musicVolume = 1f; quality = "auto"
+            persist()
+            message = "Configuración restablecida."
+        }, modifier = Modifier.fillMaxWidth()) {
+            Icon(Icons.Default.RestartAlt, null)
+            Spacer(Modifier.width(8.dp))
+            Text("Restablecer Configuración")
+        }
         Text("Accesibilidad", style = MaterialTheme.typography.titleMedium)
         Text("Se respeta la escala de fuente y las opciones de accesibilidad del sistema Android. La navegación por control remoto usa grupos de foco Compose; requiere pruebas físicas en Android TV.", style = MaterialTheme.typography.bodySmall)
         Text("Android móvil, Android TV y TV Box Android comparten este cliente. El portal web oficial distribuye información y descargas; no es una aplicación de streaming ni una PWA.", style = MaterialTheme.typography.bodySmall)
@@ -274,17 +306,19 @@ private fun SettingSwitch(label: String, checked: Boolean, onChange: (Boolean) -
 }
 
 @Composable
-fun CountryPickerScreen(onCountrySelected: (CountryOption) -> Unit) {
+fun CountryPickerScreen(channelCounts: Map<String, Int> = emptyMap(), onCountrySelected: (CountryOption) -> Unit) {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("miltvplus_preferences", Context.MODE_PRIVATE) }
     var selected by remember { mutableStateOf(prefs.getString("country_code", "AR") ?: "AR") }
     var search by remember { mutableStateOf("") }
+    val featuredCodes = listOf("AR", "US", "ES", "MX", "CO", "CL", "BR")
+    val orderedCountries = remember { AppDirectory.countries.sortedBy { featuredCodes.indexOf(it.code).let { index -> if (index < 0) Int.MAX_VALUE else index } } }
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         Text("Países y regiones", style = MaterialTheme.typography.headlineSmall)
         Text("El país filtra el catálogo; no modifica licencias ni habilita contenidos no disponibles.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         OutlinedTextField(search, { search = it }, Modifier.fillMaxWidth(), label = { Text("Buscar país") }, singleLine = true)
-        LazyColumn {
-            items(AppDirectory.countries.filter { it.name.contains(search, true) || it.code.contains(search, true) }, key = { it.code }) { country ->
+        LazyColumn(Modifier.weight(1f)) {
+            items(orderedCountries.filter { it.name.contains(search, true) || it.code.contains(search, true) }, key = { it.code }) { country ->
                 Row(
                     Modifier.fillMaxWidth().clickable {
                         selected = country.code
@@ -294,11 +328,27 @@ fun CountryPickerScreen(onCountrySelected: (CountryOption) -> Unit) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(country.flag, style = MaterialTheme.typography.titleLarge)
-                    Text(country.name, Modifier.weight(1f).padding(start = 12.dp))
+                    Column(Modifier.weight(1f).padding(start = 12.dp)) {
+                        Text(country.name)
+                        Text(channelCounts[country.code]?.let { "Canales publicados: $it" } ?: "Canales publicados: —", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                     if (selected == country.code) Icon(Icons.Default.CheckCircle, null, tint = MaterialTheme.colorScheme.primary)
                 }
                 HorizontalDivider()
             }
+        }
+        val phrase = when (selected) {
+            "AR" -> "Argentina - Siempre en tu corazón 🇦🇷"
+            "US" -> "Estados Unidos · Un mundo de historias 🇺🇸"
+            "ES" -> "España · Cultura que nos une 🇪🇸"
+            "MX" -> "México · Tradición y emoción 🇲🇽"
+            "CO" -> "Colombia · Pasión que se comparte 🇨🇴"
+            "CL" -> "Chile · Un país, mil paisajes 🇨🇱"
+            "BR" -> "Brasil · Ritmo y alegría 🇧🇷"
+            else -> AppDirectory.countries.firstOrNull { it.code == selected }?.let { "${it.name} · Tu cultura en pantalla ${it.flag}" } ?: "Tu mundo en MILTVPLUS"
+        }
+        Card(Modifier.fillMaxWidth().padding(top = 10.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF0D2852))) {
+            Text(phrase, Modifier.padding(18.dp), color = Color.White, fontWeight = FontWeight.SemiBold)
         }
     }
 }
@@ -314,7 +364,6 @@ fun AdultAccessScreen(
     val screenScrollState = rememberScrollState()
     val screenScope = rememberCoroutineScope()
     val store = remember { ParentalAccessStore(context) }
-    val catalog = remember { SupabaseCatalogRepository() }
     var ageConfirmed by remember { mutableStateOf(store.ageConfirmed) }
     var pinExists by remember { mutableStateOf(store.hasPin) }
     var unlocked by remember { mutableStateOf(false) }
@@ -334,30 +383,9 @@ fun AdultAccessScreen(
     }
     var catalogRefresh by remember { mutableIntStateOf(0) }
     LaunchedEffect(unlocked, countryCode, catalogRefresh) {
-        if (unlocked) {
-            var firstLoad = true
-            while (true) {
-                // Keep existing cards visible during background refreshes; show the spinner
-                // only on the first load or when the catalog is currently empty.
-                if (firstLoad || adultItems.isEmpty()) loading = true
-                catalog.fetchPublished("catalog_items", countryCode)
-                    .onSuccess { rows ->
-                        adultItems = rows.filter {
-                            val rating = it.ageRating?.trim()?.uppercase().orEmpty()
-                            rating.contains("18") || rating in setOf("NC-17","R18","TV-MA","MA","AO","ADULT","ADULTS ONLY")
-                        }
-                        message = null
-                    }
-                    .onFailure { message = "No se pudo actualizar el catálogo +18. Se conserva el contenido anterior si estaba disponible: ${it.message}" }
-                loading = false
-                firstLoad = false
-                // Refresh every five minutes while the protected section remains unlocked.
-                kotlinx.coroutines.delay(5 * 60 * 1000L)
-            }
-        } else {
-            adultItems = emptyList()
-            loading = false
-        }
+        adultItems = emptyList()
+        loading = false
+        message = "La sección +18 conserva su diseño, pero permanece bloqueada y sin consultar ni cargar URLs de contenido."
     }
 
     Column(

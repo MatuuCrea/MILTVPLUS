@@ -22,15 +22,27 @@
       <ControlTemplate.Triggers>
        <Trigger Property="IsSelected" Value="True">
         <Setter TargetName="ItemBorder" Property="Background">
-         <Setter.Value><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#94104F"/><GradientStop Color="#42102F" Offset="1"/></LinearGradientBrush></Setter.Value>
+         <Setter.Value><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#075DB4"/><GradientStop Color="#10284F" Offset="1"/></LinearGradientBrush></Setter.Value>
         </Setter>
         <Setter Property="Foreground" Value="White"/>
         <Setter Property="FontWeight" Value="Bold"/>
+        <Setter TargetName="ItemBorder" Property="BorderBrush" Value="#16C8F2"/>
+        <Setter TargetName="ItemBorder" Property="BorderThickness" Value="1"/>
        </Trigger>
        <Trigger Property="IsMouseOver" Value="True">
         <Setter TargetName="ItemBorder" Property="BorderBrush" Value="#68405B"/>
         <Setter TargetName="ItemBorder" Property="BorderThickness" Value="1"/>
        </Trigger>
+       <MultiDataTrigger>
+        <MultiDataTrigger.Conditions>
+         <Condition Binding="{Binding IsSelected, RelativeSource={RelativeSource TemplatedParent}}" Value="True"/>
+         <Condition Binding="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}" Value="Adultos 18+"/>
+        </MultiDataTrigger.Conditions>
+        <Setter TargetName="ItemBorder" Property="Background">
+         <Setter.Value><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#A81761"/><GradientStop Color="#3B0A2B" Offset="1"/></LinearGradientBrush></Setter.Value>
+        </Setter>
+        <Setter TargetName="ItemBorder" Property="BorderBrush" Value="#FF4D9D"/>
+       </MultiDataTrigger>
       </ControlTemplate.Triggers>
      </ControlTemplate>
     </Setter.Value>
@@ -60,8 +72,9 @@
      <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#49300D"/><GradientStop Color="#1C1020" Offset="1"/></LinearGradientBrush></Border.Background>
      <StackPanel HorizontalAlignment="Center">
       <TextBlock Text="♛" FontSize="25" Foreground="#FFC247" HorizontalAlignment="Center"/>
-      <TextBlock Text="MILTVPLUS · 100 % GRATIS" FontWeight="Bold" FontSize="12" Foreground="White" HorizontalAlignment="Center"/>
-      <TextBlock Text="Sin anuncios · Sin pagos · Sin suscripciones" FontSize="9" Foreground="#FFD98A" HorizontalAlignment="Center" Margin="0,3,0,5"/>
+      <TextBlock Text="MILTVPLUS Premium" FontWeight="Bold" FontSize="12" Foreground="#FFC247" HorizontalAlignment="Center"/>
+      <TextBlock Text="Experiencia completa · 100 % gratuita" FontSize="9" Foreground="#FFD98A" HorizontalAlignment="Center" Margin="0,3,0,2"/>
+      <TextBlock Text="Sin anuncios · Sin pagos · Sin suscripciones" FontSize="8" Foreground="#D6E8FF" HorizontalAlignment="Center" Margin="0,0,0,5"/>
       <Border Height="5" CornerRadius="4"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#7DD3FC"/><GradientStop Color="White" Offset=".5"/><GradientStop Color="#7DD3FC" Offset="1"/></LinearGradientBrush></Border.Background></Border>
       <TextBlock Text="🇦🇷" HorizontalAlignment="Center" Margin="0,4,0,0"/>
      </StackPanel>
@@ -70,20 +83,29 @@
              SelectionChanged="Sections_SelectionChanged" ScrollViewer.VerticalScrollBarVisibility="Auto">
      <ListBoxItem Content="⌂   Inicio" Tag="Inicio" IsSelected="True"/>
      <ListBoxItem Content="▣   TV en Vivo" Tag="TV en vivo"/>
-     <ListBoxItem Content="▦   Guía EPG" Tag="Guía EPG"/>
-     <ListBoxItem Content="▤   Películas" Tag="Películas"/>
-     <ListBoxItem Content="▧   Series" Tag="Series"/>
+     <ListBoxItem Content="▧   Películas" Tag="Películas"/>
+     <ListBoxItem Content="▤   Series" Tag="Series"/>
      <ListBoxItem Content="🏆   Deportes" Tag="Deportes"/>
      <ListBoxItem Content="☺   Infantil" Tag="Infantil"/>
      <ListBoxItem Content="▤   Documentales" Tag="Documentales"/>
      <ListBoxItem Content="♫   Música" Tag="Música"/>
-     <ListBoxItem Content="◉   Radios" Tag="Radios"/>
-     <ListBoxItem Content="▣   Teatro" Tag="Teatro"/>
-     <ListBoxItem Content="◎   Países" Tag="Países"/>
      <ListBoxItem Content="🔞   Adultos 18+" Tag="Adultos 18+"/>
      <ListBoxItem Content="☆   Favoritos" Tag="Favoritos"/>
      <ListBoxItem Content="⚙   Configuración" Tag="Configuración"/>
-     <ListBoxItem Content="•••   Más Opciones" Tag="Más Opciones"/>
+     <ListBoxItem Content="•••   Más Opciones" Tag="Más Opciones" PreviewMouseLeftButtonDown="MoreOptions_MouseLeftButtonDown">
+      <ListBoxItem.ContextMenu>
+       <ContextMenu>
+        <MenuItem Header="Guía EPG" Click="MoreEpg_Click"/>
+        <MenuItem Header="Países" Click="MoreCountries_Click"/>
+        <MenuItem Header="Radios" Click="MoreRadios_Click"/>
+        <MenuItem Header="Teatro" Click="MoreTheater_Click"/>
+       </ContextMenu>
+      </ListBoxItem.ContextMenu>
+     </ListBoxItem>
+     <ListBoxItem Tag="Guía EPG" Visibility="Collapsed"/>
+     <ListBoxItem Tag="Países" Visibility="Collapsed"/>
+     <ListBoxItem Tag="Radios" Visibility="Collapsed"/>
+     <ListBoxItem Tag="Teatro" Visibility="Collapsed"/>
     </ListBox>
     <TextBlock DockPanel.Dock="Bottom" Text="Señales públicas y fuentes autorizadas" Foreground="#8192B3" FontSize="9" TextWrapping="Wrap" Margin="5,8,5,0"/>
    </DockPanel>
@@ -106,7 +128,6 @@
     <ScrollViewer x:Name="ToolbarScroll" DockPanel.Dock="Right" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" MaxWidth="720">
     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
      <Button Content="♧" ToolTip="Notificaciones" Click="OpenNotifications_Click" Padding="10,7"/>
-     <Button Content="⚙" ToolTip="Configuración" Click="OpenSettings_Click" Padding="10,7"/>
      <Button Content="◉" ToolTip="Mi perfil" Click="OpenAccount_Click" Padding="10,7"/>
      <Button Content="Importar M3U/M3U8" Click="ImportM3u_Click" Background="#26365D"/>
      <Button Content="Buscar actualizaciones" Click="CheckUpdates_Click" Background="#26365D"/>
@@ -194,7 +215,7 @@
       </Border>
       <StackPanel Grid.Column="1" Margin="16,0" VerticalAlignment="Center">
        <TextBlock Text="♛  CONTENIDO ADULTO" Foreground="#FFC247" FontSize="10" FontWeight="Bold"/>
-       <TextBlock Text="Experiencia privada +18" Foreground="White" FontSize="24" FontWeight="Black"/>
+       <TextBlock Text="Contenido Adulto" Foreground="White" FontSize="24" FontWeight="Black"/>
        <TextBlock Text="Solo publicaciones clasificadas y verificadas · Acceso protegido por PIN" Foreground="#FFD8E9" FontSize="11"/>
       </StackPanel>
       <TextBlock Grid.Column="2" Text="♡" Foreground="#FF4D9D" FontSize="42" VerticalAlignment="Center"/>
@@ -205,12 +226,12 @@
      <Button Content="🔥&#x0a;Eróticos" Tag="Eróticos" Click="AdultCategory_Click" Background="#65152F" Margin="2"/>
      <Button Content="💞&#x0a;Parejas" Tag="Parejas" Click="AdultCategory_Click" Background="#511044" Margin="2"/>
      <Button Content="⭐&#x0a;Hot" Tag="Hot" Click="AdultCategory_Click" Background="#5C183C" Margin="2"/>
-     <Button Content="💎&#x0a;Destacados" Tag="Destacados" Click="AdultCategory_Click" Background="#102E70" Margin="2"/>
+     <Button Content="💎&#x0a;Premium" Tag="Premium" Click="AdultCategory_Click" Background="#102E70" Margin="2"/>
      <Button Content="🔞&#x0a;Solo Adultos" Tag="Solo Adultos" Click="AdultCategory_Click" Background="#68152A" Margin="2"/>
     </UniformGrid>
     <DockPanel Margin="2,3,2,5">
      <TextBlock Text="▶  Recomendados para vos" Foreground="White" FontSize="16" FontWeight="Bold"/>
-     <TextBlock Text="Basados en el catálogo real publicado" Foreground="#FF9CCB" FontSize="10" HorizontalAlignment="Right"/>
+     <TextBlock Text="Contenido vacío y protegido" Foreground="#FF9CCB" FontSize="10" HorizontalAlignment="Right"/>
     </DockPanel>
     <UniformGrid Columns="4">
      <TextBlock Text="🛡  Contenido seguro" Foreground="#FFD8E9" FontSize="9" Margin="5"/>
@@ -226,6 +247,7 @@
     </StackPanel>
     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
      <ComboBox x:Name="CountryFilter" Width="125" Height="36" Margin="4,0" VerticalContentAlignment="Center" SelectionChanged="Filter_SelectionChanged" ToolTip="Filtrar por país"/>
+      <TextBlock x:Name="CountryPhrase" Text="Argentina · Siempre en tu corazón 🇦🇷" Foreground="#7DD3FC" FontSize="10" VerticalAlignment="Center" Margin="6,0" TextTrimming="CharacterEllipsis" MaxWidth="180"/>
      <ComboBox x:Name="CategoryFilter" Width="145" Height="36" Margin="4,0" VerticalContentAlignment="Center" SelectionChanged="Filter_SelectionChanged" ToolTip="Filtrar por categoría"/>
      <Button Content="◀ Anterior" Click="PreviousAnyChannel_Click" Padding="10,7"/>
      <Button Content="Siguiente ▶" Click="NextAnyChannel_Click" Padding="10,7"/>

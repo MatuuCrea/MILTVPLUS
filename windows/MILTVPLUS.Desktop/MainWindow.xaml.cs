@@ -203,7 +203,20 @@ public partial class MainWindow : Window
 
     private void Filter_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (IsLoaded && !_updatingFilters) ApplySearch();
+        if (!IsLoaded || _updatingFilters) return;
+        var code = CountryFilter.SelectedItem?.ToString() ?? "Todos";
+        CountryPhrase.Text = code switch
+        {
+            "AR" => "Argentina - Siempre en tu corazón 🇦🇷",
+            "US" => "Estados Unidos · Un mundo de historias 🇺🇸",
+            "ES" => "España · Cultura que nos une 🇪🇸",
+            "MX" => "México · Tradición y emoción 🇲🇽",
+            "CO" => "Colombia · Pasión que se comparte 🇨🇴",
+            "CL" => "Chile · Un país, mil paisajes 🇨🇱",
+            "BR" => "Brasil · Ritmo y alegría 🇧🇷",
+            _ => "Desde Argentina para el mundo 🇦🇷"
+        };
+        ApplySearch();
     }
 
     private async void Refresh_Click(object sender, RoutedEventArgs e) => await LoadCatalog();
@@ -443,12 +456,10 @@ public partial class MainWindow : Window
             CatalogScroll.Visibility = Visibility.Visible;
             Grid.SetRow(CatalogScroll, 3);
             Grid.SetRowSpan(CatalogScroll, 2);
-            table = "catalog_items";
-            select = "id,title,description,country_code,created_at,kind,genre,release_year,age_rating,poster_url,stream_url";
-            order = "created_at.desc";
-            kind = null;
-            await LoadCatalog();
+            entries = [];
+            CatalogScroll.ItemsSource = entries;
             PageTitle.Text = "Adultos 18+";
+            StatusText.Text = "Acceso local confirmado. El panel conserva su diseño, pero el catálogo permanece vacío y sin URLs activas.";
         }
         catch (Exception ex)
         {
@@ -572,6 +583,27 @@ public partial class MainWindow : Window
         _libVlc.Dispose();
     }
 
+    private void MoreOptions_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is ListBoxItem item && item.ContextMenu is ContextMenu menu)
+        {
+            menu.PlacementTarget = item;
+            menu.IsOpen = true;
+            e.Handled = true;
+        }
+    }
+
+    private void NavigateMoreSection(string tag)
+    {
+        var destination = Sections.Items.OfType<ListBoxItem>().FirstOrDefault(item => item.Tag?.ToString() == tag);
+        if (destination is not null) Sections.SelectedItem = destination;
+    }
+
+    private void MoreEpg_Click(object sender, RoutedEventArgs e) => NavigateMoreSection("Guía EPG");
+    private void MoreCountries_Click(object sender, RoutedEventArgs e) => NavigateMoreSection("Países");
+    private void MoreRadios_Click(object sender, RoutedEventArgs e) => NavigateMoreSection("Radios");
+    private void MoreTheater_Click(object sender, RoutedEventArgs e) => NavigateMoreSection("Teatro");
+
     private async void Sections_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!IsLoaded || Sections.SelectedItem is not ListBoxItem item) return;
@@ -585,7 +617,7 @@ public partial class MainWindow : Window
         AdultGatePanel.Visibility = isAdult && !_adultUnlocked ? Visibility.Visible : Visibility.Collapsed;
         AdultPanel.Visibility = isAdult && _adultUnlocked ? Visibility.Visible : Visibility.Collapsed;
         VideoContainer.Visibility = isAdult || section == "Música" || section == "Configuración" ? Visibility.Collapsed : Visibility.Visible;
-        CatalogScroll.Visibility = section == "Configuración" || (isAdult && !_adultUnlocked) ? Visibility.Collapsed : Visibility.Visible;
+        CatalogScroll.Visibility = section == "Configuración" || isAdult ? Visibility.Collapsed : Visibility.Visible;
         Grid.SetRow(CatalogScroll, isAdult || section == "Música" ? 3 : 4);
         Grid.SetRowSpan(CatalogScroll, isAdult || section == "Música" ? 2 : 1);
         if (section == "Configuración")
@@ -594,6 +626,14 @@ public partial class MainWindow : Window
             CatalogScroll.ItemsSource = entries;
             PageTitle.Text = "Configuración";
             StatusText.Text = "Administrá actualizaciones, comportamiento de ventana y volumen de reproducción.";
+            return;
+        }
+        if (isAdult)
+        {
+            entries = [];
+            CatalogScroll.ItemsSource = entries;
+            PageTitle.Text = "Contenido Adulto";
+            StatusText.Text = "Catálogo +18 vacío y protegido. No se consultan ni se cargan URLs activas.";
             return;
         }
         if (isAdult && !_adultUnlocked)

@@ -259,39 +259,17 @@ class MainActivity:ComponentActivity(){
     val deviceConfiguration = androidx.compose.ui.platform.LocalConfiguration.current
     val isTelevision = (deviceConfiguration.uiMode and android.content.res.Configuration.UI_MODE_TYPE_MASK) == android.content.res.Configuration.UI_MODE_TYPE_TELEVISION ||
         context.packageManager.hasSystemFeature("amazon.hardware.fire_tv")
-    // TV interfaces always use the side navigation, even on low-resolution/720p panels.
-    val compactWidth = deviceConfiguration.screenWidthDp < 840 && !isTelevision
+    val compactSidebar = !isTelevision && deviceConfiguration.screenWidthDp < 600
     Scaffold(
         containerColor = bg,
-        bottomBar = {
-            if (compactWidth) {
-                NavigationBar(containerColor = MaterialTheme.colorScheme.surface) {
-                    listOf(
-                        Triple("Inicio", Icons.Default.Home, "Inicio"),
-                        Triple("TV en Vivo", Icons.Default.LiveTv, "TV"),
-                        Triple("Fuentes", Icons.Default.PlaylistAdd, "Fuentes"),
-                        Triple("Favoritos", Icons.Default.Favorite, "Favoritos"),
-                        Triple("Configuración", Icons.Default.Settings, "Ajustes")
-                    ).forEach { (destination, icon, label) ->
-                        NavigationBarItem(
-                            selected = activeNavigation == destination || (destination == "TV en Vivo" && tab == "TV"),
-                            onClick = { navigateTo(destination) },
-                            icon = { Icon(icon, contentDescription = label) },
-                            label = { Text(label, maxLines = 1) },
-                            alwaysShowLabel = true
-                        )
-                    }
-                }
-            }
-        }
     ) { pad ->
         Row(Modifier.fillMaxSize().padding(pad)) {
-            if (!compactWidth) PremiumSidebar(activeNavigation, navigateTo)
+            PremiumSidebar(activeNavigation, navigateTo, compactMode = compactSidebar)
             Column(
                 Modifier.weight(1f).fillMaxHeight()
                     .background(Brush.verticalGradient(listOf(Color(0xFF08080A),Color(0xFF0B0B0E),Color(0xFF08080A))))
             ) {
-            PremiumAppTopBar(tab,onSearch={value -> query=value; if(value.isNotBlank() && tab=="Inicio") tab="Catálogo"},onSettings={tab="Ajustes"},onAccount={tab="Cuenta"})
+            PremiumAppTopBar(tab,onSearch={value -> query=value; if(value.isNotBlank() && tab=="Inicio") tab="Catálogo"},onAccount={tab="Cuenta"})
 
         updateNotice?.let { version -> TextButton(onClick={tab="Ajustes"}) { Text("ACTUALIZACIÓN DISPONIBLE · $version",color=orange,fontSize=10.sp) } }
         when(tab){
@@ -430,7 +408,7 @@ class MainActivity:ComponentActivity(){
                     item.actionUrl?.let { vm.play(Channel(item.id,item.title,it,item.subtitle,item.artworkUrl)) }
                 }
             }
-            "Países"->{CountryPickerScreen { country ->
+            "Países"->{CountryPickerScreen(channelCounts = remoteItems.mapNotNull { item -> item.countryCode?.let { it to 1 } }.groupingBy { it.first }.eachCount()) { country ->
                 countryCode=country.code
                 val prefs=context.getSharedPreferences("miltvplus_preferences",0)
                 uiScope.launch { if(authSession!=null) runCatching { userRepository.savePreferences(prefs.getString("theme","dark")?:"dark",country.code,prefs.getString("language","es")?:"es",prefs.getBoolean("subtitles",true),prefs.getBoolean("notifications",true),prefs.getBoolean("autoplay",false),prefs.getString("accent_color","electric-blue")?:"electric-blue",prefs.getString("audio_language","original")?.takeIf{it!="original"}) } }
