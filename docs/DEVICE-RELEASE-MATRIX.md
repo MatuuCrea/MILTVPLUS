@@ -28,9 +28,17 @@ Este documento define lo que debe existir y probarse antes de declarar cada plat
 - **Pruebas:** instalación y desinstalación en Windows limpio, primer inicio sin .NET preinstalado y con/sin WebView2 Runtime, actualización, permisos, catálogo, reproducción HLS/HTTPS autorizada mediante LibVLC, apertura de páginas oficiales con WebView2, cambio de canal, pantalla completa, importación M3U limitada, audio, escalado DPI y errores.
 - **Alcance actual:** el cliente Windows es una base funcional en desarrollo; aún no tiene paridad Android en autenticación, favoritos, PIN parental, ajustes, EPG y otras funciones. No anunciar equivalencia hasta implementar y probar esas áreas.
 
-## Samsung Tizen y LG webOS
-- **Paquete:** aplicaciones nativas independientes para Tizen y webOS, con SDK, manifiestos, iconos, controles remotos, firma y distribución propios.
-- **Estado:** no forman parte de las versiones Android o Windows actuales. Un APK no se instala directamente como app nativa en esos televisores.
+## Samsung Tizen
+- **Proyecto nativo inicial:** `platforms/tizen/`; manifiesto TV, icono de marca, catálogo Supabase publicado, foco remoto, flechas/OK/BACK y adaptador AVPlay para HLS/DASH HTTPS autorizados.
+- **Paquete:** WGT firmado por Tizen Studio y perfil/certificado Samsung TV.
+- **Estado:** código integrado; SDK, certificado del propietario, compilación WGT y QA por generación/modelo todavía pendientes. AVPlay y codecs varían por modelo.
+
+## LG webOS
+- **Proyecto nativo inicial:** `platforms/webos/`; appinfo, iconos, catálogo Supabase publicado, foco remoto, flechas/OK/BACK y HTML5 video para formatos admitidos.
+- **Paquete:** IPK firmado por el flujo oficial webOS TV SDK/CLI.
+- **Estado:** código integrado; SDK, firma, compilación IPK y QA por versión/modelo todavía pendientes. HTML5 video no garantiza soporte universal HLS/DASH.
+
+Un APK no se instala directamente en Tizen o webOS. Ver `docs/NATIVE-TV-CLIENTS.md`.
 
 ## Web oficial
 - **Función actual:** portal informativo, novedades, ayuda y distribución de instaladores oficiales cuando estén listos.
