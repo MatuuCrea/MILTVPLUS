@@ -256,11 +256,15 @@ class MainActivity:ComponentActivity(){
         else -> tab
     }
 
+    val deviceConfiguration = androidx.compose.ui.platform.LocalConfiguration.current
+    val isTelevision = (deviceConfiguration.uiMode and android.content.res.Configuration.UI_MODE_TYPE_MASK) == android.content.res.Configuration.UI_MODE_TYPE_TELEVISION ||
+        context.packageManager.hasSystemFeature("amazon.hardware.fire_tv")
+    val compactSidebar = !isTelevision && deviceConfiguration.screenWidthDp < 600
     Scaffold(
         containerColor = bg,
     ) { pad ->
         Row(Modifier.fillMaxSize().padding(pad)) {
-            PremiumSidebar(activeNavigation, navigateTo)
+            PremiumSidebar(activeNavigation, navigateTo, compactMode = compactSidebar)
             Column(
                 Modifier.weight(1f).fillMaxHeight()
                     .background(Brush.verticalGradient(listOf(Color(0xFF08080A),Color(0xFF0B0B0E),Color(0xFF08080A))))
