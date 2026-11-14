@@ -33,10 +33,13 @@ class SmartTvClientTests(unittest.TestCase):
             self.assertIn("sb_publishable_", source)
             self.assertNotIn("service_role", source.lower())
 
-    def test_direct_playback_requires_https_and_explicit_type(self):
-        for path in ("platforms/tizen/app.js", "platforms/webos/app.js"):
-            source = (ROOT / path).read_text(encoding="utf-8")
-            self.assertIn('c.playback_type==="hls"||c.playback_type==="dash"', source)
+    def test_direct_playback_requires_platform_supported_type_and_https(self):
+        tizen = (ROOT / "platforms/tizen/app.js").read_text(encoding="utf-8")
+        webos = (ROOT / "platforms/webos/app.js").read_text(encoding="utf-8")
+        self.assertIn('c.playback_type==="hls"||c.playback_type==="dash"', tizen)
+        self.assertIn('c.playback_type==="hls"', webos)
+        self.assertNotIn('c.playback_type==="hls"||c.playback_type==="dash"', webos)
+        for source in (tizen, webos):
             self.assertIn('x.protocol==="https:"', source)
             self.assertIn("official", source.lower())
 
