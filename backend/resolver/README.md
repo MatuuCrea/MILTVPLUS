@@ -59,7 +59,7 @@ Country is an ISO 3166-1 alpha-2 code; `global` is accepted for directory browsi
 
 ## Adult catalogue protection
 
-Migration `20261114120000_adult_catalog_access_gate.sql` adds `is_adult_content` and updates the database read policy. Adult rows are hidden by RLS unless the signed-in user has a self-attested 18+ consent record. The resolver checks the user's Supabase session and consent again before returning adult rows.
+Migration `20261114120000_adult_catalog_access_gate.sql` adds `is_adult_content` and updates the database read policy. Adult rows are hidden by RLS unless the signed-in user has a self-attested 18+ consent record. The resolver checks the user's Supabase session and consent, but this release intentionally returns an empty adult catalogue and rejects every adult playback resolution. The +18 UI remains isolated and has no active stream URLs.
 
 This is an access-control gate, **not formal identity or legal-age verification**. Do not describe it as such.
 
