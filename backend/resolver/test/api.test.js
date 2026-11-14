@@ -135,9 +135,10 @@ test("music catalog is isolated and redacts streams without active regional righ
   const body = await response.json();
   assert.equal(response.status, 200);
   assert.equal(body.category, "musica");
-  assert.equal(body.count, 2);
+  assert.equal(body.count, 3);
   assert.equal(body.items.find((item) => item.title === "Licensed song").stream_url, "https://audio.example/track.mp3");
   assert.equal(body.items.find((item) => item.title === "Unlicensed song").stream_url, null);
+  assert.equal(body.items.find((item) => item.title === "External-only listing").stream_url, null);
 });
 
 test("music resolver returns only direct audio streams and never a browser fallback", async () => {
