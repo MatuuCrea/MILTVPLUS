@@ -135,7 +135,7 @@ fun MusicExperience(
         when {
             loading && entries.isEmpty() -> Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) { CircularProgressIndicator(color = MusicPink) }
             error != null && entries.isEmpty() -> MusicEmptyState("No pudimos conectar con la música", "Revisá tu conexión e intentá actualizar. Tus listas no se modificaron.", error)
-            visible.isEmpty() -> MusicEmptyState("Este espacio está esperando canciones", "Pronto vas a poder encontrar acá música publicada por MILTVPLUS. Mientras tanto, explorá servicios oficiales o volvé más tarde.", null)
+            visible.isEmpty() -> MusicEmptyState("Este espacio está esperando canciones", "Pronto vas a poder encontrar acá música publicada por MILTVPLUS. Volvé más tarde para descubrir nuevas publicaciones.", null)
             else -> LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(bottom = 18.dp)) {
                 items(visible, key = { it.id }) { item ->
                     Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color(0xFF171523)), shape = RoundedCornerShape(15.dp)) {
