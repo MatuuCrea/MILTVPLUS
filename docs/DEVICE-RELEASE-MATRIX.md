@@ -12,12 +12,13 @@ Este documento define lo que debe existir y probarse antes de declarar cada plat
 ## Android TV y Google TV
 - **Paquete:** variante Android TV compatible; el manifiesto declara Leanback y pantalla táctil opcional.
 - **Recursos:** banner TV original, icono launcher, interfaz de diez pies, foco visible, estados de selección, navegación D-pad/OK/Back y controles accesibles desde mando.
-- **Pruebas:** emulador Android TV y al menos un dispositivo físico; navegación completa sin pantalla táctil, foco en todos los controles, reproducción y recuperación de errores con mando.
+- **Pruebas:** emulador Android TV y al menos un dispositivo físico; navegación completa sin pantalla táctil, foco en todos los controles, reproducción y recuperación de errores con mando. Registrar modelo, versión de Android/Fire OS, API level, ABI, resolución y resultado.
 - **Salida:** no declarar compatible hasta completar prueba real de control remoto y validar instalación en el dispositivo objetivo.
 
 ## Fire TV (Fire OS) y TV Box / TV Stick
 - **Fire OS:** el APK Android puede ser candidato; el manifiesto declara `amazon.hardware.fire_tv` opcional y la app fuerza navegación de diez pies en hardware Fire TV detectado.
-- **Límite importante:** no confundir Fire OS con Vega OS. Los modelos Fire TV que ejecutan Vega OS no instalan APK Android y requieren cliente Vega independiente.
+- **Límites de versión:** el APK declara `minSdk 23` (Android 6.0). Por eso Fire OS 5 (Android API 22) queda excluido aunque el equipo ejecute Fire OS; Fire OS 6 o posterior sólo es candidato si el modelo ofrece API/ABI compatibles. Confirmar la versión real del dispositivo antes de instalar.
+- **Límite de sistema:** no confundir Fire OS con Vega OS. Los modelos Fire TV que ejecutan Vega OS no instalan APK Android y requieren cliente Vega independiente. No anunciar compatibilidad genérica con toda la familia Fire TV.
 
 ## TV Box y TV Stick / dongle HDMI
 - **Qué significa:** TV Box es un decodificador externo; TV Stick o dongle HDMI es un dispositivo compacto conectado al HDMI. Algunos usan Android TV/Google TV y otros sistemas propietarios.
@@ -69,6 +70,7 @@ Un APK no se instala directamente en Tizen o webOS. Ver `docs/NATIVE-TV-CLIENTS.
 
 ## Estado conocido al 14 de noviembre de 2026
 - Android CI y Windows installer CI pasaron en commits recientes; eso confirma compilación/paquetizado en runners, no QA físico.
+- El APK universal tiene `minSdk 23`: Android 5.x/API 22 y Fire OS 5 quedan fuera por requisito de plataforma, independientemente de que el instalador permita sideload.
 - Android release signing requiere los secretos protegidos ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS y ANDROID_KEY_PASSWORD. Sin ellos, el workflow falla intencionalmente y no publica un APK debug como final.
 - El cliente Windows compila y empaqueta, incorpora LibVLC y WebView2 para reproducción directa y páginas oficiales, pero no tiene paridad completa con Android. La ventana adapta barra lateral, márgenes y barra de herramientas a anchos compactos; queda pendiente probar escalado DPI, resoluciones bajas y desbordes en hardware real.
 - El catálogo no debe poblarse con fuentes no autorizadas ni datos ficticios.
